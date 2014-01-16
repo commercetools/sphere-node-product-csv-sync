@@ -1,6 +1,5 @@
 _ = require('underscore')._
 Csv = require 'csv'
-package_json = require '../package.json'
 
 class Validator
   constructor: (options) ->
