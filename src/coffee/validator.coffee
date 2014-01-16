@@ -12,8 +12,6 @@ class Validator
     Csv().from.string(csvString)
     .to.array (data, count) ->
       callback data, count
-    .on "error", (error) ->
-      throw new Error error
 
   header2index: (header) ->
     @h2i = @map.header2index header unless @h2i
@@ -61,12 +59,6 @@ class Validator
     product = raw.masterVariant
     variants = raw.variants
     errors
-
-  valProductType: () ->
-    true
-
-  valProductTypeAttributes: () ->
-    true
 
   valHeader: (csvContent) ->
     errors = []
