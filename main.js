@@ -1,1 +1,2 @@
-exports.Validator = require('./lib/Validator')
+exports.Validator = require('./lib/validator')
+exports.Mapping = require('./lib/mapping')
