@@ -1,7 +1,7 @@
 _ = require('underscore')._
 
 class Mapping
-  constructor: (options) ->
+  constructor: (options = {}) ->
 
   map: (header, content, header2index) ->
     errors = []
