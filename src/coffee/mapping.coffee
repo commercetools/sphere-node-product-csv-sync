@@ -4,14 +4,6 @@ class Mapping
   constructor: (options = {}) ->
     @DELIM_HEADER_LANGUAGE = '.'
 
-  map: (rawProducts) ->
-    errors = []
-
-    errors
-
-  mapProduct: (rawProduct) ->
-    @mapBaseProduct rawProduct.masterVariant
-
   mapBaseProduct: (rawMaster) ->
     id = null
     version = null
@@ -25,6 +17,12 @@ class Mapping
       name: name
       slug: slug
 
+  # "a.en,a.de,a.it"
+  # "hi,Hallo,ciao"
+  # values:
+  #   de: 'Hallo'
+  #   en: 'hi'
+  #   it: 'ciao'
   mapLocalizedAttrib: (row, attribName) ->
     values = {}
     if _.has(@lang_h2i, attribName)
@@ -35,11 +33,16 @@ class Mapping
       values[default_language] = row[@h2i[attribName]]
     values
 
+  # "x,y,z"
+  # header2index:
+  #   x: 0
+  #   y: 1
+  #   z: 2
   header2index: (header) ->
     _.object _.map header, (head, index) -> [head, index]
 
   # "x,a1.de,foo,a1.it"
-  # langHeader =
+  # languageHeader2Index =
   #   a1:
   #     de: 1
   #     it: 3
