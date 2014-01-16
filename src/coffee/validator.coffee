@@ -47,7 +47,7 @@ class Validator
           return errors
         product.variants.push row
       else
-        errors.push "[row #{row_index}] Could not be identified as product nor variant!"
+        errors.push "[row #{row_index}] Could not be identified as product or variant!"
     errors
 
   valProducts: (products) ->
@@ -70,6 +70,7 @@ class Validator
 
   valHeader: (csvContent) ->
     errors = []
+    # TODO: check for duplicate entries
     necessaryAttributes = [ @HEADER_PRODUCT_TYPE, @HEADER_VARIANT_ID ]
     header = csvContent[0]
     remaining = _.difference necessaryAttributes, header

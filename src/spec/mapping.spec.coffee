@@ -22,3 +22,34 @@ describe 'header2index', ->
       expect(h2i['productType']).toBe 0
       expect(h2i['foo']).toBe 1
       expect(h2i['variantId']).toBe 2
+
+describe 'languageHeader2Index', ->
+  beforeEach ->
+    @validator = new Validator()
+    @map = new Mapping()
+
+  it 'should create mapping for language attributes', ->
+    csv = 'foo,a1.de,bar,a1.it'
+    @validator.parse csv, (data, count) =>
+      lang_h2i = @map.languageHeader2Index(data[0], ['a1'])
+      expect(_.size lang_h2i).toBe 1
+      expect(_.size lang_h2i['a1']).toBe 2
+      expect(lang_h2i['a1']['de']).toBe 1
+      expect(lang_h2i['a1']['it']).toBe 3
+
+describe 'mapLocalizedAttrib', ->
+  beforeEach ->
+    @validator = new Validator()
+    @map = new Mapping()
+
+  it 'should create mapping for language attributes', ->
+    csv = "
+foo,a1.de,bar,a1.it\n
+x,Hallo,y,ciao"
+    @validator.parse csv, (data, count) =>
+      lang_h2i = @map.languageHeader2Index(data[0], ['a1'])
+      @map.lang_h2i = lang_h2i
+      values = @map.mapLocalizedAttrib(data[1], 'a1')
+      expect(_.size values).toBe 2
+      expect(values['de']).toBe 'Hallo'
+      expect(values['it']).toBe 'ciao'
