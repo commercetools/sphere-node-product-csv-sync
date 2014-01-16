@@ -31,7 +31,9 @@ class Mapping
         values[language] = row[index]
     # fall back if language columns could not be found
     if _.size(values) is 0
-      values[@default_language] = row[@h2i[attribName]]
+      val = row[@h2i[attribName]]
+      return undefined unless val
+      values[@default_language] = val
     values
 
   # "x,y,z"

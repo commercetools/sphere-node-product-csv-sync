@@ -54,7 +54,7 @@ x,Hallo,y,ciao"
       expect(values['de']).toBe 'Hallo'
       expect(values['it']).toBe 'ciao'
 
-  it 'should create fallback to non localized column', ->
+  it 'should fallback to non localized column', ->
     csv = "
 foo,a1,bar,\n
 x,hi,y"
@@ -65,3 +65,14 @@ x,hi,y"
       values = @map.mapLocalizedAttrib(data[1], 'a1')
       expect(_.size values).toBe 1
       expect(values['en']).toBe 'hi'
+
+  it 'should return undefined if header can not be found', ->
+    csv = "
+foo,a1,bar,\n
+x,hi,y"
+    @validator.parse csv, (data, count) =>
+      @map.lang_h2i = {}
+      @map.h2i =
+        a1: 1
+      values = @map.mapLocalizedAttrib(data[1], 'a2')
+      expect(values).toBeUndefined()
