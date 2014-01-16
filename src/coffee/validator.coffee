@@ -30,12 +30,10 @@ class Validator
     errors
 
   buildProducts: (content) ->
-    console.log content
     errors = []
     @products = []
     _.each content, (row, index) =>
       row_index = index + 1
-      console.log row
       if @isProduct row
         product =
           masterVariant: row

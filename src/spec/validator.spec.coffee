@@ -44,18 +44,23 @@ describe '#buildProducts', ->
     @validator = new Validator()
     @validator.header2index [ @validator.HEADER_PRODUCT_TYPE, @validator.HEADER_VARIANT_ID ]
 
-  it 'should build one product with 2 variants', (done) ->
+  it 'should build 2 products their variants', (done) ->
     csv = "productType,variantId\n
 foo,1\n
 ,2\n
-,3"
+,3\n
+bar,1\n
+,2"
+
 
     @validator.parse csv, (data, count) =>
       errors = @validator.buildProducts _.rest data
       expect(errors.length).toBe 0
-      expect(@validator.products.length).toBe 1
+      expect(@validator.products.length).toBe 2
       expect(@validator.products[0].masterVariant).toEqual ['foo', '1']
       expect(@validator.products[0].variants.length).toBe 2
+      expect(@validator.products[1].masterVariant).toEqual ['bar', '1']
+      expect(@validator.products[1].variants.length).toBe 1
       done()
 
   it 'should return error if first row in not a product', (done) ->
