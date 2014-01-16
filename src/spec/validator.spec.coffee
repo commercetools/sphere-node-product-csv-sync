@@ -31,5 +31,8 @@ describe '#validate', ->
   beforeEach ->
     @validator = new Validator()
 
-  it 'should return no error', ->
-    expect(@validator.validate()).toEqual []
+  it 'should no error', (done) ->
+    csv = 'productType,variantId\n1,2'
+    @validator.parse csv, (data, count) =>
+      expect(@validator.validate(data)).toEqual []
+      done()

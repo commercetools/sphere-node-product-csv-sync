@@ -12,14 +12,15 @@ class Validator
     .on "error", (error) ->
       throw new Error error
 
-  validate: (csv) ->
+  validate: (csvContent) ->
     errors = []
+    errors.concat(@valHeader csvContent)
     errors
 
-  valHeader: (csv) ->
+  valHeader: (csvContent) ->
     errors = []
     necessaryAttributes = [ 'productType', 'variantId' ]
-    header = csv[0]
+    header = csvContent[0]
     remaining = _.difference necessaryAttributes, header
     if _.size(remaining) > 0
       for r in remaining
