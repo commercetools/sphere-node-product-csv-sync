@@ -3,6 +3,7 @@ _ = require('underscore')._
 class Mapping
   constructor: (options = {}) ->
     @DELIM_HEADER_LANGUAGE = '.'
+    @default_language = 'en'
 
   mapBaseProduct: (rawMaster) ->
     id = null
@@ -30,7 +31,7 @@ class Mapping
         values[language] = row[index]
     # fall back if language columns could not be found
     if _.size(values) is 0
-      values[default_language] = row[@h2i[attribName]]
+      values[@default_language] = row[@h2i[attribName]]
     values
 
   # "x,y,z"
