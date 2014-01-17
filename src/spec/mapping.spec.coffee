@@ -9,7 +9,7 @@ describe '#Mapping', ->
   it 'should initialize', ->
     expect(@map).toBeDefined()
 
-describe 'header2index', ->
+describe '#header2index', ->
   beforeEach ->
     @validator = new Validator()
     @map = new Mapping()
@@ -23,7 +23,7 @@ describe 'header2index', ->
       expect(h2i['foo']).toBe 1
       expect(h2i['variantId']).toBe 2
 
-describe 'languageHeader2Index', ->
+describe '#languageHeader2Index', ->
   beforeEach ->
     @validator = new Validator()
     @map = new Mapping()
@@ -37,7 +37,7 @@ describe 'languageHeader2Index', ->
       expect(lang_h2i['a1']['de']).toBe 1
       expect(lang_h2i['a1']['it']).toBe 3
 
-describe 'mapLocalizedAttrib', ->
+describe '#mapLocalizedAttrib', ->
   beforeEach ->
     @validator = new Validator()
     @map = new Mapping()

@@ -6,6 +6,7 @@ class Validator
   constructor: (options) ->
     @map = new Mapping()
     @HEADER_PRODUCT_TYPE = 'productType'
+    @HEADER_NAME = 'name'
     @HEADER_VARIANT_ID = 'variantId'
 
   parse: (csvString, callback) ->
@@ -19,12 +20,13 @@ class Validator
   validate: (csvContent) ->
     errors = []
     @header = csvContent[0]
-    errors.concat(@valHeader @header)
+    content = _.rest csvContent
+
+    errors = errors.concat(@valHeader @header)
     @header2index @header
 
-    content = _.rest csvContent
-    errors.concat(@buildProducts content)
-    errors.concat(@valProducts @products)
+    errors = errors.concat(@buildProducts content)
+    errors = errors.concat(@valProducts @products)
     errors
 
   buildProducts: (content) ->
@@ -60,11 +62,10 @@ class Validator
     variants = raw.variants
     errors
 
-  valHeader: (csvContent) ->
+  valHeader: (header) ->
     errors = []
     # TODO: check for duplicate entries
-    necessaryAttributes = [ @HEADER_PRODUCT_TYPE, @HEADER_VARIANT_ID ]
-    header = csvContent[0]
+    necessaryAttributes = [ @HEADER_PRODUCT_TYPE, @HEADER_NAME, @HEADER_VARIANT_ID ]
     remaining = _.difference necessaryAttributes, header
     if _.size(remaining) > 0
       for r in remaining
@@ -72,7 +73,7 @@ class Validator
     errors
 
   isVariant: (row) ->
-    row[@h2i[@HEADER_PRODUCT_TYPE]] is '' and row[@h2i[@HEADER_VARIANT_ID]] isnt undefined
+    row[@h2i[@HEADER_PRODUCT_TYPE]] is '' and row[@h2i[@HEADER_NAME]] is '' and row[@h2i[@HEADER_VARIANT_ID]] isnt undefined
 
   isProduct: (row) ->
     not @isVariant row

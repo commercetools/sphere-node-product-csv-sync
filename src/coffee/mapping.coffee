@@ -6,17 +6,16 @@ class Mapping
     @default_language = 'en'
 
   mapBaseProduct: (rawMaster) ->
-    id = null
-    version = null
-
     product =
-      id: id
-      version: version
       productType:
         type: 'product_type'
-        id: productTypeId
-      name: name
-      slug: slug
+
+    baseAttributes = ['name', 'description', 'slug']
+
+    @lang_h2i = languageHeader2Index(header, baseAttributes)
+    for attribName in baseAttributes
+      values = @mapLocalizedAttrib rawMaster, attribName
+      product[attribName] = values if values
 
   # "a.en,a.de,a.it"
   # "hi,Hallo,ciao"
@@ -31,8 +30,8 @@ class Mapping
         values[language] = row[index]
     # fall back if language columns could not be found
     if _.size(values) is 0
+      return undefined unless @h2i[attribName]
       val = row[@h2i[attribName]]
-      return undefined unless val
       values[@default_language] = val
     values
 
