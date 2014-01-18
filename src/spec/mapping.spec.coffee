@@ -119,7 +119,9 @@ describe '#mapProduct', ->
   it 'should map a product', ->
     csv = "
 productType,name,variantId\n
-foo,myProduct,1"
+foo,myProduct,1\n
+,,2\n
+,,3\n"
     @validator.parse csv, (data, count) =>
       @validator.validate data
       @map.h2i = @validator.h2i
@@ -131,11 +133,14 @@ foo,myProduct,1"
           type: 'product-type'
         name:
           en: 'myProduct'
+        categories: []
         masterVariant: {
           prices: []
           attributes: []
         }
-        variants: []
-        categories: []
+        variants: [
+          { prices: [], attributes: [] }
+          { prices: [], attributes: [] }
+        ]
 
       expect(product).toEqual expectedProduct
