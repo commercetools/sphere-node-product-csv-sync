@@ -62,12 +62,13 @@ class Validator
 
   valHeader: (header) ->
     errors = []
-    # TODO: check for duplicate entries
-    necessaryAttributes = [ CONS.HEADER_PRODUCT_TYPE, CONS.HEADER_NAME, CONS.HEADER_VARIANT_ID ]
-    remaining = _.difference necessaryAttributes, header
+    if header.length isnt _.unique(header).length
+      errors.push "There are duplicate header entries!"
+
+    remaining = _.difference CONS.BASE_HEADERS, header
     if _.size(remaining) > 0
       for r in remaining
-        errors.push "Can't find necessary header '#{r}'"
+        errors.push "Can't find necessary base header '#{r}'!"
     errors
 
   isVariant: (row) ->

@@ -26,8 +26,15 @@ describe '#valHeader', ->
     @validator.parse 'foo,productType\n1,2', (data, count) =>
       errors = @validator.valHeader data[0]
       expect(errors.length).toBe 2
-      expect(errors[0]).toBe "Can't find necessary header 'name'"
-      expect(errors[1]).toBe "Can't find necessary header 'variantId'"
+      expect(errors[0]).toBe "Can't find necessary base header 'name'!"
+      expect(errors[1]).toBe "Can't find necessary base header 'variantId'!"
+      done()
+
+  it 'should return error on duplicate header', (done) ->
+    @validator.parse 'productType,name,variantId,name\n1,2,3,4', (data, count) =>
+      errors = @validator.valHeader data[0]
+      expect(errors.length).toBe 1
+      expect(errors[0]).toBe "There are duplicate header entries!"
       done()
 
 describe '#isVariant', ->
