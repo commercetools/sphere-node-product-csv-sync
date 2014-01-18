@@ -33,21 +33,21 @@ class Validator
     errors = []
     @products = []
     _.each content, (row, index) =>
-      row_index = index + 1
+      rowIndex = index + 1
       if @isProduct row
         product =
-          masterVariant: row
-          start_row: row_index
+          master: row
+          startRow: rowIndex
           variants: []
         @products.push product
       else if @isVariant row
         product = _.last @products
         unless product
-          errors.push "[row #{row_index}] We need a product before starting with a variant!"
+          errors.push "[row #{rowIndex}] We need a product before starting with a variant!"
           return errors
         product.variants.push row
       else
-        errors.push "[row #{row_index}] Could not be identified as product or variant!"
+        errors.push "[row #{rowIndex}] Could not be identified as product or variant!"
     errors
 
   valProducts: (products) ->

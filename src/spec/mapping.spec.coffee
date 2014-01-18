@@ -76,3 +76,24 @@ x,hi,y"
         a1: 1
       values = @map.mapLocalizedAttrib(data[1], 'a2')
       expect(values).toBeUndefined()
+
+describe '#mapBaseProduct', ->
+  beforeEach ->
+    @validator = new Validator()
+    @map = new Mapping()
+
+  it 'should return undefined if header can not be found', ->
+    csv = "
+productType,name,variantId,\n
+foo,myProduct,1"
+    @validator.parse csv, (data, count) =>
+      @validator.validate data
+      @map.h2i = @validator.h2i
+      product = @map.mapBaseProduct @validator.products[0], @validator.header
+
+      expectedProduct =
+        productType:
+          type: 'product-type'
+        name:
+          en: 'myProduct'
+      expect(product).toEqual expectedProduct

@@ -58,10 +58,12 @@ bar,n2,1\n
       errors = @validator.buildProducts _.rest data
       expect(errors.length).toBe 0
       expect(@validator.products.length).toBe 2
-      expect(@validator.products[0].masterVariant).toEqual ['foo', 'n1', '1']
+      expect(@validator.products[0].master).toEqual ['foo', 'n1', '1']
       expect(@validator.products[0].variants.length).toBe 2
-      expect(@validator.products[1].masterVariant).toEqual ['bar', 'n2', '1']
+      expect(@validator.products[0].startRow).toBe 1
+      expect(@validator.products[1].master).toEqual ['bar', 'n2', '1']
       expect(@validator.products[1].variants.length).toBe 1
+      expect(@validator.products[1].startRow).toBe 4
       done()
 
   it 'should return error if first row in not a product', (done) ->

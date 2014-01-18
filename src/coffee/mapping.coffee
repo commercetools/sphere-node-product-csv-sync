@@ -3,19 +3,20 @@ _ = require('underscore')._
 class Mapping
   constructor: (options = {}) ->
     @DELIM_HEADER_LANGUAGE = '.'
-    @default_language = 'en'
+    @DEFAULT_LANGUAGE = 'en'
 
-  mapBaseProduct: (rawMaster) ->
+  mapBaseProduct: (rawMaster, header) ->
     product =
       productType:
-        type: 'product_type'
+        type: 'product-type'
 
     baseAttributes = ['name', 'description', 'slug']
-
-    @lang_h2i = languageHeader2Index(header, baseAttributes)
+    @lang_h2i = @languageHeader2Index(header, baseAttributes)
     for attribName in baseAttributes
-      values = @mapLocalizedAttrib rawMaster, attribName
-      product[attribName] = values if values
+      val = @mapLocalizedAttrib rawMaster.master, attribName
+      product[attribName] = val if val
+
+    product
 
   # "a.en,a.de,a.it"
   # "hi,Hallo,ciao"
@@ -30,9 +31,9 @@ class Mapping
         values[language] = row[index]
     # fall back if language columns could not be found
     if _.size(values) is 0
-      return undefined unless @h2i[attribName]
+      return undefined unless _.has @h2i, attribName
       val = row[@h2i[attribName]]
-      values[@default_language] = val
+      values[@DEFAULT_LANGUAGE] = val
     values
 
   # "x,y,z"
