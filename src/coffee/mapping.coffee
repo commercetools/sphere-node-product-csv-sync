@@ -1,22 +1,38 @@
 _ = require('underscore')._
+CONS = require '../lib/constants'
 
 class Mapping
   constructor: (options = {}) ->
-    @DELIM_HEADER_LANGUAGE = '.'
-    @DEFAULT_LANGUAGE = 'en'
 
-  mapBaseProduct: (rawMaster, header) ->
+  mapProduct: (raw) ->
+    product = @mapBaseProduct raw.master
+    product.masterVariant = @mapVariant raw.master
+    for rawVariant in raw.variants
+      product.variants.push @mapVariant rawVariant
+    product
+
+  mapBaseProduct: (rawMaster) ->
     product =
       productType:
         type: 'product-type'
+      masterVariant: {}
+      variants: []
+      categories: []
 
-    baseAttributes = ['name', 'description', 'slug']
-    @lang_h2i = @languageHeader2Index(header, baseAttributes)
-    for attribName in baseAttributes
-      val = @mapLocalizedAttrib rawMaster.master, attribName
+    for attribName in CONS.BASE_LOCALIZED_HEADERS
+      val = @mapLocalizedAttrib rawMaster, attribName
       product[attribName] = val if val
 
     product
+
+  mapVariant: (rawVariant, productType) ->
+    variant =
+      prices: []
+      attributes: []
+
+    #for attribute in productType.attributes
+
+    variant
 
   # "a.en,a.de,a.it"
   # "hi,Hallo,ciao"
@@ -33,7 +49,7 @@ class Mapping
     if _.size(values) is 0
       return undefined unless _.has @h2i, attribName
       val = row[@h2i[attribName]]
-      values[@DEFAULT_LANGUAGE] = val
+      values[CONS.DEFAULT_LANGUAGE] = val
     values
 
   # "x,y,z"
@@ -49,17 +65,18 @@ class Mapping
   #   a1:
   #     de: 1
   #     it: 3
-  languageHeader2Index: (header, languageAttributes) ->
+  languageHeader2Index: (header, localizedAttributes) ->
     lang_h2i = {}
-    for langAttribName in languageAttributes
+    for langAttribName in localizedAttributes
       for head, index in header
-        parts = head.split @DELIM_HEADER_LANGUAGE
+        parts = head.split CONS.DELIM_HEADER_LANGUAGE
         if _.size(parts) is 2
           if parts[0] is langAttribName
             lang = parts[1]
             # TODO: check language
             lang_h2i[langAttribName] or= {}
             lang_h2i[langAttribName][lang] = index
+
     lang_h2i
 
 module.exports = Mapping

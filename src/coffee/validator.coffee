@@ -1,13 +1,11 @@
 _ = require('underscore')._
+CONS = require '../lib/constants'
 Csv = require 'csv'
 Mapping = require '../lib/mapping'
 
 class Validator
   constructor: (options) ->
     @map = new Mapping()
-    @HEADER_PRODUCT_TYPE = 'productType'
-    @HEADER_NAME = 'name'
-    @HEADER_VARIANT_ID = 'variantId'
 
   parse: (csvString, callback) ->
     Csv().from.string(csvString)
@@ -65,7 +63,7 @@ class Validator
   valHeader: (header) ->
     errors = []
     # TODO: check for duplicate entries
-    necessaryAttributes = [ @HEADER_PRODUCT_TYPE, @HEADER_NAME, @HEADER_VARIANT_ID ]
+    necessaryAttributes = [ CONS.HEADER_PRODUCT_TYPE, CONS.HEADER_NAME, CONS.HEADER_VARIANT_ID ]
     remaining = _.difference necessaryAttributes, header
     if _.size(remaining) > 0
       for r in remaining
@@ -73,7 +71,7 @@ class Validator
     errors
 
   isVariant: (row) ->
-    row[@h2i[@HEADER_PRODUCT_TYPE]] is '' and row[@h2i[@HEADER_NAME]] is '' and row[@h2i[@HEADER_VARIANT_ID]] isnt undefined
+    row[@h2i[CONS.HEADER_PRODUCT_TYPE]] is '' and row[@h2i[CONS.HEADER_NAME]] is '' and row[@h2i[CONS.HEADER_VARIANT_ID]] isnt undefined
 
   isProduct: (row) ->
     not @isVariant row

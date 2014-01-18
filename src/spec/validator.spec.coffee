@@ -1,5 +1,6 @@
 _ = require('underscore')._
 Validator = require('../main').Validator
+CONS =  require '../lib/constants'
 
 describe '#Validator', ->
   beforeEach ->
@@ -32,7 +33,7 @@ describe '#valHeader', ->
 describe '#isVariant', ->
   beforeEach ->
     @validator = new Validator()
-    @validator.header2index [ @validator.HEADER_PRODUCT_TYPE, @validator.HEADER_NAME, @validator.HEADER_VARIANT_ID ]
+    @validator.header2index CONS.BASE_HEADERS
 
   it 'should be true for a variant', ->
     expect(@validator.isVariant ['', '', 2]).toBe true
@@ -43,7 +44,7 @@ describe '#isVariant', ->
 describe '#buildProducts', ->
   beforeEach ->
     @validator = new Validator()
-    @validator.header2index [ @validator.HEADER_PRODUCT_TYPE, @validator.HEADER_NAME, @validator.HEADER_VARIANT_ID ]
+    @validator.header2index CONS.BASE_HEADERS
 
   it 'should build 2 products their variants', (done) ->
     csv = "productType,name,variantId\n
@@ -52,7 +53,6 @@ foo,n1,1\n
 ,,3\n
 bar,n2,1\n
 ,,2"
-
 
     @validator.parse csv, (data, count) =>
       errors = @validator.buildProducts _.rest data

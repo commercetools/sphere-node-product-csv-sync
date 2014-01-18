@@ -1,6 +1,7 @@
 _ = require('underscore')._
 Mapping = require('../main').Mapping
 Validator = require('../main').Validator
+CONS = require '../lib/constants'
 
 describe '#Mapping', ->
   beforeEach ->
@@ -89,11 +90,52 @@ foo,myProduct,1"
     @validator.parse csv, (data, count) =>
       @validator.validate data
       @map.h2i = @validator.h2i
-      product = @map.mapBaseProduct @validator.products[0], @validator.header
+      @map.lang_h2i = @map.languageHeader2Index(@validator.header, CONS.BASE_LOCALIZED_HEADERS)
+      product = @map.mapBaseProduct @validator.products[0].master, @validator.header
 
       expectedProduct =
         productType:
           type: 'product-type'
         name:
           en: 'myProduct'
+        masterVariant: {}
+        variants: []
+        categories: []
+
+      expect(product).toEqual expectedProduct
+
+#describe '#mapVariant', ->
+#  beforeEach ->
+#    @validator = new Validator()
+#    @map = new Mapping()
+#
+#  it 'TODO', ->
+
+describe '#mapProduct', ->
+  beforeEach ->
+    @validator = new Validator()
+    @map = new Mapping()
+
+  it 'should map a product', ->
+    csv = "
+productType,name,variantId\n
+foo,myProduct,1"
+    @validator.parse csv, (data, count) =>
+      @validator.validate data
+      @map.h2i = @validator.h2i
+      @map.lang_h2i = @map.languageHeader2Index(@validator.header, CONS.BASE_LOCALIZED_HEADERS)
+      product = @map.mapProduct @validator.products[0]
+
+      expectedProduct =
+        productType:
+          type: 'product-type'
+        name:
+          en: 'myProduct'
+        masterVariant: {
+          prices: []
+          attributes: []
+        }
+        variants: []
+        categories: []
+
       expect(product).toEqual expectedProduct
