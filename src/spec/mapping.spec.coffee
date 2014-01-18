@@ -104,12 +104,47 @@ foo,myProduct,1"
 
       expect(product).toEqual expectedProduct
 
-#describe '#mapVariant', ->
-#  beforeEach ->
-#    @validator = new Validator()
-#    @map = new Mapping()
-#
-#  it 'TODO', ->
+describe '#mapVariant', ->
+  beforeEach ->
+    @validator = new Validator()
+    @map = new Mapping()
+
+  it 'should map variant with one attribute', ->
+    productType =
+      attributes: [
+        name: 'a2'
+        type: 'text'
+      ]
+
+    @map.h2i =
+      a2: 2
+    variant = @map.mapVariant [ 'v0', 'v1', 'v2' ], productType
+
+    expectedVariant =
+      prices: []
+      attributes: [
+        name: 'a2'
+        value: 'v2'
+      ]
+
+    expect(variant).toEqual expectedVariant
+
+describe '#mapAttribute', ->
+  beforeEach ->
+    @validator = new Validator()
+    @map = new Mapping()
+
+  it 'should map simple text attribute', ->
+    productTypeAttribute =
+      name: 'foo'
+      type: 'text'
+    @map.h2i = @map.header2index [ 'foo', 'bar' ]
+    attribute = @map.mapAttribute [ 'some text', 'blabla' ], productTypeAttribute
+
+    expectedAttribute =
+      name: 'foo'
+      value: 'some text'
+    expect(attribute).toEqual expectedAttribute
 
 describe '#mapProduct', ->
   beforeEach ->
@@ -117,6 +152,8 @@ describe '#mapProduct', ->
     @map = new Mapping()
 
   it 'should map a product', ->
+    productType =
+      attributes: []
     csv = "
 productType,name,variantId\n
 foo,myProduct,1\n
@@ -126,7 +163,7 @@ foo,myProduct,1\n
       @validator.validate data
       @map.h2i = @validator.h2i
       @map.lang_h2i = @map.languageHeader2Index(@validator.header, CONS.BASE_LOCALIZED_HEADERS)
-      product = @map.mapProduct @validator.products[0]
+      product = @map.mapProduct @validator.products[0], productType
 
       expectedProduct =
         productType:

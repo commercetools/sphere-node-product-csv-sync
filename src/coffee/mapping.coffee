@@ -4,11 +4,11 @@ CONS = require '../lib/constants'
 class Mapping
   constructor: (options = {}) ->
 
-  mapProduct: (raw) ->
+  mapProduct: (raw, productType) ->
     product = @mapBaseProduct raw.master
-    product.masterVariant = @mapVariant raw.master
+    product.masterVariant = @mapVariant raw.master, productType
     for rawVariant in raw.variants
-      product.variants.push @mapVariant rawVariant
+      product.variants.push @mapVariant rawVariant, productType
     product
 
   mapBaseProduct: (rawMaster) ->
@@ -30,9 +30,15 @@ class Mapping
       prices: []
       attributes: []
 
-    #for attribute in productType.attributes
+    for attribute in productType.attributes
+      variant.attributes.push @mapAttribute rawVariant, attribute
 
     variant
+
+  mapAttribute: (rawVariant, attribute) ->
+    attribute =
+      name: attribute.name
+      value: rawVariant[@h2i[attribute.name]]
 
   # "a.en,a.de,a.it"
   # "hi,Hallo,ciao"

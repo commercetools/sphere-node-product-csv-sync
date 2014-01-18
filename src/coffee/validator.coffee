@@ -1,6 +1,6 @@
 _ = require('underscore')._
-CONS = require '../lib/constants'
 Csv = require 'csv'
+CONS = require '../lib/constants'
 Mapping = require '../lib/mapping'
 
 class Validator
@@ -56,8 +56,8 @@ class Validator
 
   valProduct: (raw) ->
     errors = []
-    product = raw.masterVariant
-    variants = raw.variants
+    rawMaster = raw.master
+    productTypeInfo = rawMaster[@h2i[CONS.HEADER_PRODUCT_TYPE]]
     errors
 
   valHeader: (header) ->
