@@ -72,7 +72,9 @@ class Validator
     errors
 
   isVariant: (row) ->
-    row[@h2i[CONS.HEADER_PRODUCT_TYPE]] is '' and row[@h2i[CONS.HEADER_NAME]] is '' and row[@h2i[CONS.HEADER_VARIANT_ID]] isnt undefined
+    row[@h2i[CONS.HEADER_PRODUCT_TYPE]] is '' and
+    row[@h2i[CONS.HEADER_NAME]] is '' and
+    row[@h2i[CONS.HEADER_VARIANT_ID]] isnt undefined # TODO: Check for numbers > 1
 
   isProduct: (row) ->
     not @isVariant row
