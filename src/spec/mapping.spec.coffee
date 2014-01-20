@@ -38,6 +38,27 @@ describe '#languageHeader2Index', ->
       expect(lang_h2i['a1']['de']).toBe 1
       expect(lang_h2i['a1']['it']).toBe 3
 
+describe '#productTypeHeaderIndex', ->
+  beforeEach ->
+    @map = new Mapping()
+
+  it 'should create language header index for ltext attributes', ->
+    productType =
+      id: '213'
+      attributes: [
+        name: 'foo'
+        type: 'ltext'
+      ]
+    @map.header = ['name', 'foo.en', 'foo.de']
+    lang_h2i = @map.productTypeHeaderIndex productType
+    expect(_.size lang_h2i).toBe 1
+    expect(_.size lang_h2i['foo']).toBe 2
+    expect(lang_h2i['foo']['de']).toBe 2
+    expect(lang_h2i['foo']['en']).toBe 1
+    expect(@map.productTypeId2HeaderIndex).toBeDefined()
+    expect(_.size @map.productTypeId2HeaderIndex).toBe 1
+    expect(@map.productTypeId2HeaderIndex['213']['foo']).toEqual lang_h2i['foo']
+
 describe '#mapLocalizedAttrib', ->
   beforeEach ->
     @validator = new Validator()
@@ -87,15 +108,18 @@ describe '#mapBaseProduct', ->
     csv = "
 productType,name,variantId,\n
 foo,myProduct,1"
+    pt =
+      id: '123'
     @validator.parse csv, (data, count) =>
       @validator.validate data
       @map.h2i = @validator.h2i
       @map.lang_h2i = @map.languageHeader2Index(@validator.header, CONS.BASE_LOCALIZED_HEADERS)
-      product = @map.mapBaseProduct @validator.products[0].master, @validator.header
+      product = @map.mapBaseProduct @validator.products[0].master, pt
 
       expectedProduct =
         productType:
           type: 'product-type'
+          id: '123'
         name:
           en: 'myProduct'
         masterVariant: {}

@@ -1,11 +1,13 @@
 _ = require('underscore')._
 Csv = require 'csv'
 CONS = require '../lib/constants'
+Types = require '../lib/types'
 Mapping = require '../lib/mapping'
 
 class Validator
   constructor: (options) ->
     @map = new Mapping()
+    @types = new Types()
 
   parse: (csvString, callback) ->
     Csv().from.string(csvString)
@@ -18,6 +20,8 @@ class Validator
   validate: (csvContent) ->
     errors = []
     @header = csvContent[0]
+    @map.header = @header
+
     content = _.rest csvContent
 
     errors = errors.concat(@valHeader @header)
@@ -57,7 +61,13 @@ class Validator
   valProduct: (raw) ->
     errors = []
     rawMaster = raw.master
-    productTypeInfo = rawMaster[@h2i[CONS.HEADER_PRODUCT_TYPE]]
+    ptInfo = rawMaster[@h2i[CONS.HEADER_PRODUCT_TYPE]]
+
+    errors.push "The product type name '#{ptInfo}' is not unique. Please use the ID!" if @types.duplicateNames[ptInfo]
+
+    index = @types.id2index[@types.name2id[ptInfo]] or @types.id2index[ptInfo]
+    errors.push "Can't find product type for '#{ptInfo}'!" if index is -1
+
     errors
 
   valHeader: (header) ->

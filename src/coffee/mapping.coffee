@@ -5,16 +5,19 @@ class Mapping
   constructor: (options = {}) ->
 
   mapProduct: (raw, productType) ->
-    product = @mapBaseProduct raw.master
-    product.masterVariant = @mapVariant raw.master, productType
+    lang_h2i = @productTypeHeaderIndex productType
+
+    product = @mapBaseProduct raw.master, productType
+    product.masterVariant = @mapVariant raw.master, productType, lang_h2i
     for rawVariant in raw.variants
-      product.variants.push @mapVariant rawVariant, productType
+      product.variants.push @mapVariant rawVariant, productType, lang_h2i
     product
 
-  mapBaseProduct: (rawMaster) ->
+  mapBaseProduct: (rawMaster, productType) ->
     product =
       productType:
         type: 'product-type'
+        id: productType.id
       masterVariant: {}
       variants: []
       categories: []
@@ -25,20 +28,33 @@ class Mapping
 
     product
 
-  mapVariant: (rawVariant, productType) ->
+  mapVariant: (rawVariant, productType, lang_h2i) ->
     variant =
       prices: []
       attributes: []
 
+    # TODO: sku
+
     for attribute in productType.attributes
-      variant.attributes.push @mapAttribute rawVariant, attribute
+      variant.attributes.push @mapAttribute rawVariant, attribute, lang_h2i
+
+    # TODO: prices
+    # TODO: images, but store them extra as we will distingush between upload, download or external
 
     variant
 
-  mapAttribute: (rawVariant, attribute) ->
+  mapAttribute: (rawVariant, attribute, lang_h2i) ->
     attribute =
       name: attribute.name
-      value: rawVariant[@h2i[attribute.name]]
+      value: @mapValue rawVariant, attribute
+
+  mapValue: (rawVariant, attribute, lang_h2i) ->
+    if attribute.type is 'ltext' #if _.has @lang_h2i, attribute.name
+      mapLocalizedAttrib rawVariant, attribute.name
+    else
+      rawVariant[@h2i[attribute.name]]
+
+    # TODO: check type
 
   # "a.en,a.de,a.it"
   # "hi,Hallo,ciao"
@@ -84,5 +100,15 @@ class Mapping
             lang_h2i[langAttribName][lang] = index
 
     lang_h2i
+
+  productTypeHeaderIndex: (productType) ->
+    @productTypeId2HeaderIndex or= {}
+    lang_h2i = @productTypeId2HeaderIndex[productType.id]
+    unless lang_h2i
+      ptLanguageAttributes = _.map productType.attributes, (a) -> a.name if a.type is 'ltext'
+      lang_h2i = @languageHeader2Index @header, ptLanguageAttributes
+      @productTypeId2HeaderIndex[productType.id] = lang_h2i
+    lang_h2i
+
 
 module.exports = Mapping
