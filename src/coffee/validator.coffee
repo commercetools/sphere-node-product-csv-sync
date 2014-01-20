@@ -8,6 +8,7 @@ class Validator
   constructor: (options) ->
     @map = new Mapping()
     @types = new Types()
+    @errors = []
 
   parse: (csvString, callback) ->
     Csv().from.string(csvString)
@@ -18,21 +19,18 @@ class Validator
     @h2i = @map.header2index header unless @h2i
 
   validate: (csvContent) ->
-    errors = []
     @header = csvContent[0]
     @map.header = @header
 
     content = _.rest csvContent
 
-    errors = errors.concat(@valHeader @header)
+    @valHeader @header
     @header2index @header
 
-    errors = errors.concat(@buildProducts content)
-    errors = errors.concat(@valProducts @products)
-    errors
+    @buildProducts content
+    @valProducts @products
 
   buildProducts: (content) ->
-    errors = []
     @products = []
     _.each content, (row, index) =>
       rowIndex = index + 1
@@ -45,41 +43,33 @@ class Validator
       else if @isVariant row
         product = _.last @products
         unless product
-          errors.push "[row #{rowIndex}] We need a product before starting with a variant!"
-          return errors
+          @errors.push "[row #{rowIndex}] We need a product before starting with a variant!"
+          return
         product.variants.push row
       else
-        errors.push "[row #{rowIndex}] Could not be identified as product or variant!"
-    errors
+        @errors.push "[row #{rowIndex}] Could not be identified as product or variant!"
 
   valProducts: (products) ->
-    errors = []
     _.each products, (product) =>
-      errors.concat(@valProduct product)
-    errors
+      @valProduct product
 
   valProduct: (raw) ->
-    errors = []
     rawMaster = raw.master
     ptInfo = rawMaster[@h2i[CONS.HEADER_PRODUCT_TYPE]]
 
-    errors.push "The product type name '#{ptInfo}' is not unique. Please use the ID!" if @types.duplicateNames[ptInfo]
+    @errors.push "The product type name '#{ptInfo}' is not unique. Please use the ID!" if @types.duplicateNames[ptInfo]
 
     index = @types.id2index[@types.name2id[ptInfo]] or @types.id2index[ptInfo]
-    errors.push "Can't find product type for '#{ptInfo}'!" if index is -1
-
-    errors
+    @errors.push "Can't find product type for '#{ptInfo}'!" if index is -1
 
   valHeader: (header) ->
-    errors = []
     if header.length isnt _.unique(header).length
-      errors.push "There are duplicate header entries!"
+      @errors.push "There are duplicate header entries!"
 
     remaining = _.difference CONS.BASE_HEADERS, header
     if _.size(remaining) > 0
       for r in remaining
-        errors.push "Can't find necessary base header '#{r}'!"
-    errors
+        @errors.push "Can't find necessary base header '#{r}'!"
 
   isVariant: (row) ->
     row[@h2i[CONS.HEADER_PRODUCT_TYPE]] is '' and

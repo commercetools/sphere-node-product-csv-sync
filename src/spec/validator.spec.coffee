@@ -24,17 +24,17 @@ describe '#valHeader', ->
 
   it 'should return error for each missing header', (done) ->
     @validator.parse 'foo,productType\n1,2', (data, count) =>
-      errors = @validator.valHeader data[0]
-      expect(errors.length).toBe 2
-      expect(errors[0]).toBe "Can't find necessary base header 'name'!"
-      expect(errors[1]).toBe "Can't find necessary base header 'variantId'!"
+      @validator.valHeader data[0]
+      expect(@validator.errors.length).toBe 2
+      expect(@validator.errors[0]).toBe "Can't find necessary base header 'name'!"
+      expect(@validator.errors[1]).toBe "Can't find necessary base header 'variantId'!"
       done()
 
   it 'should return error on duplicate header', (done) ->
     @validator.parse 'productType,name,variantId,name\n1,2,3,4', (data, count) =>
-      errors = @validator.valHeader data[0]
-      expect(errors.length).toBe 1
-      expect(errors[0]).toBe "There are duplicate header entries!"
+      @validator.valHeader data[0]
+      expect(@validator.errors.length).toBe 1
+      expect(@validator.errors[0]).toBe "There are duplicate header entries!"
       done()
 
 describe '#isVariant', ->
@@ -62,8 +62,8 @@ bar,n2,1\n
 ,,2"
 
     @validator.parse csv, (data, count) =>
-      errors = @validator.buildProducts _.rest data
-      expect(errors.length).toBe 0
+      @validator.buildProducts _.rest data
+      expect(@validator.errors.length).toBe 0
       expect(@validator.products.length).toBe 2
       expect(@validator.products[0].master).toEqual ['foo', 'n1', '1']
       expect(@validator.products[0].variants.length).toBe 2
@@ -79,10 +79,10 @@ bar,n2,1\n
 ,,2"
 
     @validator.parse csv, (data, count) =>
-      errors = @validator.buildProducts _.rest data
-      expect(errors.length).toBe 2
-      expect(errors[0]).toBe '[row 1] We need a product before starting with a variant!'
-      expect(errors[1]).toBe '[row 2] We need a product before starting with a variant!'
+      @validator.buildProducts _.rest data
+      expect(@validator.errors.length).toBe 2
+      expect(@validator.errors[0]).toBe '[row 1] We need a product before starting with a variant!'
+      expect(@validator.errors[1]).toBe '[row 2] We need a product before starting with a variant!'
       done()
 
 describe '#validate', ->
@@ -93,5 +93,6 @@ describe '#validate', ->
     csv = "productType,name,variantId\n
 foo,bar,bla"
     @validator.parse csv, (data, count) =>
-      expect(@validator.validate(data)).toEqual []
+      @validator.validate data
+      expect(@validator.errors).toEqual []
       done()
