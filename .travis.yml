@@ -5,6 +5,7 @@ before_script:
 - npm install -g grunt-cli
 script:
 - npm test
+- node lib/run.js --projectKey p --clientId c --clientSecret s --csv data/minimum-header.csv
 notifications:
   hipchat:
     rooms:
