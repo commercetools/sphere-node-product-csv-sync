@@ -5,9 +5,11 @@ Types = require '../lib/types'
 Mapping = require '../lib/mapping'
 
 class Validator
-  constructor: (options) ->
-    @map = new Mapping()
+  constructor: (options = {}) ->
     @types = new Types()
+    options.types = @types
+    options.validator = @
+    @map = new Mapping(options)
     @errors = []
 
   parse: (csvString, callback) ->
@@ -17,6 +19,7 @@ class Validator
 
   header2index: (header) ->
     @h2i = @map.header2index header unless @h2i
+    @map.h2i = @h2i
 
   validate: (csvContent) ->
     @header = csvContent[0]

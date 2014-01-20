@@ -3,6 +3,9 @@ CONS = require '../lib/constants'
 
 class Mapping
   constructor: (options = {}) ->
+    @header = options.validator.header if options.validator
+    @h2i = options.validator.h2i if options.validator
+    @types = options.types
 
   mapProduct: (raw, productType) ->
     lang_h2i = @productTypeHeaderIndex productType
@@ -22,8 +25,9 @@ class Mapping
       variants: []
       categories: []
 
+    lang_h2i = @languageHeader2Index @header, CONS.BASE_LOCALIZED_HEADERS
     for attribName in CONS.BASE_LOCALIZED_HEADERS
-      val = @mapLocalizedAttrib rawMaster, attribName
+      val = @mapLocalizedAttrib rawMaster, attribName, lang_h2i
       product[attribName] = val if val
 
     product
@@ -50,7 +54,7 @@ class Mapping
 
   mapValue: (rawVariant, attribute, lang_h2i) ->
     if attribute.type is 'ltext' #if _.has @lang_h2i, attribute.name
-      mapLocalizedAttrib rawVariant, attribute.name
+      mapLocalizedAttrib rawVariant, attribute.name, lang_h2i
     else
       rawVariant[@h2i[attribute.name]]
 
@@ -62,10 +66,10 @@ class Mapping
   #   de: 'Hallo'
   #   en: 'hi'
   #   it: 'ciao'
-  mapLocalizedAttrib: (row, attribName) ->
+  mapLocalizedAttrib: (row, attribName, lang_h2i) ->
     values = {}
-    if _.has(@lang_h2i, attribName)
-      _.each @lang_h2i[attribName], (index, language) ->
+    if _.has lang_h2i, attribName
+      _.each lang_h2i[attribName], (index, language) ->
         values[language] = row[index]
     # fall back if language columns could not be found
     if _.size(values) is 0

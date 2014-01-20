@@ -70,8 +70,7 @@ foo,a1.de,bar,a1.it\n
 x,Hallo,y,ciao"
     @validator.parse csv, (data, count) =>
       lang_h2i = @map.languageHeader2Index(data[0], ['a1'])
-      @map.lang_h2i = lang_h2i
-      values = @map.mapLocalizedAttrib(data[1], 'a1')
+      values = @map.mapLocalizedAttrib(data[1], 'a1', lang_h2i)
       expect(_.size values).toBe 2
       expect(values['de']).toBe 'Hallo'
       expect(values['it']).toBe 'ciao'
@@ -81,10 +80,9 @@ x,Hallo,y,ciao"
 foo,a1,bar,\n
 x,hi,y"
     @validator.parse csv, (data, count) =>
-      @map.lang_h2i = {}
       @map.h2i =
         a1: 1
-      values = @map.mapLocalizedAttrib(data[1], 'a1')
+      values = @map.mapLocalizedAttrib(data[1], 'a1', {})
       expect(_.size values).toBe 1
       expect(values['en']).toBe 'hi'
 
@@ -93,16 +91,14 @@ x,hi,y"
 foo,a1,bar,\n
 x,hi,y"
     @validator.parse csv, (data, count) =>
-      @map.lang_h2i = {}
       @map.h2i =
         a1: 1
-      values = @map.mapLocalizedAttrib(data[1], 'a2')
+      values = @map.mapLocalizedAttrib(data[1], 'a2', {})
       expect(values).toBeUndefined()
 
 describe '#mapBaseProduct', ->
   beforeEach ->
     @validator = new Validator()
-    @map = new Mapping()
 
   it 'should return undefined if header can not be found', ->
     csv = "
@@ -112,9 +108,7 @@ foo,myProduct,1"
       id: '123'
     @validator.parse csv, (data, count) =>
       @validator.validate data
-      @map.h2i = @validator.h2i
-      @map.lang_h2i = @map.languageHeader2Index(@validator.header, CONS.BASE_LOCALIZED_HEADERS)
-      product = @map.mapBaseProduct @validator.products[0].master, pt
+      product = @validator.map.mapBaseProduct @validator.products[0].master, pt
 
       expectedProduct =
         productType:
@@ -173,7 +167,6 @@ describe '#mapAttribute', ->
 describe '#mapProduct', ->
   beforeEach ->
     @validator = new Validator()
-    @map = new Mapping()
 
   it 'should map a product', ->
     productType =
@@ -185,9 +178,7 @@ foo,myProduct,1\n
 ,,3\n"
     @validator.parse csv, (data, count) =>
       @validator.validate data
-      @map.h2i = @validator.h2i
-      @map.lang_h2i = @map.languageHeader2Index(@validator.header, CONS.BASE_LOCALIZED_HEADERS)
-      product = @map.mapProduct @validator.products[0], productType
+      product = @validator.map.mapProduct @validator.products[0], productType
 
       expectedProduct =
         productType:
