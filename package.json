@@ -32,6 +32,7 @@
     "csv": "0.3.6",
     "sphere-node-connect": "0.2.3",
     "optimist": "0.6.0",
+    "q": "1.0.0",
     "underscore": "1.5.2"
   },
   "devDependencies": {

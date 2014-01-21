@@ -87,7 +87,7 @@ x,hi,y"
         expect(values).toBeUndefined()
 
   describe '#mapBaseProduct', ->
-    it 'should return undefined if header can not be found', ->
+    it 'should map base product', ->
       csv = "
 productType,name,variantId,\n
 foo,myProduct,1"
@@ -95,8 +95,8 @@ foo,myProduct,1"
       pt =
         id: '123'
       @validator.parse csv, (data, count) =>
-        @validator.validate data
-        product = @validator.map.mapBaseProduct @validator.products[0].master, pt
+        @validator.validateOffline data
+        product = @validator.map.mapBaseProduct @validator.rawProducts[0].master, pt
 
         expectedProduct =
           productType:
@@ -155,8 +155,8 @@ foo,myProduct,1\n
 ,,3\n"
 
       @validator.parse csv, (data, count) =>
-        @validator.validate data
-        product = @validator.map.mapProduct @validator.products[0], productType
+        @validator.validateOffline data
+        product = @validator.map.mapProduct @validator.rawProducts[0], productType
 
         expectedProduct =
           productType:

@@ -3,11 +3,10 @@ CONS = require '../lib/constants'
 
 class Mapping
   constructor: (options = {}) ->
-    @header = options.validator.header if options.validator
-    @h2i = options.validator.h2i if options.validator
     @types = options.types
 
   mapProduct: (raw, productType) ->
+    productType or= raw.master[@h2i[CONS.HEADER_PRODUCT_TYPE]]
     lang_h2i = @productTypeHeaderIndex productType
 
     product = @mapBaseProduct raw.master, productType

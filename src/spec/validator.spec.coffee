@@ -66,13 +66,13 @@ bar,n2,1\n
       @validator.parse csv, (data, count) =>
         @validator.buildProducts _.rest data
         expect(@validator.errors.length).toBe 0
-        expect(@validator.products.length).toBe 2
-        expect(@validator.products[0].master).toEqual ['foo', 'n1', '1']
-        expect(@validator.products[0].variants.length).toBe 2
-        expect(@validator.products[0].startRow).toBe 1
-        expect(@validator.products[1].master).toEqual ['bar', 'n2', '1']
-        expect(@validator.products[1].variants.length).toBe 1
-        expect(@validator.products[1].startRow).toBe 4
+        expect(@validator.rawProducts.length).toBe 2
+        expect(@validator.rawProducts[0].master).toEqual ['foo', 'n1', '1']
+        expect(@validator.rawProducts[0].variants.length).toBe 2
+        expect(@validator.rawProducts[0].startRow).toBe 1
+        expect(@validator.rawProducts[1].master).toEqual ['bar', 'n2', '1']
+        expect(@validator.rawProducts[1].variants.length).toBe 1
+        expect(@validator.rawProducts[1].startRow).toBe 4
         done()
 
     it 'should return error if first row in not a product', (done) ->
@@ -88,16 +88,15 @@ productType,name,variantId\n
         expect(@validator.errors[1]).toBe '[row 2] We need a product before starting with a variant!'
         done()
 
-  describe '#validate', ->
+  describe '#validateOffline', ->
     beforeEach ->
       @validator = new Validator()
 
-    it 'should return no error', (done) ->
+    it 'should return no error', ->
       csv = "
 productType,name,variantId\n
 foo,bar,bla"
 
       @validator.parse csv, (data, count) =>
-        @validator.validate data
+        @validator.validateOffline(data)
         expect(@validator.errors).toEqual []
-        done()

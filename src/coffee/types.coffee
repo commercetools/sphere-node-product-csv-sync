@@ -1,5 +1,6 @@
 _ = require('underscore')._
-Rest = require('sphere-node-connect').Rest
+Q = require 'q'
+
 
 class Types
   constructor: ->
@@ -8,7 +9,7 @@ class Types
     @duplicateNames = []
 
   getAllProductTypes: (rest) ->
-    deffered = Q.defer()
+    deferred = Q.defer()
     rest.GET "/product-types?limit=0", (error, response, body) ->
       if error
         deferred.reject 'Error on getting product types: ' + error
@@ -17,9 +18,9 @@ class Types
           "status #{response.statusCode})\n" +
           "body " + response.body
       else
-        retailerProducts = JSON.parse(body).results
-        deferred.resolve retailerProducts
-    deffered.promise
+        productTypes = JSON.parse(body).results
+        deferred.resolve productTypes
+    deferred.promise
 
   buildProductTypeMaps: (productTypes) ->
     for pt,index in productTypes

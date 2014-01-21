@@ -3,15 +3,21 @@ node_js:
 - '0.10'
 before_script:
 - npm install -g grunt-cli
+- ./create_config.sh
 script:
 - npm test
-- node lib/run.js --projectKey p --clientId c --clientSecret s --csv data/minimum-header.csv
+- node lib/run.js --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --csv data/minimum-header.csv
 notifications:
   hipchat:
     rooms:
-      secure: TODO
+      secure: XGXK3s/LCBpxkmwg5z4noeF7wLimz5UQocXhlO2Dpzm/jGpAF4NJ1yK9bSv19WJBF9U6NFK47iRqfIXArFLFeVcDwGMkL1bQ/PeieF5cCQc8YO6kCUFy2Ha69wbBwtL6TfU52DSqd4rnOuTAeu+WVIgE/FaW8hSzk2X4KL0Bqkk=
     template:
     - '%{repository}#%{build_number} (%{author}): %{message} (<a href="%{build_url}">Details</a><a href="%{compare_url}">Compare</a>)'
     format: html
     on_success: change
     on_failure: change
+env:
+  global:
+  - secure: kfU8iYr5dad4pMeKbPVlQqeR1Kn/NjLk5hTXHExenvT/Y6BPZWX8uy6jydC+793pZ12EVUIaBxKIQyzNPTJHbQecr3xxEdb02j9yOm58XYgJACvigCoyeo3COm6tN0o+epA/Wg7r4uAT4f30wq2PcB/FGcU5AMHm5osdpUZvpD4=
+  - secure: inEgeS1T8a0YHjBvTPM9Tb9DHakZuwR0Ulid/NdL3fGSyg/3Wm8dxxni0VwkoCGTjH6HQHCGTMuvq+QGOM67J8PMI8rrvdkwgNJ9T9j8wgLR3Xa8T916bB0Xd14dBxMebjK+0mDVCFkyM3nYwLqs4bsKRLlbQ6iF0skhNdGVJ/U=
+  - secure: EqIwvvy6VJBS5sFzdPG+6cY4iTSuXH5PYonv8M23LB/KJz8TKTiLJu7A+nbtEftzL1JtwKVNUG7KFH0G6t1TkGtbLoE3bjoxqkF9n89P4ctVlJGpm2Uf2PbF7HAsYKdI0mPSDc0RUl3QsbTr4zCp1DVmYxyhTpeECVi2+2GcRAs=

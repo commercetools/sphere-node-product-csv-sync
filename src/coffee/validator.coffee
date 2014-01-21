@@ -3,13 +3,17 @@ Csv = require 'csv'
 CONS = require '../lib/constants'
 Types = require '../lib/types'
 Mapping = require '../lib/mapping'
+Rest = require('sphere-node-connect').Rest
+Q = require 'q'
 
 class Validator
   constructor: (options = {}) ->
     @types = new Types()
     options.types = @types
     options.validator = @
-    @map = new Mapping(options)
+    @map = new Mapping options
+    @rest = new Rest options if options.config
+    @rawProducts = []
     @errors = []
 
   parse: (csvString, callback) ->
@@ -22,6 +26,10 @@ class Validator
     @map.h2i = @h2i
 
   validate: (csvContent) ->
+    @validateOffline csvContent
+    @validateOnline()
+
+  validateOffline: (csvContent) ->
     @header = csvContent[0]
     @map.header = @header
 
@@ -31,10 +39,24 @@ class Validator
     @header2index @header
 
     @buildProducts content
-    @valProducts @products
+
+  validateOnline: ->
+    deferred = Q.defer()
+    @types.getAllProductTypes(@rest).then (productTypes) =>
+      @productTypes = productTypes
+      @types.buildProductTypeMaps(productTypes)
+      @valProducts @rawProducts
+
+      if _.size(@errors) is 0
+        deferred.resolve @rawProducts
+      else
+        deferred.reject @errors
+    .fail (msg) ->
+      deferred.reject msg
+
+    deferred.promise
 
   buildProducts: (content) ->
-    @products = []
     _.each content, (row, index) =>
       rowIndex = index + 1
       if @isProduct row
@@ -42,9 +64,9 @@ class Validator
           master: row
           startRow: rowIndex
           variants: []
-        @products.push product
+        @rawProducts.push product
       else if @isVariant row
-        product = _.last @products
+        product = _.last @rawProducts
         unless product
           @errors.push "[row #{rowIndex}] We need a product before starting with a variant!"
           return
@@ -63,7 +85,11 @@ class Validator
     @errors.push "The product type name '#{ptInfo}' is not unique. Please use the ID!" if @types.duplicateNames[ptInfo]
 
     index = @types.id2index[@types.name2id[ptInfo]] or @types.id2index[ptInfo]
-    @errors.push "Can't find product type for '#{ptInfo}'!" if index is -1
+    if index is -1
+      @errors.push "Can't find product type for '#{ptInfo}'!"
+      return
+
+    rawMaster[@h2i[CONS.HEADER_PRODUCT_TYPE]] = @productTypes[index]
 
   valHeader: (header) ->
     if header.length isnt _.unique(header).length
