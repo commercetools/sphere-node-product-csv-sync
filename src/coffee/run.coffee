@@ -15,14 +15,14 @@ options =
     client_secret: argv.clientSecret
   timeout: timeout
 
-validator = new Validator()
+validator = new Validator options
 
 fs.readFile argv.csv, 'utf8', (err, content) ->
   if err
     console.error "Problems on reading file '#{argv.csv}': " + err
     process.exit 2
   validator.parse content, (data, count) ->
-    errors = validator.validateOffline data
-    process.exit 0 if validator.errors.length is 0
-    console.log validator.errors
-    process.exit 1
+    errors = validator.validate data, (then) ->
+      process.exit 0 if validator.errors.length is 0
+      console.log validator.errors
+      process.exit 1
