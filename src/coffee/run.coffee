@@ -22,7 +22,7 @@ fs.readFile argv.csv, 'utf8', (err, content) ->
     console.error "Problems on reading file '#{argv.csv}': " + err
     process.exit 2
   validator.parse content, (data, count) ->
-    errors = validator.validate data
+    errors = validator.validateOffline data
     process.exit 0 if validator.errors.length is 0
     console.log validator.errors
     process.exit 1
