@@ -2,6 +2,10 @@ Validator = require('../main').Validator
 fs = require 'fs'
 argv = require('optimist')
   .usage('Usage: $0 --projectKey key --clientId id --clientSecret secret --csv file')
+  .describe('projectKey', 'your SPHERE.IO project-key')
+  .describe('clientId', 'your OAuth client id for the SPHERE.IO API')
+  .describe('clientSecret', 'your OAuth client secret for the SPHERE.IO API')
+  .describe('csv', 'CSV file containing products to validate or import')
   .demand(['projectKey', 'clientId', 'clientSecret', 'csv'])
   .argv
 
