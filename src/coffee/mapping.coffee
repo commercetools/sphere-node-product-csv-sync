@@ -52,7 +52,7 @@ class Mapping
       value: @mapValue rawVariant, attribute
 
   mapValue: (rawVariant, attribute, lang_h2i) ->
-    if attribute.type is 'ltext' #if _.has @lang_h2i, attribute.name
+    if attribute.type is CONS.ATTRIBUTE_TYPE_LTEXT #if _.has @lang_h2i, attribute.name
       mapLocalizedAttrib rawVariant, attribute.name, lang_h2i
     else
       rawVariant[@h2i[attribute.name]]
@@ -108,7 +108,7 @@ class Mapping
     @productTypeId2HeaderIndex or= {}
     lang_h2i = @productTypeId2HeaderIndex[productType.id]
     unless lang_h2i
-      ptLanguageAttributes = _.map productType.attributes, (a) -> a.name if a.type is 'ltext'
+      ptLanguageAttributes = _.map productType.attributes, (a) -> a.name if a.type is CONS.ATTRIBUTE_TYPE_LTEXT
       lang_h2i = @languageHeader2Index @header, ptLanguageAttributes
       @productTypeId2HeaderIndex[productType.id] = lang_h2i
     lang_h2i

@@ -6,6 +6,8 @@ constants =
   DELIM_HEADER_LANGUAGE: '.'
   DEFAULT_LANGUAGE: 'en'
 
+  ATTRIBUTE_TYPE_LTEXT: 'ltext'
+
 for name,value of constants
   exports[name] = value
 
