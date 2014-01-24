@@ -21,7 +21,7 @@ class Import extends CommonUpdater
         @returnResult false, msg, callback
 
   match: (product) ->
-
+    # for now only create new products
 
   createOrUpdate: (products, callback) ->
     if _.size(products) is 0

@@ -1,64 +1,26 @@
 _ = require('underscore')._
 Mapping = require('../main').Mapping
 Validator = require('../main').Validator
+Header = require '../lib/header'
 CONS = require '../lib/constants'
 
 describe 'Mapping', ->
   beforeEach ->
     @validator = new Validator()
-    @map = new Mapping(validator: @validator)
+    @map = @validator.map
 
   describe '#constructor', ->
     it 'should initialize', ->
       expect(@map).toBeDefined()
 
-  describe '#header2index', ->
-    it 'should create mapping', ->
-      csv = 'productType,foo,variantId\n1,2,3'
-      @validator.parse csv, (data, count) =>
-        h2i = @map.header2index(data[0])
-        expect(_.size h2i).toBe 3
-        expect(h2i['productType']).toBe 0
-        expect(h2i['foo']).toBe 1
-        expect(h2i['variantId']).toBe 2
-
-  describe '#languageHeader2Index', ->
-    it 'should create mapping for language attributes', ->
-      csv = 'foo,a1.de,bar,a1.it'
-      @validator.parse csv, (data, count) =>
-        lang_h2i = @map.languageHeader2Index(data[0], ['a1'])
-        expect(_.size lang_h2i).toBe 1
-        expect(_.size lang_h2i['a1']).toBe 2
-        expect(lang_h2i['a1']['de']).toBe 1
-        expect(lang_h2i['a1']['it']).toBe 3
-
-  describe '#productTypeHeaderIndex', ->
-    it 'should create language header index for ltext attributes', ->
-      productType =
-        id: '213'
-        attributes: [
-          name: 'foo'
-          type: 'ltext'
-        ]
-      @map.header = ['name', 'foo.en', 'foo.de']
-      lang_h2i = @map.productTypeHeaderIndex productType
-      expect(_.size lang_h2i).toBe 1
-      expect(_.size lang_h2i['foo']).toBe 2
-      expect(lang_h2i['foo']['de']).toBe 2
-      expect(lang_h2i['foo']['en']).toBe 1
-      expect(@map.productTypeId2HeaderIndex).toBeDefined()
-      expect(_.size @map.productTypeId2HeaderIndex).toBe 1
-      expect(@map.productTypeId2HeaderIndex['213']['foo']).toEqual lang_h2i['foo']
-
   describe '#mapLocalizedAttrib', ->
     it 'should create mapping for language attributes', ->
       csv = "
-foo,a1.de,bar,a1.it\n
+foo,name.de,bar,name.it\n
 x,Hallo,y,ciao"
 
-      @validator.parse csv, (data, count) =>
-        lang_h2i = @map.languageHeader2Index(data[0], ['a1'])
-        values = @map.mapLocalizedAttrib(data[1], 'a1', lang_h2i)
+      @validator.parse csv, (content) =>
+        values = @map.mapLocalizedAttrib content[0], CONS.HEADER_NAME, @validator.header.toLanguageIndex()
         expect(_.size values).toBe 2
         expect(values['de']).toBe 'Hallo'
         expect(values['it']).toBe 'ciao'
@@ -68,10 +30,10 @@ x,Hallo,y,ciao"
 foo,a1,bar,\n
 x,hi,y"
 
-      @validator.parse csv, (data, count) =>
+      @validator.parse csv, (content, count) =>
         @map.h2i =
           a1: 1
-        values = @map.mapLocalizedAttrib(data[1], 'a1', {})
+        values = @map.mapLocalizedAttrib(content[0], 'a1', {})
         expect(_.size values).toBe 1
         expect(values['en']).toBe 'hi'
 
@@ -80,10 +42,10 @@ x,hi,y"
 foo,a1,bar,\n
 x,hi,y"
 
-      @validator.parse csv, (data, count) =>
+      @validator.parse csv, (content, count) =>
         @map.h2i =
           a1: 1
-        values = @map.mapLocalizedAttrib(data[1], 'a2', {})
+        values = @map.mapLocalizedAttrib(content[0], 'a2', {})
         expect(values).toBeUndefined()
 
   describe '#mapBaseProduct', ->
@@ -94,8 +56,8 @@ foo,myProduct,1"
 
       pt =
         id: '123'
-      @validator.parse csv, (data, count) =>
-        @validator.validateOffline data
+      @validator.parse csv, (content, count) =>
+        @validator.validateOffline content
         product = @validator.map.mapBaseProduct @validator.rawProducts[0].master, pt
 
         expectedProduct =
@@ -118,8 +80,7 @@ foo,myProduct,1"
           type: 'text'
         ]
 
-      @map.h2i =
-        a2: 2
+      @map.header = new Header [ 'a0', 'a1', 'a2' ]
       variant = @map.mapVariant [ 'v0', 'v1', 'v2' ], productType
 
       expectedVariant =
@@ -136,7 +97,7 @@ foo,myProduct,1"
       productTypeAttribute =
         name: 'foo'
         type: 'text'
-      @map.h2i = @map.header2index [ 'foo', 'bar' ]
+      @map.header = new Header [ 'foo', 'bar' ]
       attribute = @map.mapAttribute [ 'some text', 'blabla' ], productTypeAttribute
 
       expectedAttribute =
@@ -226,8 +187,8 @@ foo,myProduct,1\n
 ,,2\n
 ,,3\n"
 
-      @validator.parse csv, (data, count) =>
-        @validator.validateOffline data
+      @validator.parse csv, (content, count) =>
+        @validator.validateOffline content
         product = @validator.map.mapProduct @validator.rawProducts[0], productType
 
         expectedProduct =

@@ -4,11 +4,12 @@ CONS = require '../lib/constants'
 class Mapping
   constructor: (options = {}) ->
     @types = options.types
+    @validator = options.validator
     @errors = []
 
   mapProduct: (raw, productType) ->
-    productType or= raw.master[@h2i[CONS.HEADER_PRODUCT_TYPE]]
-    lang_h2i = @productTypeHeaderIndex productType
+    productType or= raw.master[@header.toIndex()[CONS.HEADER_PRODUCT_TYPE]]
+    lang_h2i = @header._productTypeLanguageIndexes productType
     rowIndex = raw.startRow
 
     product = @mapBaseProduct raw.master, productType
@@ -27,9 +28,8 @@ class Mapping
       variants: []
       categories: []
 
-    lang_h2i = @languageHeader2Index @header, CONS.BASE_LOCALIZED_HEADERS
     for attribName in CONS.BASE_LOCALIZED_HEADERS
-      val = @mapLocalizedAttrib rawMaster, attribName, lang_h2i
+      val = @mapLocalizedAttrib rawMaster, attribName, @validator.header.toLanguageIndex()
       product[attribName] = val if val
 
     product
@@ -52,13 +52,13 @@ class Mapping
   mapAttribute: (rawVariant, attribute, lang_h2i) ->
     attribute =
       name: attribute.name
-      value: @mapValue rawVariant, attribute
+      value: @mapValue rawVariant, attribute, lang_h2i
 
   mapValue: (rawVariant, attribute, lang_h2i) ->
     if attribute.type is CONS.ATTRIBUTE_TYPE_LTEXT #if _.has @lang_h2i, attribute.name
       mapLocalizedAttrib rawVariant, attribute.name, lang_h2i
     else
-      rawVariant[@h2i[attribute.name]]
+      rawVariant[@header.toIndex()[attribute.name]]
 
     # TODO: check type
 
@@ -91,53 +91,16 @@ class Mapping
   #   de: 'Hallo'
   #   en: 'hi'
   #   it: 'ciao'
-  mapLocalizedAttrib: (row, attribName, lang_h2i) ->
+  mapLocalizedAttrib: (row, attribName, langH2i) ->
     values = {}
-    if _.has lang_h2i, attribName
-      _.each lang_h2i[attribName], (index, language) ->
+    if _.has langH2i, attribName
+      _.each langH2i[attribName], (index, language) ->
         values[language] = row[index]
     # fall back if language columns could not be found
     if _.size(values) is 0
-      return undefined unless _.has @h2i, attribName
-      val = row[@h2i[attribName]]
+      return undefined unless _.has @header.toIndex(), attribName
+      val = row[@header.toIndex()[attribName]]
       values[CONS.DEFAULT_LANGUAGE] = val
     values
-
-  # "x,y,z"
-  # header2index:
-  #   x: 0
-  #   y: 1
-  #   z: 2
-  header2index: (header) ->
-    _.object _.map header, (head, index) -> [head, index]
-
-  # "x,a1.de,foo,a1.it"
-  # languageHeader2Index =
-  #   a1:
-  #     de: 1
-  #     it: 3
-  languageHeader2Index: (header, localizedAttributes) ->
-    lang_h2i = {}
-    for langAttribName in localizedAttributes
-      for head, index in header
-        parts = head.split CONS.DELIM_HEADER_LANGUAGE
-        if _.size(parts) is 2
-          if parts[0] is langAttribName
-            lang = parts[1]
-            # TODO: check language
-            lang_h2i[langAttribName] or= {}
-            lang_h2i[langAttribName][lang] = index
-
-    lang_h2i
-
-  productTypeHeaderIndex: (productType) ->
-    @productTypeId2HeaderIndex or= {}
-    lang_h2i = @productTypeId2HeaderIndex[productType.id]
-    unless lang_h2i
-      ptLanguageAttributes = _.map productType.attributes, (a) -> a.name if a.type is CONS.ATTRIBUTE_TYPE_LTEXT
-      lang_h2i = @languageHeader2Index @header, ptLanguageAttributes
-      @productTypeId2HeaderIndex[productType.id] = lang_h2i
-    lang_h2i
-
 
 module.exports = Mapping
