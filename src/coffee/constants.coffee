@@ -4,6 +4,8 @@ constants =
   HEADER_VARIANT_ID: 'variantId'
 
   DELIM_HEADER_LANGUAGE: '.'
+  DELIM_MULTI_VALUE: ';'
+
   DEFAULT_LANGUAGE: 'en'
 
   ATTRIBUTE_TYPE_LTEXT: 'ltext'

@@ -4,21 +4,24 @@ CONS = require '../lib/constants'
 class Mapping
   constructor: (options = {}) ->
     @types = options.types
+    @errors = []
 
   mapProduct: (raw, productType) ->
     productType or= raw.master[@h2i[CONS.HEADER_PRODUCT_TYPE]]
     lang_h2i = @productTypeHeaderIndex productType
+    rowIndex = raw.startRow
 
     product = @mapBaseProduct raw.master, productType
     product.masterVariant = @mapVariant raw.master, productType, lang_h2i
     for rawVariant in raw.variants
-      product.variants.push @mapVariant rawVariant, productType, lang_h2i
+      rowIndex += 1
+      product.variants.push @mapVariant rawVariant, productType, lang_h2i, rowIndex
     product
 
   mapBaseProduct: (rawMaster, productType) ->
     product =
       productType:
-        type: 'product-type'
+        typeId: 'product-type'
         id: productType.id
       masterVariant: {}
       variants: []
@@ -31,7 +34,7 @@ class Mapping
 
     product
 
-  mapVariant: (rawVariant, productType, lang_h2i) ->
+  mapVariant: (rawVariant, productType, lang_h2i, rowIndex) ->
     variant =
       prices: []
       attributes: []
@@ -58,6 +61,29 @@ class Mapping
       rawVariant[@h2i[attribute.name]]
 
     # TODO: check type
+
+  # EUR 300
+  # DE.EUR 300
+  # EN.USD 999 CG
+  #
+  mapPrices: (raw, rowIndex) ->
+    prices = []
+    rawPrices = raw.split CONS.DELIM_MULTI_VALUE
+    for rawPrice in rawPrices
+      parts = rawPrice.split ' '
+      if parts.length isnt 2
+        @errors.push "[row #{rowIndex}] Can not parse price '#{raw}'!"
+        continue
+      amount = parseInt parts[1]
+      if "#{amount}" isnt parts[1]
+        @errors.push "[row #{rowIndex}] The price amount '#{parts[1]}' isn't valid!"
+        continue
+      price =
+        money:
+          currencyCode: parts[0]
+          centAmount: parseInt parts[1]
+      prices.push price
+    prices
 
   # "a.en,a.de,a.it"
   # "hi,Hallo,ciao"

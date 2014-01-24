@@ -100,7 +100,7 @@ foo,myProduct,1"
 
         expectedProduct =
           productType:
-            type: 'product-type'
+            typeId: 'product-type'
             id: '123'
           name:
             en: 'myProduct'
@@ -144,6 +144,78 @@ foo,myProduct,1"
         value: 'some text'
       expect(attribute).toEqual expectedAttribute
 
+  describe '#mapPrices', ->
+    it 'should map single simple price', ->
+      prices = @map.mapPrices 'EUR 999'
+      expect(prices.length).toBe 1
+      expectedPrice =
+        money:
+          centAmount: 999
+          currencyCode: 'EUR'
+      expect(prices[0]).toEqual expectedPrice
+
+    it 'should give feedback when number part is not a number', ->
+      prices = @map.mapPrices 'EUR 9.99', 7
+      expect(prices.length).toBe 0
+      expect(@map.errors.length).toBe 1
+      expect(@map.errors[0]).toBe "[row 7] The price amount '9.99' isn't valid!"
+
+    it 'should give feedback when number part is not a number', ->
+      prices = @map.mapPrices 'EUR1', 8
+      expect(prices.length).toBe 0
+      expect(@map.errors.length).toBe 1
+      expect(@map.errors[0]).toBe "[row 8] Can not parse price 'EUR1'!"
+
+    xit 'should map price with country', ->
+      prices = @map.mapPrices 'CH-EUR 700'
+      expect(prices.length).toBe 1
+      expectedPrice =
+        money:
+          centAmount: 700
+          currencyCode: 'EUR'
+        country: 'CH'
+      expect(prices[0]).toEqual expectedPrice
+
+    xit 'should map price with customer group', ->
+      prices = @map.mapPrices 'GBP 0.GC'
+      expect(prices.length).toBe 1
+      expectedPrice =
+        money:
+          centAmount: 0
+          currencyCode: 'GBP'
+        customerGroup:
+          typeId: 'customer-group'
+          id: 'TODO'
+      expect(prices[0]).toEqual expectedPrice
+
+    xit 'should map price with channel key', ->
+      prices = @map.mapPrices 'USD 700-foobar'
+      expect(prices.length).toBe 1
+      expectedPrice =
+        money:
+          centAmount: 700
+          currencyCode: 'GBP'
+        channel:
+          typeId: 'channel'
+          id: 'TODO'
+      expect(prices[0]).toEqual expectedPrice
+
+    xit 'should map muliple prices', ->
+      prices = @map.mapPrices 'EUR 100;UK-USD 200'
+      expect(prices.length).toBe 2
+      expectedPrice =
+        money:
+          centAmount: 100
+          currencyCode: 'EUR'
+      expect(prices[0]).toEqual expectedPrice
+      expectedPrice =
+        money:
+          centAmount: 200
+          currencyCode: 'USD'
+        country: 'UK'
+      expect(prices[1]).toEqual expectedPrice
+
+
   describe '#mapProduct', ->
     it 'should map a product', ->
       productType =
@@ -160,7 +232,7 @@ foo,myProduct,1\n
 
         expectedProduct =
           productType:
-            type: 'product-type'
+            typeId: 'product-type'
           name:
             en: 'myProduct'
           categories: []

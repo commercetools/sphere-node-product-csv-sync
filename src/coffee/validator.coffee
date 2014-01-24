@@ -84,10 +84,11 @@ class Validator
 
     @errors.push "The product type name '#{ptInfo}' is not unique. Please use the ID!" if @types.duplicateNames[ptInfo]
 
-    index = @types.id2index[@types.name2id[ptInfo]] or @types.id2index[ptInfo]
-    if index is -1
-      @errors.push "Can't find product type for '#{ptInfo}'!"
-      return
+    index = @types.id2index[@types.name2id[ptInfo]]
+    #index = @types.id2index[ptInfo] unless index
+    #unless index
+    #  @errors.push "Can't find product type for '#{ptInfo}'!"
+    #  return
 
     rawMaster[@h2i[CONS.HEADER_PRODUCT_TYPE]] = @productTypes[index]
 

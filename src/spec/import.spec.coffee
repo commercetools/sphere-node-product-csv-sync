@@ -3,7 +3,7 @@ Import = require '../lib/import'
 Q = require 'q'
 Config = require '../config'
 
-jasmine.getEnv().defaultTimeoutInterval = 5000
+jasmine.getEnv().defaultTimeoutInterval = 30000
 
 describe 'Import', ->
   beforeEach (done) ->
@@ -14,32 +14,43 @@ describe 'Import', ->
       name: 'myType'
       description: 'foobar'
 
+    deleteProduct = (product) =>
+      deferred = Q.defer()
+      @rest.DELETE "/products/#{product.id}?version=#{product.version}", (error, response, body) ->
+        deferred.resolve response.statusCode
+      deferred.promise
+
     deleteProductType = (productType) =>
       deferred = Q.defer()
       @rest.DELETE "/product-types/#{productType.id}?version=#{productType.version}", (error, response, body) ->
-        deferred.resolve "del" + response.statusCode
+        deferred.resolve response.statusCode
       deferred.promise
 
-    @rest.GET '/product-types?limit=0', (error, response, body) =>
+    @rest.GET '/products?limit=0', (error, response, body) =>
       expect(response.statusCode).toBe 200
       parsed = JSON.parse body
       deletes = []
-      for productType in parsed.results
-        deletes.push deleteProductType(productType)
-      Q.all(deletes).then (statusCodes) =>
-        @rest.POST '/product-types', JSON.stringify(@productType), (error, response, body) =>
-          expect(response.statusCode).toBe 201
-          @productType = JSON.parse body
-          done()
-      .fail (msg) ->
-        console.log msg
-        expect(true).toBe false
+      for product in parsed.results
+        deletes.push deleteProduct(product)
+      @rest.GET '/product-types?limit=0', (error, response, body) =>
+        expect(response.statusCode).toBe 200
+        parsed = JSON.parse body
+        for productType in parsed.results
+          deletes.push deleteProductType(productType)
+        Q.all(deletes).then (statusCodes) =>
+          @rest.POST '/product-types', JSON.stringify(@productType), (error, response, body) =>
+            expect(response.statusCode).toBe 201
+            @productType = JSON.parse body
+            done()
+        .fail (msg) ->
+          expect(true).toBe false
 
   describe '#import', ->
     it 'should work for a simple product', (done) ->
       csv ="
-productType,name,variantId\n
-myType,myProduct,1"
+productType,name,variantId,slug\n
+myType,myProduct,1,slug"
       @import.import csv, (res) ->
-        expect(res).toBe true
+        expect(res.status).toBe true
+        expect(res.message).toBe 'New product created.'
         done()
