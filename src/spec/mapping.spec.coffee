@@ -106,6 +106,24 @@ foo,myProduct,1"
         value: 'some text'
       expect(attribute).toEqual expectedAttribute
 
+    it 'should map ltext attribute', ->
+      productType =
+        id: 'myType'
+        attributes: [
+          name: 'bar'
+          type: 'ltext'
+        ]
+      @map.header = new Header [ 'foo', 'bar.en', 'bar.es' ]
+      languageHeader2Index = @map.header._productTypeLanguageIndexes productType
+      attribute = @map.mapAttribute [ 'some text', 'hi', 'hola' ], productType.attributes[0], languageHeader2Index
+
+      expectedAttribute =
+        name: 'bar'
+        value:
+          en: 'hi'
+          es: 'hola'
+      expect(attribute).toEqual expectedAttribute
+
   describe '#mapPrices', ->
     it 'should map single simple price', ->
       prices = @map.mapPrices 'EUR 999'

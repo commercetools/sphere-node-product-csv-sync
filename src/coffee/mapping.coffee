@@ -9,14 +9,13 @@ class Mapping
 
   mapProduct: (raw, productType) ->
     productType or= raw.master[@header.toIndex()[CONS.HEADER_PRODUCT_TYPE]]
-    lang_h2i = @header._productTypeLanguageIndexes productType
     rowIndex = raw.startRow
 
     product = @mapBaseProduct raw.master, productType
-    product.masterVariant = @mapVariant raw.master, productType, lang_h2i
+    product.masterVariant = @mapVariant raw.master, productType, rowIndex
     for rawVariant in raw.variants
       rowIndex += 1
-      product.variants.push @mapVariant rawVariant, productType, lang_h2i, rowIndex
+      product.variants.push @mapVariant rawVariant, productType, rowIndex
     product
 
   mapBaseProduct: (rawMaster, productType) ->
@@ -34,29 +33,30 @@ class Mapping
 
     product
 
-  mapVariant: (rawVariant, productType, lang_h2i, rowIndex) ->
+  mapVariant: (rawVariant, productType, rowIndex) ->
     variant =
       prices: []
       attributes: []
 
     # TODO: sku
 
+    languageHeader2Index = @header._productTypeLanguageIndexes productType
     for attribute in productType.attributes
-      variant.attributes.push @mapAttribute rawVariant, attribute, lang_h2i
+      variant.attributes.push @mapAttribute rawVariant, attribute, languageHeader2Index
 
     # TODO: prices
     # TODO: images, but store them extra as we will distingush between upload, download or external
 
     variant
 
-  mapAttribute: (rawVariant, attribute, lang_h2i) ->
+  mapAttribute: (rawVariant, attribute, languageHeader2Index) ->
     attribute =
       name: attribute.name
-      value: @mapValue rawVariant, attribute, lang_h2i
+      value: @mapValue rawVariant, attribute, languageHeader2Index
 
-  mapValue: (rawVariant, attribute, lang_h2i) ->
-    if attribute.type is CONS.ATTRIBUTE_TYPE_LTEXT #if _.has @lang_h2i, attribute.name
-      mapLocalizedAttrib rawVariant, attribute.name, lang_h2i
+  mapValue: (rawVariant, attribute, languageHeader2Index) ->
+    if attribute.type is CONS.ATTRIBUTE_TYPE_LTEXT
+      @mapLocalizedAttrib rawVariant, attribute.name, languageHeader2Index
     else
       rawVariant[@header.toIndex()[attribute.name]]
 
