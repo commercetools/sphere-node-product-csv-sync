@@ -1,10 +1,12 @@
 _ = require 'underscore'
+CONS = require '../lib/constants'
 Validator = require '../lib/validator'
 ProductSync = require('sphere-node-sync').ProductSync
 CommonUpdater = require('sphere-node-sync').CommonUpdater
 Q = require 'q'
 
 class Import extends CommonUpdater
+
   constructor: (options = {}) ->
     @validator = new Validator options
     @sync = new ProductSync options
@@ -16,12 +18,58 @@ class Import extends CommonUpdater
         products = []
         for rawProduct in @validator.rawProducts
           products.push @validator.map.mapProduct(rawProduct)
-        @createOrUpdate products, callback
+        @getAllExistingProducts().then (existingProducts) =>
+          @initMatcher existingProducts
+          @createOrUpdate products, callback
+        .fail (msg) ->
+          @returnResult false, msg, callback
       .fail (msg) ->
         @returnResult false, msg, callback
 
+  getAllExistingProducts: ->
+    deferred = Q.defer()
+    @rest.GET '/product-projections?limit=0&staged=true', (error, response, body) ->
+      if error
+        deferred.reject 'Error on getting existing products: ' + error
+      else
+        if response.statusCode is 200
+          deferred.resolve JSON.parse(body).results
+        else
+          deferred.reject 'Problem on getting existing products: ' + body
+    deferred.promise
+
+  initMatcher: (existingProducts) ->
+    console.log "initMatcher", existingProducts
+    @existingProducts = existingProducts
+    @id2index = {}
+    @sku2index = {}
+    @slug2index = {}
+    for product, index in existingProducts
+      @id2index[product.id] = index
+      slug = product.slug[CONS.DEFAULT_LANGUAGE]
+      @slug2index[slug] = index if slug
+      mSku = @getSku(product.masterVariant)
+      @sku2index[mSku] = index if mSku
+      for variant in product.variants
+        vSku = @getSku(variant)
+        @sku2index[vSku] = index if vSku
+
+    console.log "id", @id2index
+    console.log "sku", @sku2index
+    console.log "slug", @slug2index
+
+  getSku: (variant) ->
+    variant.sku
+
   match: (product) ->
-    # for now only create new products
+    console.log "match", product
+    index = @id2index[product.id] if product.id
+    unless index
+      index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku
+      unless index
+        index = @slug2index[product.slug[CONS.DEFAULT_LANGUAGE] ] if product.slug[CONS.DEFAULT_LANGUAGE]
+    console.log "index", index
+    return @existingProducts[index] if index > -1
 
   createOrUpdate: (products, callback) ->
     if _.size(products) is 0
@@ -29,6 +77,7 @@ class Import extends CommonUpdater
     posts = []
     for product in products
       existingProduct = @match(product)
+      console.log "existingProduct", existingProduct
       if existingProduct
         posts.push @update(product, existingProduct)
       else
