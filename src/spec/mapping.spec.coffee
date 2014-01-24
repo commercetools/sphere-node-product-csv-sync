@@ -11,6 +11,7 @@ describe 'Mapping', ->
 
   describe '#constructor', ->
     it 'should initialize', ->
+      expect(-> new Mapping()).toBeDefined()
       expect(@map).toBeDefined()
 
   describe '#mapLocalizedAttrib', ->
