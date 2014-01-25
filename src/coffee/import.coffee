@@ -68,7 +68,6 @@ class Import extends CommonUpdater
       index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku
       unless index
         index = @slug2index[product.slug[CONS.DEFAULT_LANGUAGE] ] if product.slug[CONS.DEFAULT_LANGUAGE]
-    console.log "index", index
     return @existingProducts[index] if index > -1
 
   createOrUpdate: (products, callback) ->

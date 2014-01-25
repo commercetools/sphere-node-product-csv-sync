@@ -1,14 +1,14 @@
 _ = require('underscore')._
+_s = require 'underscore.string'
 CONS = require '../lib/constants'
 
 class Mapping
   constructor: (options = {}) ->
     @types = options.types
-    @validator = options.validator
     @errors = []
 
   mapProduct: (raw, productType) ->
-    productType or= raw.master[@header.toIndex()[CONS.HEADER_PRODUCT_TYPE]]
+    productType or= raw.master[@header.toIndex CONS.HEADER_PRODUCT_TYPE]
     rowIndex = raw.startRow
 
     product = @mapBaseProduct raw.master, productType
@@ -28,8 +28,13 @@ class Mapping
       categories: []
 
     for attribName in CONS.BASE_LOCALIZED_HEADERS
-      val = @mapLocalizedAttrib rawMaster, attribName, @validator.header.toLanguageIndex()
+      val = @mapLocalizedAttrib rawMaster, attribName, @header.toLanguageIndex()
       product[attribName] = val if val
+
+    unless product.slug
+      product.slug = {}
+      product.slug[CONS.DEFAULT_LANGUAGE] = _s.slugify product.name[CONS.DEFAULT_LANGUAGE]
+      # TODO: ensure slug is valid
 
     product
 
@@ -38,7 +43,7 @@ class Mapping
       prices: []
       attributes: []
 
-    # TODO: sku
+    variant.sku = rawVariant[@header.toIndex CONS.HEADER_SKU] if @header.has CONS.HEADER_SKU
 
     languageHeader2Index = @header._productTypeLanguageIndexes productType
     for attribute in productType.attributes
@@ -58,7 +63,7 @@ class Mapping
     if attribute.type is CONS.ATTRIBUTE_TYPE_LTEXT
       @mapLocalizedAttrib rawVariant, attribute.name, languageHeader2Index
     else
-      rawVariant[@header.toIndex()[attribute.name]]
+      rawVariant[@header.toIndex attribute.name]
 
     # TODO: check type
 
@@ -98,8 +103,8 @@ class Mapping
         values[language] = row[index]
     # fall back if language columns could not be found
     if _.size(values) is 0
-      return undefined unless _.has @header.toIndex(), attribName
-      val = row[@header.toIndex()[attribName]]
+      return undefined unless @header.has attribName
+      val = row[@header.toIndex attribName]
       values[CONS.DEFAULT_LANGUAGE] = val
     values
 

@@ -72,7 +72,7 @@ class Validator
 
   valProduct: (raw) ->
     rawMaster = raw.master
-    ptInfo = rawMaster[@header.toIndex()[CONS.HEADER_PRODUCT_TYPE]]
+    ptInfo = rawMaster[@header.toIndex CONS.HEADER_PRODUCT_TYPE]
 
     @errors.push "The product type name '#{ptInfo}' is not unique. Please use the ID!" if @types.duplicateNames[ptInfo]
 
@@ -82,12 +82,12 @@ class Validator
     #  @errors.push "Can't find product type for '#{ptInfo}'!"
     #  return
 
-    rawMaster[@header.toIndex()[CONS.HEADER_PRODUCT_TYPE]] = @productTypes[index]
+    rawMaster[@header.toIndex CONS.HEADER_PRODUCT_TYPE] = @productTypes[index]
 
   isVariant: (row) ->
-    row[@header.toIndex()[CONS.HEADER_PRODUCT_TYPE]] is '' and
-    row[@header.toIndex()[CONS.HEADER_NAME]] is '' and
-    row[@header.toIndex()[CONS.HEADER_VARIANT_ID]] isnt undefined # TODO: Check for numbers > 1
+    row[@header.toIndex CONS.HEADER_PRODUCT_TYPE ] is '' and
+    row[@header.toIndex CONS.HEADER_NAME ] is '' and
+    row[@header.toIndex CONS.HEADER_VARIANT_ID ] isnt undefined # TODO: Check for numbers > 1
 
   isProduct: (row) ->
     not @isVariant row

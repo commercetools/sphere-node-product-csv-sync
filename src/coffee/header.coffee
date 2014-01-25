@@ -22,14 +22,21 @@ class Header
   #   x: 0
   #   y: 1
   #   z: 2
-  toIndex: ->
+  toIndex: (name) ->
     @h2i = _.object _.map @rawHeader, (head, index) -> [head, index] unless @h2i
+    return @h2i[name] if name
     @h2i
 
+  has: (name) ->
+    _.has @h2i, name
 
-  toLanguageIndex: ->
+  toLanguageIndex: (name) ->
     @langH2i = @_languageToIndex CONS.BASE_LOCALIZED_HEADERS unless @langH2i
+    return @langH2i[name] if name
     @langH2i
+
+  hasLanguage: (name) ->
+    _.has @langH2i, name
 
   # "a,x.de,y,x.it,z"
   # productTypeAttributeToIndex for 'foo'

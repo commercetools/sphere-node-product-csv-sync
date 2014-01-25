@@ -32,8 +32,7 @@ foo,a1,bar,\n
 x,hi,y"
 
       @validator.parse csv, (content, count) =>
-        @map.h2i =
-          a1: 1
+        @validator.header.toIndex()
         values = @map.mapLocalizedAttrib(content[0], 'a1', {})
         expect(_.size values).toBe 1
         expect(values['en']).toBe 'hi'
@@ -44,8 +43,7 @@ foo,a1,bar,\n
 x,hi,y"
 
       @validator.parse csv, (content, count) =>
-        @map.h2i =
-          a1: 1
+        @validator.header.toIndex()
         values = @map.mapLocalizedAttrib(content[0], 'a2', {})
         expect(values).toBeUndefined()
 
@@ -67,6 +65,8 @@ foo,myProduct,1"
             id: '123'
           name:
             en: 'myProduct'
+          slug:
+            en: 'myproduct'
           masterVariant: {}
           variants: []
           categories: []
@@ -81,10 +81,12 @@ foo,myProduct,1"
           type: 'text'
         ]
 
-      @map.header = new Header [ 'a0', 'a1', 'a2' ]
-      variant = @map.mapVariant [ 'v0', 'v1', 'v2' ], productType
+      @map.header = new Header [ 'a0', 'a1', 'a2', 'sku' ]
+      @map.header.toIndex()
+      variant = @map.mapVariant [ 'v0', 'v1', 'v2', 'mySKU' ], productType
 
       expectedVariant =
+        sku: 'mySKU'
         prices: []
         attributes: [
           name: 'a2'
@@ -201,10 +203,10 @@ foo,myProduct,1"
       productType =
         attributes: []
       csv = "
-productType,name,variantId\n
-foo,myProduct,1\n
-,,2\n
-,,3\n"
+productType,name,variantId,sku\n
+foo,myProduct,1,x\n
+,,2,y\n
+,,3,z\n"
 
       @validator.parse csv, (content, count) =>
         @validator.validateOffline content
@@ -215,14 +217,17 @@ foo,myProduct,1\n
             typeId: 'product-type'
           name:
             en: 'myProduct'
+          slug:
+            en: 'myproduct'
           categories: []
           masterVariant: {
+            sku: 'x'
             prices: []
             attributes: []
           }
           variants: [
-            { prices: [], attributes: [] }
-            { prices: [], attributes: [] }
+            { sku: 'y', prices: [], attributes: [] }
+            { sku: 'z', prices: [], attributes: [] }
           ]
 
         expect(product).toEqual expectedProduct

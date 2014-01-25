@@ -2,6 +2,8 @@ constants =
   HEADER_PRODUCT_TYPE: 'productType'
   HEADER_NAME: 'name'
   HEADER_VARIANT_ID: 'variantId'
+  HEADER_SLUG: 'slug'
+  HEADER_SKU: 'sku'
 
   DELIM_HEADER_LANGUAGE: '.'
   DELIM_MULTI_VALUE: ';'
@@ -22,7 +24,7 @@ exports.BASE_HEADERS = [
 exports.BASE_LOCALIZED_HEADERS = [
   constants.HEADER_NAME,
   'description',
-  'slug',
+  constants.HEADER_SLUG,
   'metaTitle',
   'metaDescription',
   'metaKeywords'
