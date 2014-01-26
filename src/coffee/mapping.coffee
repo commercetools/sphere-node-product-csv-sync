@@ -12,10 +12,10 @@ class Mapping
     rowIndex = raw.startRow
 
     product = @mapBaseProduct raw.master, productType
-    product.masterVariant = @mapVariant raw.master, productType, rowIndex
-    for rawVariant in raw.variants
+    product.masterVariant = @mapVariant raw.master, 1, productType, rowIndex
+    for rawVariant, index in raw.variants
       rowIndex += 1
-      product.variants.push @mapVariant rawVariant, productType, rowIndex
+      product.variants.push @mapVariant rawVariant, index + 2, productType, rowIndex
     product
 
   mapBaseProduct: (rawMaster, productType) ->
@@ -38,17 +38,19 @@ class Mapping
 
     product
 
-  mapVariant: (rawVariant, productType, rowIndex) ->
+  mapVariant: (rawVariant, variantId, productType, rowIndex) ->
     variant =
+      id: variantId
       prices: []
       attributes: []
 
     variant.sku = rawVariant[@header.toIndex CONS.HEADER_SKU] if @header.has CONS.HEADER_SKU
 
     languageHeader2Index = @header._productTypeLanguageIndexes productType
-    for attribute in productType.attributes
-      attrib = @mapAttribute rawVariant, attribute, languageHeader2Index, rowIndex
-      variant.attributes.push attrib if attrib
+    if productType.attributes
+      for attribute in productType.attributes
+        attrib = @mapAttribute rawVariant, attribute, languageHeader2Index, rowIndex
+        variant.attributes.push attrib if attrib
 
     # TODO: prices
     # TODO: images, but store them extra as we will distingush between upload, download or external
@@ -63,18 +65,12 @@ class Mapping
       value: value
 
   mapValue: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
-    console.log attribute.type
     switch attribute.type
       when CONS.ATTRIBUTE_TYPE_LTEXT then @mapLocalizedAttrib rawVariant, attribute.name, languageHeader2Index
-#      when CONS.ATTRIBUTE_TYPE_ENUM, CONS.ATTRIBUTE_TYPE_LENUM then 'x'
       when CONS.ATTRIBUTE_TYPE_NUMBER then @mapNumber rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant, attribute.name
       else rawVariant[@header.toIndex attribute.name]
 
-  # EUR 300
-  # DE.EUR 300
-  # EN.USD 999 CG
-  #
   mapPrices: (raw, rowIndex) ->
     prices = []
     rawPrices = raw.split CONS.DELIM_MULTI_VALUE
@@ -87,6 +83,8 @@ class Mapping
       prices.push money
     prices
 
+  # EUR 300
+  # USD 999
   mapMoney: (rawMoney, attribName, rowIndex) ->
     parts = rawMoney.split ' '
     if parts.length isnt 2

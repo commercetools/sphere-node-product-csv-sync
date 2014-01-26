@@ -83,9 +83,10 @@ foo,myProduct,1"
 
       @map.header = new Header [ 'a0', 'a1', 'a2', 'sku' ]
       @map.header.toIndex()
-      variant = @map.mapVariant [ 'v0', 'v1', 'v2', 'mySKU' ], productType
+      variant = @map.mapVariant [ 'v0', 'v1', 'v2', 'mySKU' ], 2, productType
 
       expectedVariant =
+        id: 2
         sku: 'mySKU'
         prices: []
         attributes: [
@@ -230,13 +231,14 @@ foo,myProduct,1,x\n
             en: 'myproduct'
           categories: []
           masterVariant: {
+            id: 1
             sku: 'x'
             prices: []
             attributes: []
           }
           variants: [
-            { sku: 'y', prices: [], attributes: [] }
-            { sku: 'z', prices: [], attributes: [] }
+            { id: 2, sku: 'y', prices: [], attributes: [] }
+            { id: 3, sku: 'z', prices: [], attributes: [] }
           ]
 
         expect(product).toEqual expectedProduct
