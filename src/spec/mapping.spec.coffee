@@ -140,13 +140,13 @@ foo,myProduct,1"
       prices = @map.mapPrices 'EUR 9.99', 7
       expect(prices.length).toBe 0
       expect(@map.errors.length).toBe 1
-      expect(@map.errors[0]).toBe "[row 7] The price amount '9.99' isn't valid!"
+      expect(@map.errors[0]).toBe "[row 7:prices] The number '9.99' isn't valid!"
 
     it 'should give feedback when number part is not a number', ->
       prices = @map.mapPrices 'EUR1', 8
       expect(prices.length).toBe 0
       expect(@map.errors.length).toBe 1
-      expect(@map.errors[0]).toBe "[row 8] Can not parse price 'EUR1'!"
+      expect(@map.errors[0]).toBe "[row 8] Can not parse money 'EUR1'!"
 
     xit 'should map price with country', ->
       prices = @map.mapPrices 'CH-EUR 700'
@@ -197,6 +197,15 @@ foo,myProduct,1"
         country: 'UK'
       expect(prices[1]).toEqual expectedPrice
 
+  describe '#mapNumber', ->
+    it 'should map number', ->
+      expect(@validator.map.mapNumber('0')).toBe 0
+
+    it 'should fail when input is not a valid number', ->
+      number = @validator.map.mapNumber 9.99, 'myAttrib', 4
+      expect(number).toBeUndefined()
+      expect(@validator.map.errors.length).toBe 1
+      expect(@validator.map.errors[0]).toBe "[row 4:myAttrib] The number '9.99' isn't valid!"
 
   describe '#mapProduct', ->
     it 'should map a product', ->

@@ -15,9 +15,15 @@ class Import extends CommonUpdater
   import: (fileContent, callback) ->
     @validator.parse fileContent, (data, count) =>
       @validator.validate(data).then (rawProducts) =>
+        if _.size(@validator.errors) isnt 0
+          @returnResult false, @validator.map.errors, callback
+          return
         products = []
         for rawProduct in @validator.rawProducts
           products.push @validator.map.mapProduct(rawProduct)
+        if _.size(@validator.map.errors) isnt 0
+          @returnResult false, @validator.map.errors, callback
+          return
         @getAllExistingProducts().then (existingProducts) =>
           @initMatcher existingProducts
           @createOrUpdate products, callback
@@ -62,7 +68,7 @@ class Import extends CommonUpdater
     variant.sku
 
   match: (product) ->
-    console.log "match", product
+    console.log "match %j", product
     index = @id2index[product.id] if product.id
     unless index
       index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku
@@ -82,8 +88,9 @@ class Import extends CommonUpdater
       else
         posts.push @create(product)
 #    @initProgressBar 'Updating products', _.size(posts)
-    Q.all(posts).then (messages) =>
-      @returnResult true, messages, callback
+    console.log 'Updating products', _.size(posts)
+    Q.all(posts).then (msg) =>
+      @returnResult true, msg, callback
     .fail (msg) =>
       @returnResult false, msg, callback
 

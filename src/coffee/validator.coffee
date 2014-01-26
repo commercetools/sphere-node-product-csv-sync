@@ -54,7 +54,7 @@ class Validator
       if @isProduct row
         product =
           master: row
-          startRow: rowIndex
+          startRow: rowIndex + 1
           variants: []
         @rawProducts.push product
       else if @isVariant row
@@ -74,13 +74,15 @@ class Validator
     rawMaster = raw.master
     ptInfo = rawMaster[@header.toIndex CONS.HEADER_PRODUCT_TYPE]
 
-    @errors.push "The product type name '#{ptInfo}' is not unique. Please use the ID!" if @types.duplicateNames[ptInfo]
+    @errors.push "[row #{raw.startRow}] The product type name '#{ptInfo}' is not unique. Please use the ID!" if @types.duplicateNames[ptInfo]
 
     index = @types.id2index[@types.name2id[ptInfo]]
     #index = @types.id2index[ptInfo] unless index
     #unless index
     #  @errors.push "Can't find product type for '#{ptInfo}'!"
     #  return
+
+    @errors.push "[row #{raw.startRow}] Can't find product type for '#{ptInfo}" unless index > -1
 
     rawMaster[@header.toIndex CONS.HEADER_PRODUCT_TYPE] = @productTypes[index]
 

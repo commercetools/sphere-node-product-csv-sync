@@ -4,6 +4,7 @@ constants =
   HEADER_VARIANT_ID: 'variantId'
   HEADER_SLUG: 'slug'
   HEADER_SKU: 'sku'
+  HEADER_PRICES: 'prices'
 
   DELIM_HEADER_LANGUAGE: '.'
   DELIM_MULTI_VALUE: ';'
@@ -11,6 +12,10 @@ constants =
   DEFAULT_LANGUAGE: 'en'
 
   ATTRIBUTE_TYPE_LTEXT: 'ltext'
+  ATTRIBUTE_TYPE_ENUM: 'enum'
+  ATTRIBUTE_TYPE_LENUM: 'lenum'
+  ATTRIBUTE_TYPE_NUMBER: 'number'
+  ATTRIBUTE_TYPE_MONEY: 'money'
 
 for name,value of constants
   exports[name] = value

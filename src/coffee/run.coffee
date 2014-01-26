@@ -1,4 +1,4 @@
-Validator = require('../main').Validator
+Import = require '../lib/import'
 fs = require 'fs'
 argv = require('optimist')
   .usage('Usage: $0 --projectKey key --clientId id --clientSecret secret --csv file')
@@ -19,14 +19,14 @@ options =
     client_secret: argv.clientSecret
   timeout: timeout
 
-validator = new Validator options
+importer = new Import options
 
 fs.readFile argv.csv, 'utf8', (err, content) ->
   if err
     console.error "Problems on reading file '#{argv.csv}': " + err
     process.exit 2
-  validator.parse content, (data, count) ->
-    errors = validator.validate data, (then) ->
-      process.exit 0 if validator.errors.length is 0
-      console.log validator.errors
-      process.exit 1
+
+  importer.import content, (result) ->
+    console.log result.message
+    process.exit 0 if result.status is true
+    process.exit 1

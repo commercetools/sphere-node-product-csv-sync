@@ -47,25 +47,29 @@ class Mapping
 
     languageHeader2Index = @header._productTypeLanguageIndexes productType
     for attribute in productType.attributes
-      variant.attributes.push @mapAttribute rawVariant, attribute, languageHeader2Index
+      attrib = @mapAttribute rawVariant, attribute, languageHeader2Index, rowIndex
+      variant.attributes.push attrib if attrib
 
     # TODO: prices
     # TODO: images, but store them extra as we will distingush between upload, download or external
 
     variant
 
-  mapAttribute: (rawVariant, attribute, languageHeader2Index) ->
+  mapAttribute: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
+    value = @mapValue rawVariant, attribute, languageHeader2Index, rowIndex
+    return unless value
     attribute =
       name: attribute.name
-      value: @mapValue rawVariant, attribute, languageHeader2Index
+      value: value
 
-  mapValue: (rawVariant, attribute, languageHeader2Index) ->
-    if attribute.type is CONS.ATTRIBUTE_TYPE_LTEXT
-      @mapLocalizedAttrib rawVariant, attribute.name, languageHeader2Index
-    else
-      rawVariant[@header.toIndex attribute.name]
-
-    # TODO: check type
+  mapValue: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
+    console.log attribute.type
+    switch attribute.type
+      when CONS.ATTRIBUTE_TYPE_LTEXT then @mapLocalizedAttrib rawVariant, attribute.name, languageHeader2Index
+#      when CONS.ATTRIBUTE_TYPE_ENUM, CONS.ATTRIBUTE_TYPE_LENUM then 'x'
+      when CONS.ATTRIBUTE_TYPE_NUMBER then @mapNumber rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
+      when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant, attribute.name
+      else rawVariant[@header.toIndex attribute.name]
 
   # EUR 300
   # DE.EUR 300
@@ -75,20 +79,33 @@ class Mapping
     prices = []
     rawPrices = raw.split CONS.DELIM_MULTI_VALUE
     for rawPrice in rawPrices
-      parts = rawPrice.split ' '
-      if parts.length isnt 2
-        @errors.push "[row #{rowIndex}] Can not parse price '#{raw}'!"
-        continue
-      amount = parseInt parts[1]
-      if "#{amount}" isnt parts[1]
-        @errors.push "[row #{rowIndex}] The price amount '#{parts[1]}' isn't valid!"
-        continue
-      price =
-        money:
-          currencyCode: parts[0]
-          centAmount: parseInt parts[1]
-      prices.push price
+      money = @mapMoney rawPrice, CONS.HEADER_PRICES, rowIndex
+      continue unless money
+      # TODO contry
+      # TODO customer group
+      # TODO channel
+      prices.push money
     prices
+
+  mapMoney: (rawMoney, attribName, rowIndex) ->
+    parts = rawMoney.split ' '
+    if parts.length isnt 2
+      @errors.push "[row #{rowIndex}] Can not parse money '#{rawMoney}'!"
+      return
+    amount = @mapNumber parts[1], attribName, rowIndex
+    return unless amount
+    # TODO: check for correct currencyCode
+    price =
+      money:
+        currencyCode: parts[0]
+        centAmount: amount
+
+  mapNumber: (rawNumber, attribName, rowIndex) ->
+    number = parseInt rawNumber
+    if "#{number}" isnt rawNumber
+      @errors.push "[row #{rowIndex}:#{attribName}] The number '#{rawNumber}' isn't valid!"
+      return
+    number
 
   # "a.en,a.de,a.it"
   # "hi,Hallo,ciao"
