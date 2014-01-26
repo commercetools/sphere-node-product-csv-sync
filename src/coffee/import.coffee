@@ -27,9 +27,9 @@ class Import extends CommonUpdater
         @getAllExistingProducts().then (existingProducts) =>
           @initMatcher existingProducts
           @createOrUpdate products, callback
-        .fail (msg) ->
+        .fail (msg) =>
           @returnResult false, msg, callback
-      .fail (msg) ->
+      .fail (msg) =>
         @returnResult false, msg, callback
 
   getAllExistingProducts: ->
