@@ -69,7 +69,7 @@ class Header
     @productTypeId2HeaderIndex or= {}
     langH2i = @productTypeId2HeaderIndex[productType.id]
     unless langH2i
-      ptLanguageAttributes = _.map productType.attributes, (attribute) -> attribute.name if attribute.type is CONS.ATTRIBUTE_TYPE_LTEXT
+      ptLanguageAttributes = _.map productType.attributes, (attribute) -> attribute.name if attribute.type.name is CONS.ATTRIBUTE_TYPE_LTEXT
       langH2i = @_languageToIndex ptLanguageAttributes
       @productTypeId2HeaderIndex[productType.id] = langH2i
     langH2i

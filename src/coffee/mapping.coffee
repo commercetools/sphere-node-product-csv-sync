@@ -77,7 +77,7 @@ class Mapping
       value: value
 
   mapValue: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
-    switch attribute.type
+    switch attribute.type.name
       when CONS.ATTRIBUTE_TYPE_LTEXT then @mapLocalizedAttrib rawVariant, attribute.name, languageHeader2Index
       when CONS.ATTRIBUTE_TYPE_NUMBER then @mapNumber rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant, attribute.name
@@ -134,6 +134,7 @@ class Mapping
       centAmount: amount
 
   mapNumber: (rawNumber, attribName, rowIndex) ->
+    return if _.isString(rawNumber) and rawNumber.length is 0
     number = parseInt rawNumber
     if "#{number}" isnt rawNumber
       @errors.push "[row #{rowIndex}:#{attribName}] The number '#{rawNumber}' isn't valid!"

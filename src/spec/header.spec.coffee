@@ -59,7 +59,8 @@ productType,foo,variantId\n
         id: '213'
         attributes: [
           name: 'foo'
-          type: 'ltext'
+          type:
+            name: 'ltext'
         ]
       @csv = "
 someHeader,foo.en,foo.de

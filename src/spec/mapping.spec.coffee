@@ -86,7 +86,8 @@ foo,myProduct,1"
       productType =
         attributes: [
           name: 'a2'
-          type: 'text'
+          type:
+            name: 'text'
         ]
 
       @map.header = new Header [ 'a0', 'a1', 'a2', 'sku' ]
@@ -108,7 +109,8 @@ foo,myProduct,1"
     it 'should map simple text attribute', ->
       productTypeAttribute =
         name: 'foo'
-        type: 'text'
+        type:
+          name: 'text'
       @map.header = new Header [ 'foo', 'bar' ]
       attribute = @map.mapAttribute [ 'some text', 'blabla' ], productTypeAttribute
 
@@ -122,7 +124,8 @@ foo,myProduct,1"
         id: 'myType'
         attributes: [
           name: 'bar'
-          type: 'ltext'
+          type:
+            name: 'ltext'
         ]
       @map.header = new Header [ 'foo', 'bar.en', 'bar.es' ]
       languageHeader2Index = @map.header._productTypeLanguageIndexes productType
