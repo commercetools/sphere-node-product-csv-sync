@@ -80,15 +80,13 @@ class Validator
 
     @errors.push "[row #{raw.startRow}] The product type name '#{ptInfo}' is not unique. Please use the ID!" if _.contains(@types.duplicateNames, ptInfo)
 
-    index = @types.id2index[@types.name2id[ptInfo]]
-    #index = @types.id2index[ptInfo] unless index
-    #unless index
-    #  @errors.push "Can't find product type for '#{ptInfo}'!"
-    #  return
-
-    @errors.push "[row #{raw.startRow}] Can't find product type for '#{ptInfo}" unless index > -1
-
-    rawMaster[@header.toIndex CONS.HEADER_PRODUCT_TYPE] = @productTypes[index]
+    if _.has(@types.name2id, ptInfo)
+      ptInfo = @types.name2id[ptInfo]
+    if _.has(@types.id2index, ptInfo)
+      index = @types.id2index[ptInfo]
+      rawMaster[@header.toIndex CONS.HEADER_PRODUCT_TYPE] = @productTypes[index]
+    else
+      @errors.push "[row #{raw.startRow}] Can't find product type for '#{ptInfo}"
 
   isVariant: (row) ->
     row[@header.toIndex CONS.HEADER_PRODUCT_TYPE ] is '' and
