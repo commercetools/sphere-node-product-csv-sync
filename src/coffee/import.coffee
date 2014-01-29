@@ -68,7 +68,7 @@ class Import extends CommonUpdater
     variant.sku
 
   match: (product) ->
-    console.log "match %j", product
+#    console.log "match %j", product
     index = @id2index[product.id] if product.id
     unless index
       index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku
@@ -82,7 +82,7 @@ class Import extends CommonUpdater
     posts = []
     for product in products
       existingProduct = @match(product)
-      console.log "existingProduct %j", existingProduct
+#      console.log "existingProduct %j", existingProduct
       if existingProduct
         posts.push @update(product, existingProduct)
       else

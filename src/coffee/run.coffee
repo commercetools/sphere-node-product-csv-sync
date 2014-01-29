@@ -18,6 +18,9 @@ options =
     client_id: argv.clientId
     client_secret: argv.clientSecret
   timeout: timeout
+  oauth_host: 'auth.escemo.com'
+  host: 'api.escemo.com'
+  rejectUnauthorized: false
 
 importer = new Import options
 

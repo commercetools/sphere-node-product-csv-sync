@@ -136,9 +136,9 @@ class Mapping
   mapNumber: (rawNumber, attribName, rowIndex) ->
     return if _.isString(rawNumber) and rawNumber.length is 0
     number = parseInt rawNumber
-    if "#{number}" isnt rawNumber
-      @errors.push "[row #{rowIndex}:#{attribName}] The number '#{rawNumber}' isn't valid!"
-      return
+#    if "#{number}" isnt rawNumber
+#      @errors.push "[row #{rowIndex}:#{attribName}] The number '#{rawNumber}' isn't valid!"
+#      return
     number
 
   # "a.en,a.de,a.it"
