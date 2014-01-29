@@ -45,7 +45,7 @@ class Import extends CommonUpdater
     deferred.promise
 
   initMatcher: (existingProducts) ->
-    console.log "initMatcher", existingProducts
+    console.log "initMatcher: ", _.size existingProducts
     @existingProducts = existingProducts
     @id2index = {}
     @sku2index = {}
@@ -60,9 +60,9 @@ class Import extends CommonUpdater
         vSku = @getSku(variant)
         @sku2index[vSku] = index if vSku
 
-    console.log "id", @id2index
-    console.log "sku", @sku2index
-    console.log "slug", @slug2index
+    console.log "id2index: ", _.size @id2index
+    console.log "sku2index: ", _.size @sku2index
+    console.log "slug2index: ", _.size @slug2index
 
   getSku: (variant) ->
     variant.sku
@@ -82,7 +82,7 @@ class Import extends CommonUpdater
     posts = []
     for product in products
       existingProduct = @match(product)
-      console.log "existingProduct", existingProduct
+      console.log "existingProduct %j", existingProduct
       if existingProduct
         posts.push @update(product, existingProduct)
       else
@@ -105,6 +105,9 @@ class Import extends CommonUpdater
           deferred.resolve 'Product updated.'
         else if response.statusCode is 304
           deferred.resolve 'Product update not necessary.'
+        else if response.statusCode is 400
+          # TODO: provide better feedback with error from response
+          deferred.resolve "Problem on updating product: " + body
         else
           deferred.reject 'Problem on updating product: ' + body
     deferred.promise
@@ -118,6 +121,9 @@ class Import extends CommonUpdater
       else
         if response.statusCode is 201
           deferred.resolve 'New product created.'
+        else if response.statusCode is 400
+          # TODO: provide better feedback with error from response
+          deferred.reject "Problem on creating new product: " + body
         else
           deferred.reject 'Problem on creating new product: ' + body
     deferred.promise

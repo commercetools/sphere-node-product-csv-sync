@@ -69,7 +69,7 @@ class Mapping
       when CONS.ATTRIBUTE_TYPE_LTEXT then @mapLocalizedAttrib rawVariant, attribute.name, languageHeader2Index
       when CONS.ATTRIBUTE_TYPE_NUMBER then @mapNumber rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant, attribute.name
-      else rawVariant[@header.toIndex attribute.name]
+      else rawVariant[@header.toIndex attribute.name] # works for text, enum and lenum
 
   mapPrices: (raw, rowIndex) ->
     prices = []
