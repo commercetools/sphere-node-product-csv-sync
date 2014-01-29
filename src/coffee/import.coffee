@@ -79,6 +79,7 @@ class Import extends CommonUpdater
   createOrUpdate: (products, callback) ->
     if _.size(products) is 0
       return @returnResult true, 'Nothing to do.', callback
+#    @initProgressBar 'Updating products', _.size(products)
     posts = []
     for product in products
       existingProduct = @match(product)
@@ -87,10 +88,16 @@ class Import extends CommonUpdater
         posts.push @update(product, existingProduct)
       else
         posts.push @create(product)
-#    @initProgressBar 'Updating products', _.size(posts)
-    console.log 'Updating products', _.size(posts)
-    Q.all(posts).then (msg) =>
-      @returnResult true, msg, callback
+    @processInBatches posts, callback
+
+  processInBatches: (posts, callback, numberOfParallelRequest = 50, acc = []) =>
+    current = _.take posts, numberOfParallelRequest
+    Q.all(current).then (msg) =>
+      messages = acc.concat(msg)
+      if _.size(current) < numberOfParallelRequest
+        @returnResult true, messages, callback
+      else
+        @processInBatches _.tail(posts, numberOfParallelRequest), callback, numberOfParallelRequest, messages
     .fail (msg) =>
       @returnResult false, msg, callback
 
