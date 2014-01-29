@@ -1,7 +1,7 @@
 Import = require '../lib/import'
 fs = require 'fs'
 argv = require('optimist')
-  .usage('Usage: $0 --projectKey key --clientId id --clientSecret secret --csv file')
+  .usage('Usage: $0 --projectKey key --clientId id --clientSecret secret --csv file --staging')
   .describe('projectKey', 'your SPHERE.IO project-key')
   .describe('clientId', 'your OAuth client id for the SPHERE.IO API')
   .describe('clientSecret', 'your OAuth client secret for the SPHERE.IO API')
@@ -18,9 +18,11 @@ options =
     client_id: argv.clientId
     client_secret: argv.clientSecret
   timeout: timeout
-  oauth_host: 'auth.escemo.com'
-  host: 'api.escemo.com'
-  rejectUnauthorized: false
+
+if argv.staging
+  options.oauth_host = 'auth_sphere_cloud.commercetools.de'
+  options.host = 'api_sphere_cloud.commercetools.de'
+  options.rejectUnauthorized = false
 
 importer = new Import options
 
