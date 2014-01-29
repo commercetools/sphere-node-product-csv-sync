@@ -5,6 +5,7 @@ CONS = require '../lib/constants'
 class Mapping
   constructor: (options = {}) ->
     @types = options.types
+    @customerGroups = options.customerGroups
     @errors = []
 
   mapProduct: (raw, productType) ->
@@ -33,10 +34,20 @@ class Mapping
 
     unless product.slug
       product.slug = {}
-      product.slug[CONS.DEFAULT_LANGUAGE] = _s.slugify product.name[CONS.DEFAULT_LANGUAGE]
-      # TODO: ensure slug is valid
+      product.slug[CONS.DEFAULT_LANGUAGE] = @ensureValidSlug(_s.slugify product.name[CONS.DEFAULT_LANGUAGE])
 
     product
+
+  # TODO
+  # - check min length of 2
+  # - check max lenght of 64
+  ensureValidSlug: (slug, appendix = '') ->
+    @slugs or= []
+    currentSlug = "#{slug}#{appendix}"
+    unless _.contains(@slugs, currentSlug)
+      @slugs.push currentSlug
+      return currentSlug
+    @ensureValidSlug slug, Math.floor((Math.random()*89999)+10001) # five digets
 
   mapVariant: (rawVariant, variantId, productType, rowIndex) ->
     variant =
@@ -52,8 +63,9 @@ class Mapping
         attrib = @mapAttribute rawVariant, attribute, languageHeader2Index, rowIndex
         variant.attributes.push attrib if attrib
 
-    # TODO: prices
-    # TODO: images, but store them extra as we will distingush between upload, download or external
+    @mapPrices rawVariant[@header.toIndex CONS.HEADER_PRICES], rowIndex
+
+    @mapImages rawVariant, rowIndex
 
     variant
 
@@ -71,16 +83,40 @@ class Mapping
       when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant, attribute.name
       else rawVariant[@header.toIndex attribute.name] # works for text, enum and lenum
 
+  # TODO: support channels in prices
   mapPrices: (raw, rowIndex) ->
+    return if raw is undefined
     prices = []
     rawPrices = raw.split CONS.DELIM_MULTI_VALUE
     for rawPrice in rawPrices
-      money = @mapMoney rawPrice, CONS.HEADER_PRICES, rowIndex
-      continue unless money
-      # TODO contry
-      # TODO customer group
-      # TODO channel
-      prices.push money
+      parts = rawPrice.split ' '
+      price = {}
+      if _.size(parts) is 2 or _.size(parts) is 3
+        currencyCode = parts[0]
+        centAmount = parts[1]
+        splitted = currencyCode.split '-'
+        if _.size(splitted) is 2
+          price.country = splitted[0]
+          currencyCode = splitted[1]
+        else if _.size(splitted) isnt 1
+          @errors.push "[row #{rowIndex}:#{CONS.HEADER_PRICES}] Can not extract county from price!"
+          return []
+        price.value = @mapMoney "#{currencyCode} #{centAmount}", CONS.HEADER_PRICES, rowIndex
+        return [] unless price.value
+      else
+        @errors.push "[row #{rowIndex}:#{CONS.HEADER_PRICES}] Can not parse price '#{rawPrice}'!"
+        return []
+      if _.size(parts) is 3
+        customerGroupName = parts[2]
+        unless _.has(@customerGroups.name2id, customerGroupName)
+          @errors.push "[row #{rowIndex}:#{CONS.HEADER_PRICES}] Can not find customer group '#{customerGroupName}'!"
+          return []
+        price.customerGroup =
+          typeId: 'customer-group'
+          id: @customerGroups.name2id[customerGroupName]
+
+      prices.push price
+
     prices
 
   # EUR 300
@@ -88,15 +124,14 @@ class Mapping
   mapMoney: (rawMoney, attribName, rowIndex) ->
     parts = rawMoney.split ' '
     if parts.length isnt 2
-      @errors.push "[row #{rowIndex}] Can not parse money '#{rawMoney}'!"
+      @errors.push "[row #{rowIndex}:#{attribName}] Can not parse money '#{rawMoney}'!"
       return
     amount = @mapNumber parts[1], attribName, rowIndex
-    return unless amount
+    return unless _.isNumber amount
     # TODO: check for correct currencyCode
-    price =
-      money:
-        currencyCode: parts[0]
-        centAmount: amount
+    money =
+      currencyCode: parts[0]
+      centAmount: amount
 
   mapNumber: (rawNumber, attribName, rowIndex) ->
     number = parseInt rawNumber
@@ -116,11 +151,26 @@ class Mapping
     if _.has langH2i, attribName
       _.each langH2i[attribName], (index, language) ->
         values[language] = row[index]
-    # fall back if language columns could not be found
+    # fall back to non localized column if language columns could not be found
     if _.size(values) is 0
       return undefined unless @header.has attribName
       val = row[@header.toIndex attribName]
       values[CONS.DEFAULT_LANGUAGE] = val
     values
+
+  # TODO: images, but store them extra as we will distingush between upload, download or external
+  mapImages: (row, rowIndex) ->
+    images = []
+
+    if false
+      image =
+        urls: ''
+        imageLabels: ''
+        xs: 0
+        ys: 0
+
+      images.push image
+
+    images
 
 module.exports = Mapping

@@ -22,7 +22,7 @@ class Types
         deferred.resolve productTypes
     deferred.promise
 
-  buildProductTypeMaps: (productTypes) ->
+  buildMaps: (productTypes) ->
     for pt,index in productTypes
       name = pt.name
       id = pt.id

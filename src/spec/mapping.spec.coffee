@@ -14,6 +14,14 @@ describe 'Mapping', ->
       expect(-> new Mapping()).toBeDefined()
       expect(@map).toBeDefined()
 
+  describe '#ensureValidSlug', ->
+    it 'should accept unique slug', ->
+      expect(@map.ensureValidSlug 'foo').toBe 'foo'
+
+    it 'should enhance duplicate slug', ->
+      expect(@map.ensureValidSlug 'foo').toBe 'foo'
+      expect(@map.ensureValidSlug 'foo').toMatch /foo\d{5}/
+
   describe '#mapLocalizedAttrib', ->
     it 'should create mapping for language attributes', ->
       csv = "
@@ -132,7 +140,7 @@ foo,myProduct,1"
       prices = @map.mapPrices 'EUR 999'
       expect(prices.length).toBe 1
       expectedPrice =
-        money:
+        value:
           centAmount: 999
           currencyCode: 'EUR'
       expect(prices[0]).toEqual expectedPrice
@@ -147,56 +155,64 @@ foo,myProduct,1"
       prices = @map.mapPrices 'EUR1', 8
       expect(prices.length).toBe 0
       expect(@map.errors.length).toBe 1
-      expect(@map.errors[0]).toBe "[row 8] Can not parse money 'EUR1'!"
+      expect(@map.errors[0]).toBe "[row 8:prices] Can not parse price 'EUR1'!"
 
-    xit 'should map price with country', ->
+    it 'should map price with country', ->
       prices = @map.mapPrices 'CH-EUR 700'
       expect(prices.length).toBe 1
       expectedPrice =
-        money:
+        value:
           centAmount: 700
           currencyCode: 'EUR'
         country: 'CH'
       expect(prices[0]).toEqual expectedPrice
 
-    xit 'should map price with customer group', ->
-      prices = @map.mapPrices 'GBP 0.GC'
+    it 'should give feedback when there are problems in parsing the country info ', ->
+      prices = @map.mapPrices 'CH-DE-EUR 700', 99
+      expect(prices.length).toBe 0
+      expect(@map.errors.length).toBe 1
+      expect(@map.errors[0]).toBe "[row 99:prices] Can not extract county from price!"
+
+    it 'should map price with customer group', ->
+      @map.customerGroups =
+        name2id:
+          myGroup: 'group123'
+      prices = @map.mapPrices 'GBP 0 myGroup'
       expect(prices.length).toBe 1
       expectedPrice =
-        money:
+        value:
           centAmount: 0
           currencyCode: 'GBP'
         customerGroup:
           typeId: 'customer-group'
-          id: 'TODO'
+          id: 'group123'
       expect(prices[0]).toEqual expectedPrice
 
-    xit 'should map price with channel key', ->
-      prices = @map.mapPrices 'USD 700-foobar'
-      expect(prices.length).toBe 1
-      expectedPrice =
-        money:
-          centAmount: 700
-          currencyCode: 'GBP'
-        channel:
-          typeId: 'channel'
-          id: 'TODO'
-      expect(prices[0]).toEqual expectedPrice
+    it 'should give feedback that customer group does not exist', ->
+      prices = @map.mapPrices 'YEN 777 unknownGroup', 5
+      expect(prices.length).toBe 0
+      expect(@map.errors.length).toBe 1
+      expect(@map.errors[0]).toBe "[row 5:prices] Can not find customer group 'unknownGroup'!"
 
-    xit 'should map muliple prices', ->
-      prices = @map.mapPrices 'EUR 100;UK-USD 200'
-      expect(prices.length).toBe 2
+    it 'should map muliple prices', ->
+      prices = @map.mapPrices 'EUR 100;UK-USD 200;YEN 999'
+      expect(prices.length).toBe 3
       expectedPrice =
-        money:
+        value:
           centAmount: 100
           currencyCode: 'EUR'
       expect(prices[0]).toEqual expectedPrice
       expectedPrice =
-        money:
+        value:
           centAmount: 200
           currencyCode: 'USD'
         country: 'UK'
       expect(prices[1]).toEqual expectedPrice
+      expectedPrice =
+        value:
+          centAmount: 999
+          currencyCode: 'YEN'
+      expect(prices[2]).toEqual expectedPrice
 
   describe '#mapNumber', ->
     it 'should map number', ->

@@ -92,7 +92,7 @@ productType,name,variantId\n
 productType,name,variantId\n
 foo,bar,bla"
 
-      @validator.parse csv, (content) =>
+      @validator.parse csv, (content) ->
         #@validator.valProduct content
 
   describe '#validateOffline', ->

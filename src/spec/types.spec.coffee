@@ -9,7 +9,7 @@ describe 'Types', ->
     it 'should construct', ->
       expect(@types).toBeDefined()
 
-  describe '#buildProductTypeMaps', ->
+  describe '#buildMaps', ->
     it 'should create maps for product types', ->
       pt1 =
         id: 'pt1'
@@ -20,7 +20,7 @@ describe 'Types', ->
       pt3 =
         id: 'pt3'
         name: 'myType'
-      @types.buildProductTypeMaps [pt1, pt2, pt3]
+      @types.buildMaps [pt1, pt2, pt3]
       expect(_.size @types.id2index).toBe 3
       expect(@types.id2index['pt1']).toBe 0
       expect(@types.id2index['pt2']).toBe 1

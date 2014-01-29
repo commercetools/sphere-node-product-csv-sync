@@ -2,6 +2,7 @@ _ = require('underscore')._
 Csv = require 'csv'
 CONS = require '../lib/constants'
 Types = require '../lib/types'
+CustomerGroups = require '../lib/customergroups'
 Mapping = require '../lib/mapping'
 Header = require '../lib/header'
 Rest = require('sphere-node-connect').Rest
@@ -10,7 +11,9 @@ Q = require 'q'
 class Validator
   constructor: (options = {}) ->
     @types = new Types()
+    @customerGroups = new CustomerGroups()
     options.types = @types
+    options.customerGroups = @customerGroups
     options.validator = @
     @map = new Mapping options
     @rest = new Rest options if options.config
@@ -34,9 +37,10 @@ class Validator
 
   validateOnline: ->
     deferred = Q.defer()
-    @types.getAllProductTypes(@rest).then (productTypes) =>
+    Q.all([@types.getAllProductTypes(@rest), @customerGroups.getAllCustomerGroups(@rest)]).then ([productTypes, customerGroups]) =>
       @productTypes = productTypes
-      @types.buildProductTypeMaps(productTypes)
+      @types.buildMaps productTypes
+      @customerGroups.buildMaps customerGroups
       @valProducts @rawProducts
 
       if _.size(@errors) is 0
@@ -74,7 +78,7 @@ class Validator
     rawMaster = raw.master
     ptInfo = rawMaster[@header.toIndex CONS.HEADER_PRODUCT_TYPE]
 
-    @errors.push "[row #{raw.startRow}] The product type name '#{ptInfo}' is not unique. Please use the ID!" if @types.duplicateNames[ptInfo]
+    @errors.push "[row #{raw.startRow}] The product type name '#{ptInfo}' is not unique. Please use the ID!" if _.has(@types.duplicateNames, ptInfo)
 
     index = @types.id2index[@types.name2id[ptInfo]]
     #index = @types.id2index[ptInfo] unless index

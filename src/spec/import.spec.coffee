@@ -46,7 +46,7 @@ describe 'Import', ->
           expect(true).toBe false
 
   describe '#import', ->
-    it 'should import for a simple product', (done) ->
+    it 'should import a simple product', (done) ->
       csv ="
 productType,name,variantId,slug\n
 myType,myProduct,1,slug"

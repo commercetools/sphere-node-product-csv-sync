@@ -106,8 +106,9 @@ class Import extends CommonUpdater
         else if response.statusCode is 304
           deferred.resolve 'Product update not necessary.'
         else if response.statusCode is 400
-          # TODO: provide better feedback with error from response
-          deferred.resolve "Problem on updating product: " + body
+          parsed = JSON.parse body
+          humanReadable = JSON.stringify parsed, null, '  '
+          deferred.resolve "Problem on updating product:\n" + humanReadable
         else
           deferred.reject 'Problem on updating product: ' + body
     deferred.promise
@@ -122,8 +123,9 @@ class Import extends CommonUpdater
         if response.statusCode is 201
           deferred.resolve 'New product created.'
         else if response.statusCode is 400
-          # TODO: provide better feedback with error from response
-          deferred.reject "Problem on creating new product: " + body
+          parsed = JSON.parse body
+          humanReadable = JSON.stringify parsed, null, '  '
+          deferred.reject "Problem on creating new product:\n" + humanReadable
         else
           deferred.reject 'Problem on creating new product: ' + body
     deferred.promise
