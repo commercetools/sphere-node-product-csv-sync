@@ -78,7 +78,7 @@ class Validator
     rawMaster = raw.master
     ptInfo = rawMaster[@header.toIndex CONS.HEADER_PRODUCT_TYPE]
 
-    @errors.push "[row #{raw.startRow}] The product type name '#{ptInfo}' is not unique. Please use the ID!" if _.has(@types.duplicateNames, ptInfo)
+    @errors.push "[row #{raw.startRow}] The product type name '#{ptInfo}' is not unique. Please use the ID!" if _.contains(@types.duplicateNames, ptInfo)
 
     index = @types.id2index[@types.name2id[ptInfo]]
     #index = @types.id2index[ptInfo] unless index
