@@ -4,6 +4,7 @@ CONS = require '../lib/constants'
 Types = require '../lib/types'
 Categories = require '../lib/categories'
 CustomerGroups = require '../lib/customergroups'
+Taxes = require '../lib/taxes'
 Mapping = require '../lib/mapping'
 Header = require '../lib/header'
 Rest = require('sphere-node-connect').Rest
@@ -14,9 +15,11 @@ class Validator
     @types = new Types()
     @customerGroups = new CustomerGroups()
     @categories = new Categories()
+    @taxes = new Taxes()
     options.types = @types
     options.customerGroups = @customerGroups
     options.categories = @categories
+    options.taxes = @taxes
     options.validator = @
     @map = new Mapping options
     @rest = new Rest options if options.config
@@ -44,12 +47,14 @@ class Validator
       @types.getAll @rest
       @customerGroups.getAll @rest
       @categories.getAll @rest
+      @taxes.getAll @rest
     ]
-    Q.all(gets).then ([productTypes, customerGroups, categories]) =>
+    Q.all(gets).then ([productTypes, customerGroups, categories, taxes]) =>
       @productTypes = productTypes
       @types.buildMaps productTypes
       @customerGroups.buildMaps customerGroups
       @categories.buildMaps categories
+      @taxes.buildMaps taxes
       @valProducts @rawProducts
 
       if _.size(@errors) is 0

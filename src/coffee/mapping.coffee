@@ -7,6 +7,7 @@ class Mapping
     @types = options.types
     @customerGroups = options.customerGroups
     @categories = options.categories
+    @taxes = options.taxes
     @errors = []
 
   mapProduct: (raw, productType) ->
@@ -27,9 +28,10 @@ class Mapping
         id: productType.id
       masterVariant: {}
       variants: []
-      categories: []
 
     product.categories = @mapCategories rawMaster
+    tax = @mapTaxCategory rawMaster
+    product.taxCategory = tax if tax
 
     for attribName in CONS.BASE_LOCALIZED_HEADERS
       val = @mapLocalizedAttrib rawMaster, attribName, @header.toLanguageIndex()
@@ -75,6 +77,20 @@ class Mapping
         @errors.push "[row #{rowIndex}:#{CONS.HEADER_CATEGORIES}] Can not find category for '#{rawCategory}'!"
 
     categories
+
+  mapTaxCategory: (rawMaster, rowIndex) ->
+    return unless @header.has CONS.HEADER_TAX
+    rawTax = rawMaster[@header.toIndex CONS.HEADER_TAX]
+    return [] if _.isString(rawTax) and raw.length is 0
+    if _.contains(@taxes.duplicateNames, rawTax)
+      @errors.push "[row #{rowIndex}:#{CONS.HEADER_TAX}] The tax category '#{rawTax}' is not unqiue!"
+      return
+    unless _.has(@tax.name2id, rawTax)
+      @errors.push "[row #{rowIndex}:#{CONS.HEADER_TAX}] The tax category '#{rawTax}' is unknown!"
+      return
+    tax =
+      typeId: 'tax-category'
+      id: @tax.name2id[rawTax]
 
   mapVariant: (rawVariant, variantId, productType, rowIndex) ->
     variant =
