@@ -58,7 +58,7 @@ describe 'Import', ->
 
   describe '#import', ->
     it 'should import a simple product', (done) ->
-      csv ="
+      csv = "
 productType,name,variantId,slug\n
 #{@productType.id},myProduct,1,slug"
       @import.import csv, (res) ->
@@ -67,7 +67,7 @@ productType,name,variantId,slug\n
         done()
 
     it 'should do nothing on 2nd import run', (done) ->
-      csv ="
+      csv = "
 productType,name,variantId,slug\n
 #{@productType.id},myProduct1,1,slug"
       @import.import csv, (res) ->
@@ -79,42 +79,54 @@ productType,name,variantId,slug\n
           expect(res.message).toBe 'Product update not necessary.'
           done()
 
+    it 'should update 2nd import run', (done) ->
+      csv = "
+productType,name,variantId,slug\n
+#{@productType.id},myProductX,1,sluguniqe"
+      @import.import csv, (res) =>
+        expect(res.status).toBe true
+        expect(res.message).toBe 'New product created.'
+        im = new Import Config
+        csv = "
+productType,name,variantId,slug\n
+#{@productType.id},CHANGED,1,sluguniqe"
+        im.import csv, (res) ->
+          expect(res.status).toBe true
+          expect(res.message).toBe 'Product updated.'
+          done()
+
     it 'should handle all kind of attributes and constraints', (done) ->
-      csv ="
+      csv = "
 productType,name,variantId,slug,descN,descU,descUC1,descUC2,descS\n
 #{@productType.id},myProduct1,1,slugi,,text1,foo,bar,same\n
 ,,2,slug,free,text2,foo,baz,same\n
 ,,3,slug,,text3,boo,baz,same"
-      @import.import csv, (res) ->
-        console.log res
+      @import.import csv, (res) =>
         expect(res.status).toBe true
         expect(res.message).toBe 'New product created.'
-        done()
-#        im = new Import Config
-#        im.import csv, (res) ->
-#          console.log res
-#          expect(res.status).toBe true
-#          expect(res.message).toBe 'Product update not necessary.'
-#          csv ="
-#productType,name,variantId,slug,descN,descU,descCU1,descCU2,descS\n
-##{@productType.id},myProduct1,1,slugi,,text4,foo,bar,STILL_SAME\n
-#,,2,slug,free,text2,foo,baz,STILL_SAME\n
-#,,3,slug,CHANGED,text3,boo,baz,STILL_SAME"
-#          im.import csv, (res) ->
-#            console.log res
-#            expect(res.status).toBe true
-#            expect(res.message).toBe 'Product updated.'
-#            done()
+        im = new Import Config
+        im.import csv, (res) =>
+          expect(res.status).toBe true
+          expect(res.message).toBe 'Product update not necessary.'
+          csv = "
+productType,name,variantId,slug,descN,descU,descCU1,descCU2,descS\n
+#{@productType.id},myProduct1,1,slugi,,text4,boo,bar,STILL_SAME\n
+,,2,slug,free,text2,foo,baz,STILL_SAME\n
+,,3,slug,CHANGED,text3,boo,baz,STILL_SAME"
+          im = new Import Config
+          im.import csv, (res) ->
+            expect(res.status).toBe true
+            expect(res.message).toBe 'Product updated.'
+            done()
 
-    xit 'should handle multiple attributes', (done) ->
-      csv ="
-productType,name,variantId,slug\n
-#{@productType.id},myProduct1,1,slug1,descU,descCU1\n
-,,2,slug12,x,y
+    it 'should handle multiple products', (done) ->
+      csv = "
+productType,name,variantId,slug,descU,descCU1\n
+#{@productType.id},myProduct1,1,slug1\n
+,,2,slug12,x,y\n
 #{@productType.id},myProduct2,1,slug2\n
 #{@productType.id},myProduct3,1,slug3"
       @import.import csv, (res) ->
-        console.log res
         expect(res.status).toBe true
         expect(res.message['New product created.']).toBe 3
         im = new Import Config

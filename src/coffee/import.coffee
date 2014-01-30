@@ -104,7 +104,8 @@ class Import extends CommonUpdater
   update: (product, existingProduct, types) ->
     deferred = Q.defer()
     allSameValueAttributes = types.id2SameForAllAttributes[product.productType.id]
-    @sync.buildActions(product, existingProduct, allSameValueAttributes).update (error, response, body) ->
+    diff = @sync.buildActions(product, existingProduct, allSameValueAttributes)
+    diff.update (error, response, body) ->
 #      @tickProgress()
       if error
         deferred.reject 'Error on updating product: ' + error
