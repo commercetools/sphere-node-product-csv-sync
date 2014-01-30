@@ -112,7 +112,10 @@ class Import extends CommonUpdater
         deferred.reject 'Error on updating product: ' + error
       else
         if response.statusCode is 200
-          deferred.resolve 'Product updated.'
+          @publishProduct(JSON.parse(body)).then (msg) ->
+            deferred.resolve 'Product updated.'
+          .fail (msg) ->
+            deferred.reject msg
         else if response.statusCode is 304
           deferred.resolve 'Product update not necessary.'
         else if response.statusCode is 400
@@ -131,7 +134,10 @@ class Import extends CommonUpdater
         deferred.reject 'Error on creating new product: ' + error
       else
         if response.statusCode is 201
-          deferred.resolve 'New product created.'
+          @publishProduct(JSON.parse(body)).then (msg) ->
+            deferred.resolve 'New product created.'
+          .fail (msg) ->
+            deferred.reject msg
         else if response.statusCode is 400
           parsed = JSON.parse body
           humanReadable = JSON.stringify parsed, null, '  '
@@ -140,8 +146,12 @@ class Import extends CommonUpdater
           deferred.reject 'Problem on creating new product: ' + body
     deferred.promise
 
-  publish: (product, publish = true) ->
+  publishProduct: (product, publish = true) ->
     deferred = Q.defer()
+    console.log @publishProducts
+    unless @publishProducts
+      deferred.resolve "Do not publish."
+      return deferred.promise
     action = if publish then 'publish' else 'unpublish'
     data =
       id: product.id
@@ -149,7 +159,7 @@ class Import extends CommonUpdater
       actions: [
         action: action
       ]
-    @rest.POST "/products/#{id}", JSON.stringify(data), (error, response, body) ->
+    @rest.POST "/products/#{product.id}", JSON.stringify(data), (error, response, body) ->
       if error
         deferred.reject 'Error on publishing product: ' + error
       else

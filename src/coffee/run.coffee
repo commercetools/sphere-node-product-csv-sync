@@ -2,12 +2,14 @@ Import = require '../lib/import'
 CONS = require '../lib/constants'
 fs = require 'fs'
 argv = require('optimist')
-  .usage('Usage: $0 --projectKey key --clientId id --clientSecret secret --csv file --language lang --staging')
+  .usage('Usage: $0 --projectKey key --clientId id --clientSecret secret --csv file --language lang --publish')
   .default('lang', 'en')
   .describe('projectKey', 'your SPHERE.IO project-key')
   .describe('clientId', 'your OAuth client id for the SPHERE.IO API')
   .describe('clientSecret', 'your OAuth client secret for the SPHERE.IO API')
-  .describe('csv', 'CSV file containing products to validate or import')
+  .describe('csv', 'CSV file containing products to import')
+  .describe('language', 'Default language to using during import')
+  .describe('publish', 'When given, all changes will be published immediately')
   .demand(['projectKey', 'clientId', 'clientSecret', 'csv'])
   .argv
 
@@ -24,12 +26,8 @@ options =
   timeout: timeout
   show_progress: true
 
-if argv.staging
-  options.oauth_host = 'auth_sphere_cloud.commercetools.de'
-  options.host = 'api_sphere_cloud.commercetools.de'
-  options.rejectUnauthorized = false
-
 importer = new Import options
+importer.publishProducts = argv.publish
 
 fs.readFile argv.csv, 'utf8', (err, content) ->
   if err

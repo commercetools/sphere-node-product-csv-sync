@@ -1,4 +1,7 @@
 constants =
+  # This isn't a constants - TODO move it to proper location
+  DEFAULT_LANGUAGE: 'en'
+
   HEADER_PRODUCT_TYPE: 'productType'
   HEADER_NAME: 'name'
   HEADER_DESCRIPTION: 'description'
@@ -16,8 +19,6 @@ constants =
   DELIM_HEADER_LANGUAGE: '.'
   DELIM_MULTI_VALUE: ';'
   DELIM_CATEGORY_CHILD: '>'
-
-  DEFAULT_LANGUAGE: 'en'
 
   ATTRIBUTE_TYPE_LTEXT: 'ltext'
   ATTRIBUTE_TYPE_ENUM: 'enum'
