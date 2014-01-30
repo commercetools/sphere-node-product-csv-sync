@@ -4,7 +4,7 @@ set -e
 
 rm -rf lib
 
-BRANCH_NAME='latests'
+BRANCH_NAME='latest'
 
 npm version patch
 git checkout ${BRANCH_NAME}
