@@ -23,15 +23,15 @@ describe 'Categories', ->
 
     it 'should create maps for children categories', ->
       categories = [
-        { id: 'idx', name: { en: 'cat1' } }
-        { id: 'idy', name: { en: 'cat2' }, ancestors: [ { id: 'idx' } ] }
-        { id: 'idz', name: { en: 'cat3' }, ancestors: [ { id: 'idy' }, { id: 'idx' } ] }
+        { id: 'idx', name: { en: 'root' } }
+        { id: 'idy', name: { en: 'main' }, ancestors: [ { id: 'idx' } ] }
+        { id: 'idz', name: { en: 'sub' }, ancestors: [ { id: 'idx' }, { id: 'idy' } ] }
       ]
       @categories.buildMaps categories
       expect(_.size @categories.id2index).toBe 3
       expect(_.size @categories.name2id).toBe 3
       expect(_.size @categories.fqName2id).toBe 3
-      expect(@categories.fqName2id['cat1']).toBe 'idx'
-      expect(@categories.fqName2id['cat1>cat2']).toBe 'idy'
-      expect(@categories.fqName2id['cat1>cat2>cat3']).toBe 'idz'
+      expect(@categories.fqName2id['root']).toBe 'idx'
+      expect(@categories.fqName2id['root>main']).toBe 'idy'
+      expect(@categories.fqName2id['root>main>sub']).toBe 'idz'
       expect(_.size @categories.duplicateNames).toBe 0

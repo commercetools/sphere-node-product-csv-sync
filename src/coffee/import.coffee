@@ -8,6 +8,7 @@ Q = require 'q'
 class Import extends CommonUpdater
 
   constructor: (options = {}) ->
+    super(options)
     @validator = new Validator options
     @sync = new ProductSync options
     @rest = @validator.rest
@@ -76,10 +77,10 @@ class Import extends CommonUpdater
         index = @slug2index[product.slug[CONS.DEFAULT_LANGUAGE] ] if product.slug[CONS.DEFAULT_LANGUAGE]
     return @existingProducts[index] if index > -1
 
-  createOrUpdate: (products, types, callback) ->
+  createOrUpdate: (products, types, callback) =>
     if _.size(products) is 0
       return @returnResult true, 'Nothing to do.', callback
-#    @initProgressBar 'Updating products', _.size(products)
+    @initProgressBar 'Updating products', _.size(products)
     posts = []
     for product in products
       existingProduct = @match(product)
@@ -105,8 +106,8 @@ class Import extends CommonUpdater
     deferred = Q.defer()
     allSameValueAttributes = types.id2SameForAllAttributes[product.productType.id]
     diff = @sync.buildActions(product, existingProduct, allSameValueAttributes)
-    diff.update (error, response, body) ->
-#      @tickProgress()
+    diff.update (error, response, body) =>
+      @tickProgress()
       if error
         deferred.reject 'Error on updating product: ' + error
       else
@@ -124,8 +125,8 @@ class Import extends CommonUpdater
 
   create: (product) ->
     deferred = Q.defer()
-    @rest.POST '/products', JSON.stringify(product), (error, response, body) ->
-#      @tickProgress()
+    @rest.POST '/products', JSON.stringify(product), (error, response, body) =>
+      @tickProgress()
       if error
         deferred.reject 'Error on creating new product: ' + error
       else

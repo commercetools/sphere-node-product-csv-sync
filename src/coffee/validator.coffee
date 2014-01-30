@@ -103,9 +103,8 @@ class Validator
       @errors.push "[row #{raw.startRow}] Can't find product type for '#{ptInfo}"
 
   isVariant: (row) ->
-    row[@header.toIndex CONS.HEADER_PRODUCT_TYPE ] is '' and
-    row[@header.toIndex CONS.HEADER_NAME ] is '' and
-    row[@header.toIndex CONS.HEADER_VARIANT_ID ] isnt undefined # TODO: Check for numbers > 1
+    row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)] is '' and
+    row[@header.toIndex(CONS.HEADER_VARIANT_ID)] isnt '1'
 
   isProduct: (row) ->
     not @isVariant row

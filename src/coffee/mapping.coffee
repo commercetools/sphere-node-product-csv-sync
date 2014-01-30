@@ -14,14 +14,15 @@ class Mapping
     productType or= raw.master[@header.toIndex CONS.HEADER_PRODUCT_TYPE]
     rowIndex = raw.startRow
 
-    product = @mapBaseProduct raw.master, productType
+    product = @mapBaseProduct raw.master, productType, rowIndex
     product.masterVariant = @mapVariant raw.master, 1, productType, rowIndex
     for rawVariant, index in raw.variants
       rowIndex += 1
       product.variants.push @mapVariant rawVariant, index + 2, productType, rowIndex
+
     product
 
-  mapBaseProduct: (rawMaster, productType) ->
+  mapBaseProduct: (rawMaster, productType, rowIndex) ->
     product =
       productType:
         typeId: 'product-type'
@@ -29,8 +30,8 @@ class Mapping
       masterVariant: {}
       variants: []
 
-    product.categories = @mapCategories rawMaster
-    tax = @mapTaxCategory rawMaster
+    product.categories = @mapCategories rawMaster, rowIndex
+    tax = @mapTaxCategory rawMaster, rowIndex
     product.taxCategory = tax if tax
 
     for attribName in CONS.BASE_LOCALIZED_HEADERS
@@ -81,16 +82,17 @@ class Mapping
   mapTaxCategory: (rawMaster, rowIndex) ->
     return unless @header.has CONS.HEADER_TAX
     rawTax = rawMaster[@header.toIndex CONS.HEADER_TAX]
-    return [] if _.isString(rawTax) and raw.length is 0
+    return [] if _.isString(rawTax) and rawTax.length is 0
     if _.contains(@taxes.duplicateNames, rawTax)
       @errors.push "[row #{rowIndex}:#{CONS.HEADER_TAX}] The tax category '#{rawTax}' is not unqiue!"
       return
-    unless _.has(@tax.name2id, rawTax)
+    unless _.has(@taxes.name2id, rawTax)
       @errors.push "[row #{rowIndex}:#{CONS.HEADER_TAX}] The tax category '#{rawTax}' is unknown!"
       return
+
     tax =
       typeId: 'tax-category'
-      id: @tax.name2id[rawTax]
+      id: @taxes.name2id[rawTax]
 
   mapVariant: (rawVariant, variantId, productType, rowIndex) ->
     variant =
@@ -107,8 +109,7 @@ class Mapping
         variant.attributes.push attrib if attrib
 
     @mapPrices rawVariant[@header.toIndex CONS.HEADER_PRICES], rowIndex
-
-    @mapImages rawVariant, rowIndex
+    @createVariantImageActions rawVariant, variantId, rowIndex
 
     variant
 
@@ -202,19 +203,24 @@ class Mapping
       values[CONS.DEFAULT_LANGUAGE] = val
     values
 
-  # TODO: images, but store them extra as we will distingush between upload, download or external
-  mapImages: (row, rowIndex) ->
-    images = []
+  createVariantImageActions: (rawVariant, variantId, rowIndex) ->
+    return [] unless @header.has CONS.HEADER_IMAGES
+    raw = rawVariant[@header.toIndex CONS.HEADER_IMAGES]
+    return [] if _.isString(raw) and raw.length is 0
+    rawImages = raw.split CONS.DELIM_MULTI_VALUE
+    actions = []
+    for rawImage in rawImages
+      action =
+        action: 'addExternalImage'
+        variantId: variantId
+        image: rawImage
+        dimensions:
+          w: 0
+          h: 0
+#        label: 'TODO'
+      actions.push action
 
-    if false
-      image =
-        urls: ''
-        imageLabels: ''
-        xs: 0
-        ys: 0
+    actions
 
-      images.push image
-
-    images
 
 module.exports = Mapping

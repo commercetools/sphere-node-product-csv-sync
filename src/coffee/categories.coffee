@@ -34,13 +34,13 @@ class Categories
       @name2id[name] = id
     
     for category, index in categories
-      fqName = category.name[CONS.DEFAULT_LANGUAGE]
+      fqName = ''
       if category.ancestors
         for anchestor in category.ancestors
           cat = categories[@id2index[anchestor.id]]
           name = cat.name[CONS.DEFAULT_LANGUAGE]
-          fqName = "#{name}#{CONS.DELIM_CATEGORY_CHILD}#{fqName}"
-      @fqName2id[fqName] = category.id
+          fqName = "#{fqName}#{name}#{CONS.DELIM_CATEGORY_CHILD}"
+      @fqName2id["#{fqName}#{category.name[CONS.DEFAULT_LANGUAGE]}"] = category.id
 
 
 module.exports = Categories

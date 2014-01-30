@@ -73,7 +73,7 @@ bar,n2,1\n
         expect(@validator.rawProducts[1].startRow).toBe 5
         done()
 
-    it 'should return error if first row in not a product', (done) ->
+    xit 'should return error if first row in not a product', (done) ->
       csv = "
 productType,name,variantId\n
 ,,1\n
