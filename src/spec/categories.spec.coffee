@@ -12,8 +12,8 @@ describe 'Categories', ->
   describe '#buildMaps', ->
     it 'should create maps for root categories', ->
       categories = [
-        { id: 1, name: 'cat1' }
-        { id: 2, name: 'cat2' }
+        { id: 1, name: { en: 'cat1' } }
+        { id: 2, name: { en: 'cat2' } }
       ]
       @categories.buildMaps categories
       expect(_.size @categories.id2index).toBe 2
@@ -23,9 +23,9 @@ describe 'Categories', ->
 
     it 'should create maps for children categories', ->
       categories = [
-        { id: 'idx', name: 'cat1' }
-        { id: 'idy', name: 'cat2', ancestors: [ { id: 'idx' } ] }
-        { id: 'idz', name: 'cat3', ancestors: [ { id: 'idy' }, { id: 'idx' } ] }
+        { id: 'idx', name: { en: 'cat1' } }
+        { id: 'idy', name: { en: 'cat2' }, ancestors: [ { id: 'idx' } ] }
+        { id: 'idz', name: { en: 'cat3' }, ancestors: [ { id: 'idy' }, { id: 'idx' } ] }
       ]
       @categories.buildMaps categories
       expect(_.size @categories.id2index).toBe 3

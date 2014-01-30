@@ -26,7 +26,7 @@ class Categories
 
   buildMaps: (categories) ->
     for category, index in categories
-      name = category.name
+      name = category.name[CONS.DEFAULT_LANGUAGE]
       id = category.id
       @id2index[id] = index
       if _.has @name2id, name
@@ -34,11 +34,12 @@ class Categories
       @name2id[name] = id
     
     for category, index in categories
-      fqName = category.name
+      fqName = category.name[CONS.DEFAULT_LANGUAGE]
       if category.ancestors
         for anchestor in category.ancestors
           cat = categories[@id2index[anchestor.id]]
-          fqName = "#{cat.name}#{CONS.DELIM_CATEGORY_CHILD}#{fqName}"
+          name = cat.name[CONS.DEFAULT_LANGUAGE]
+          fqName = "#{name}#{CONS.DELIM_CATEGORY_CHILD}#{fqName}"
       @fqName2id[fqName] = category.id
 
 
