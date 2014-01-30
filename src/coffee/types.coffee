@@ -1,14 +1,13 @@
 _ = require('underscore')._
 Q = require 'q'
 
-
 class Types
   constructor: ->
     @id2index = {}
     @name2id = {}
     @duplicateNames = []
 
-  getAllProductTypes: (rest) ->
+  getAll: (rest) ->
     deferred = Q.defer()
     rest.GET "/product-types?limit=0", (error, response, body) ->
       if error

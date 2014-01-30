@@ -15,6 +15,7 @@ constants =
 
   DELIM_HEADER_LANGUAGE: '.'
   DELIM_MULTI_VALUE: ';'
+  DELIM_CATEGORY_CHILD: '>'
 
   DEFAULT_LANGUAGE: 'en'
 

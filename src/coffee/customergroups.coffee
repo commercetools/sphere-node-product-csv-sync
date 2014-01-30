@@ -6,7 +6,7 @@ class CustomerGroups
   constructor: ->
     @name2id = {}
 
-  getAllCustomerGroups: (rest) ->
+  getAll: (rest) ->
     deferred = Q.defer()
     rest.GET "/customer-groups?limit=0", (error, response, body) ->
       if error

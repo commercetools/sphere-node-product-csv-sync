@@ -6,6 +6,7 @@ class Mapping
   constructor: (options = {}) ->
     @types = options.types
     @customerGroups = options.customerGroups
+    @categories = options.categories
     @errors = []
 
   mapProduct: (raw, productType) ->
@@ -28,6 +29,8 @@ class Mapping
       variants: []
       categories: []
 
+    product.categories = @mapCategories rawMaster
+
     for attribName in CONS.BASE_LOCALIZED_HEADERS
       val = @mapLocalizedAttrib rawMaster, attribName, @header.toLanguageIndex()
       product[attribName] = val if val
@@ -48,6 +51,30 @@ class Mapping
       @slugs.push currentSlug
       return currentSlug
     @ensureValidSlug slug, Math.floor((Math.random()*89999)+10001) # five digets
+
+  mapCategories: (rawMaster, rowIndex) ->
+    return [] unless @header.has CONS.HEADER_CATEGORIES
+    categories = []
+    raw = rawMaster[@header.toIndex CONS.HEADER_CATEGORIES]
+    return [] if _.isString(raw) and raw.length is 0
+    rawCategories = raw.split CONS.DELIM_MULTI_VALUE
+    for rawCategory in rawCategories
+      cat =
+        typeId: 'category'
+      if _.contains(@categories.duplicateNames, rawCategory)
+        @errors.push "[row #{rowIndex}:#{CONS.HEADER_CATEGORIES}] The category '#{rawCategory}' is not unqiue!"
+        continue
+      if _.has(@categories.name2id, rawCategory)
+        cat.id = @categories.name2id[rawCategory]
+      else if _.has(@categories.fqName2id, rawCategory)
+        cat.id = @categories.fqName2id[rawCategory]
+
+      if cat.id
+        categories.push cat
+      else
+        @errors.push "[row #{rowIndex}:#{CONS.HEADER_CATEGORIES}] Can not find category for '#{rawCategory}'!"
+
+    categories
 
   mapVariant: (rawVariant, variantId, productType, rowIndex) ->
     variant =

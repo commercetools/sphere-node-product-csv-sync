@@ -2,6 +2,7 @@ _ = require('underscore')._
 Csv = require 'csv'
 CONS = require '../lib/constants'
 Types = require '../lib/types'
+Categories = require '../lib/categories'
 CustomerGroups = require '../lib/customergroups'
 Mapping = require '../lib/mapping'
 Header = require '../lib/header'
@@ -12,8 +13,10 @@ class Validator
   constructor: (options = {}) ->
     @types = new Types()
     @customerGroups = new CustomerGroups()
+    @categories = new Categories()
     options.types = @types
     options.customerGroups = @customerGroups
+    options.categories = @categories
     options.validator = @
     @map = new Mapping options
     @rest = new Rest options if options.config
@@ -37,10 +40,16 @@ class Validator
 
   validateOnline: ->
     deferred = Q.defer()
-    Q.all([@types.getAllProductTypes(@rest), @customerGroups.getAllCustomerGroups(@rest)]).then ([productTypes, customerGroups]) =>
+    gets = [
+      @types.getAll @rest
+      @customerGroups.getAll @rest
+      @categories.getAll @rest
+    ]
+    Q.all(gets).then ([productTypes, customerGroups, categories]) =>
       @productTypes = productTypes
       @types.buildMaps productTypes
       @customerGroups.buildMaps customerGroups
+      @categories.buildMaps categories
       @valProducts @rawProducts
 
       if _.size(@errors) is 0
