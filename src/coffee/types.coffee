@@ -1,4 +1,5 @@
 _ = require('underscore')._
+CONS = require '../lib/constants'
 Q = require 'q'
 
 class Types
@@ -6,6 +7,7 @@ class Types
     @id2index = {}
     @name2id = {}
     @duplicateNames = []
+    @id2SameForAllAttributes = {}
 
   getAll: (rest) ->
     deferred = Q.defer()
@@ -29,6 +31,10 @@ class Types
       if _.has @name2id, name
         @duplicateNames.push name
       @name2id[name] = id
+      @id2SameForAllAttributes[id] = []
+      continue unless pt.attributes
+      for attribute in pt.attributes
+        @id2SameForAllAttributes[id].push(attribute.name) if attribute.attributeConstraint is CONS.ATTRIBUTE_CONSTRAINT_SAME_FOR_ALL
 
 
 module.exports = Types

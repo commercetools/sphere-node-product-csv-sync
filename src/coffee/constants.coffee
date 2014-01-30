@@ -25,6 +25,8 @@ constants =
   ATTRIBUTE_TYPE_NUMBER: 'number'
   ATTRIBUTE_TYPE_MONEY: 'money'
 
+  ATTRIBUTE_CONSTRAINT_SAME_FOR_ALL: 'SameForAll'
+
 for name,value of constants
   exports[name] = value
 

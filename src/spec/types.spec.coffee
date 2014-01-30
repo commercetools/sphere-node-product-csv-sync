@@ -17,6 +17,9 @@ describe 'Types', ->
       pt2 =
         id: 'pt2'
         name: 'myType2'
+        attributes: [
+          { name: 'foo', attributeConstraint: 'SameForAll' }
+        ]
       pt3 =
         id: 'pt3'
         name: 'myType'
@@ -29,3 +32,7 @@ describe 'Types', ->
       expect(@types.name2id['myType2']).toBe 'pt2'
       expect(_.size @types.duplicateNames).toBe 1
       expect(@types.duplicateNames[0]).toBe 'myType'
+      expect(_.size @types.id2SameForAllAttributes).toBe 3
+      expect(@types.id2SameForAllAttributes['pt1']).toEqual []
+      expect(@types.id2SameForAllAttributes['pt2']).toEqual [ 'foo' ]
+      expect(@types.id2SameForAllAttributes['pt3']).toEqual []

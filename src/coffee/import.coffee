@@ -26,7 +26,7 @@ class Import extends CommonUpdater
           return
         @getAllExistingProducts().then (existingProducts) =>
           @initMatcher existingProducts
-          @createOrUpdate products, callback
+          @createOrUpdate products, @validator.types, callback
         .fail (msg) =>
           @returnResult false, msg, callback
       .fail (msg) =>
@@ -76,7 +76,7 @@ class Import extends CommonUpdater
         index = @slug2index[product.slug[CONS.DEFAULT_LANGUAGE] ] if product.slug[CONS.DEFAULT_LANGUAGE]
     return @existingProducts[index] if index > -1
 
-  createOrUpdate: (products, callback) ->
+  createOrUpdate: (products, types, callback) ->
     if _.size(products) is 0
       return @returnResult true, 'Nothing to do.', callback
 #    @initProgressBar 'Updating products', _.size(products)
@@ -85,7 +85,7 @@ class Import extends CommonUpdater
       existingProduct = @match(product)
 #      console.log "existingProduct %j", existingProduct
       if existingProduct
-        posts.push @update(product, existingProduct)
+        posts.push @update(product, existingProduct, types)
       else
         posts.push @create(product)
     @processInBatches posts, callback
@@ -101,9 +101,10 @@ class Import extends CommonUpdater
     .fail (msg) =>
       @returnResult false, msg, callback
 
-  update: (products, existingProduct) ->
+  update: (product, existingProduct, types) ->
     deferred = Q.defer()
-    @sync.buildActions(products, existingProduct).update (error, response, body) ->
+    allSameValueAttributes = types.id2SameForAllAttributes[product.productType.id]
+    @sync.buildActions(product, existingProduct, allSameValueAttributes).update (error, response, body) ->
 #      @tickProgress()
       if error
         deferred.reject 'Error on updating product: ' + error
@@ -135,6 +136,29 @@ class Import extends CommonUpdater
           deferred.reject "Problem on creating new product:\n" + humanReadable
         else
           deferred.reject 'Problem on creating new product: ' + body
+    deferred.promise
+
+  publish: (product, publish = true) ->
+    deferred = Q.defer()
+    action = if publish then 'publish' else 'unpublish'
+    data =
+      id: product.id
+      version: product.version
+      actions: [
+        action: action
+      ]
+    @rest.POST "/products/#{id}", JSON.stringify(data), (error, response, body) ->
+      if error
+        deferred.reject 'Error on publishing product: ' + error
+      else
+        if response.statusCode is 200
+          deferred.resolve 'Product published.'
+        else if response.statusCode is 400
+          parsed = JSON.parse body
+          humanReadable = JSON.stringify parsed, null, '  '
+          deferred.reject "Problem on creating new product:\n" + humanReadable
+        else
+          deferred.reject 'Problem on publishing product: ' + body
     deferred.promise
 
 module.exports = Import
