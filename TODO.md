@@ -1,9 +1,7 @@
 # Features
-- add mapping of taxes
-- add mapping for external images
+- support Set type
 
 # Command line options
-- image handling
 - delimiter
 - validateOnly
 
