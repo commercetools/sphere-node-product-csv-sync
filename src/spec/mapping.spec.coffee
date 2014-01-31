@@ -102,6 +102,7 @@ foo,myProduct,1"
           name: 'a2'
           value: 'v2'
         ]
+        images: []
 
       expect(variant).toEqual expectedVariant
 
@@ -254,10 +255,11 @@ foo,myProduct,1,x\n
             sku: 'x'
             prices: []
             attributes: []
+            images: []
           }
           variants: [
-            { id: 2, sku: 'y', prices: [], attributes: [] }
-            { id: 3, sku: 'z', prices: [], attributes: [] }
+            { id: 2, sku: 'y', prices: [], attributes: [], images: [] }
+            { id: 3, sku: 'z', prices: [], attributes: [], images: [] }
           ]
 
         expect(product).toEqual expectedProduct

@@ -148,7 +148,6 @@ class Import extends CommonUpdater
 
   publishProduct: (product, publish = true) ->
     deferred = Q.defer()
-    console.log @publishProducts
     unless @publishProducts
       deferred.resolve "Do not publish."
       return deferred.promise
@@ -168,9 +167,51 @@ class Import extends CommonUpdater
         else if response.statusCode is 400
           parsed = JSON.parse body
           humanReadable = JSON.stringify parsed, null, '  '
-          deferred.reject "Problem on creating new product:\n" + humanReadable
+          deferred.reject "Problem on publishing product:\n" + humanReadable
         else
           deferred.reject 'Problem on publishing product: ' + body
     deferred.promise
+
+  addExternalImages: (product) ->
+    deferred = Q.defer()
+    imageActions = @createExternalImageActions(product.masterVariant)
+    for variant in product.variants
+      imageActions = imageActions.concat(@createExternalImageActions(variant))
+    if _.size(imageActions) is 0
+      return deferred.resolve "No images."
+    data =
+      version: product.version
+      actions: imageActions
+    @rest.POST "/products/#{product.id}", JSON.stringify(date), (error, response, body) ->
+      if error
+        deferred.reject 'Error on adding external images to product: ' + error
+      else
+        if response.statusCode is 200
+          deferred.resolve 'External images added.'
+        else if response.statusCode is 400
+          parsed = JSON.parse body
+          humanReadable = JSON.stringify parsed, null, '  '
+          deferred.reject "Problem on adding external images to product:\n" + humanReadable
+        else
+          deferred.reject 'Problem on adding external images to product: ' + body
+    deferred.promise
+
+  createExternalImageActions: (variant) ->
+    actions = []
+    return actions if _.size(variant.images) is 0
+    for image in variant.images
+      action =
+        action: 'addExternalImage'
+        variantId: variant.id
+        image:
+          url: image.url
+#          dimensions:
+#            w: image.dimensions.x
+#            h: image.dimensions.y
+#          label: image.label
+      actions.push action
+
+    actions
+
 
 module.exports = Import

@@ -17,7 +17,7 @@ class Mapping
     product = @mapBaseProduct raw.master, productType, rowIndex
     product.masterVariant = @mapVariant raw.master, 1, productType, rowIndex
     for rawVariant, index in raw.variants
-      rowIndex += 1
+      rowIndex += 1 # TODO: get variantId from CSV
       product.variants.push @mapVariant rawVariant, index + 2, productType, rowIndex
 
     product
@@ -97,7 +97,6 @@ class Mapping
   mapVariant: (rawVariant, variantId, productType, rowIndex) ->
     variant =
       id: variantId
-      prices: []
       attributes: []
 
     variant.sku = rawVariant[@header.toIndex CONS.HEADER_SKU] if @header.has CONS.HEADER_SKU
@@ -108,8 +107,8 @@ class Mapping
         attrib = @mapAttribute rawVariant, attribute, languageHeader2Index, rowIndex
         variant.attributes.push attrib if attrib
 
-    @mapPrices rawVariant[@header.toIndex CONS.HEADER_PRICES], rowIndex
-    @createVariantImageActions rawVariant, variantId, rowIndex
+    variant.prices = @mapPrices rawVariant[@header.toIndex CONS.HEADER_PRICES], rowIndex
+    variant.images = @mapImages rawVariant, variantId, rowIndex
 
     variant
 
@@ -129,7 +128,7 @@ class Mapping
 
   # TODO: support channels in prices
   mapPrices: (raw, rowIndex) ->
-    return if raw is undefined
+    return [] if raw is undefined
     prices = []
     rawPrices = raw.split CONS.DELIM_MULTI_VALUE
     for rawPrice in rawPrices
@@ -203,24 +202,23 @@ class Mapping
       values[CONS.DEFAULT_LANGUAGE] = val
     values
 
-  createVariantImageActions: (rawVariant, variantId, rowIndex) ->
+  mapImages: (rawVariant, variantId, rowIndex) ->
     return [] unless @header.has CONS.HEADER_IMAGES
     raw = rawVariant[@header.toIndex CONS.HEADER_IMAGES]
     return [] if _.isString(raw) and raw.length is 0
     rawImages = raw.split CONS.DELIM_MULTI_VALUE
-    actions = []
+    images = []
     for rawImage in rawImages
-      action =
-        action: 'addExternalImage'
-        variantId: variantId
-        image: rawImage
+      image =
+        url: rawImage
+        # TODO: get dimensions from CSV - format idea: 200x400;90x90
         dimensions:
           w: 0
           h: 0
-#        label: 'TODO'
-      actions.push action
+        #  label: 'TODO'
+      images.push image
 
-    actions
+    images
 
 
 module.exports = Mapping
