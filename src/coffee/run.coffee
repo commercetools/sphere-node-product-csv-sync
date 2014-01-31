@@ -1,4 +1,5 @@
 Import = require '../lib/import'
+package_json = require '../package.json'
 CONS = require '../lib/constants'
 fs = require 'fs'
 argv = require('optimist')
@@ -25,6 +26,7 @@ options =
     client_secret: argv.clientSecret
   timeout: timeout
   show_progress: true
+  user_agent: "#{package_json.name} - #{package_json.version}"
 
 importer = new Import options
 importer.publishProducts = argv.publish
