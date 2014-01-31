@@ -43,6 +43,7 @@ class Import extends CommonUpdater
           deferred.resolve JSON.parse(body).results
         else
           deferred.reject 'Problem on getting existing products: ' + body
+
     deferred.promise
 
   initMatcher: (existingProducts) ->
@@ -124,6 +125,7 @@ class Import extends CommonUpdater
           deferred.resolve "Problem on updating product:\n" + humanReadable
         else
           deferred.reject 'Problem on updating product: ' + body
+
     deferred.promise
 
   create: (product) ->
@@ -134,23 +136,18 @@ class Import extends CommonUpdater
         deferred.reject 'Error on creating new product: ' + error
       else
         if response.statusCode is 201
-          @adjustmentsAfterCreation(product, JSON.parse(body), deferred)
+          @publishProduct(JSON.parse(body)).then (msg) ->
+            deferred.resolve 'New product created.'
+          .fail (msg) ->
+            deferred.reject msg
         else if response.statusCode is 400
           parsed = JSON.parse body
           humanReadable = JSON.stringify parsed, null, '  '
           deferred.reject "Problem on creating new product:\n" + humanReadable
         else
           deferred.reject 'Problem on creating new product: ' + body
-    deferred.promise
 
-  adjustmentsAfterCreation: (product, respondedProduct, deferred) ->
-    @addExternalImages(product, respondedProduct).then (respondedProduct) =>
-      @publishProduct(respondedProduct).then (msg) ->
-        deferred.resolve 'New product created.'
-      .fail (msg) ->
-        deferred.reject msg
-    .fail (msg) ->
-      deferred.reject msg
+    deferred.promise
 
   publishProduct: (product, publish = true) ->
     deferred = Q.defer()
@@ -178,47 +175,6 @@ class Import extends CommonUpdater
           deferred.reject 'Problem on publishing product: ' + body
 
     deferred.promise
-
-  addExternalImages: (product, respondedProduct) ->
-    deferred = Q.defer()
-    imageActions = @createExternalImageActions(product.masterVariant)
-    for variant in product.variants
-      imageActions = imageActions.concat(@createExternalImageActions(variant))
-    if _.size(imageActions) is 0
-      deferred.resolve respondedProduct
-      return deferred.promise
-    data =
-      version: respondedProduct.version
-      actions: imageActions
-    @rest.POST "/products/#{respondedProduct.id}", JSON.stringify(data), (error, response, body) ->
-      if error
-        deferred.reject 'Error on adding external images to product: ' + error
-      else
-        if response.statusCode is 200
-          deferred.resolve JSON.parse(body)
-        else if response.statusCode is 400
-          parsed = JSON.parse body
-          humanReadable = JSON.stringify parsed, null, '  '
-          deferred.reject "Problem on adding external images to product:\n" + humanReadable
-        else
-          deferred.reject 'Problem on adding external images to product: ' + body
-
-    deferred.promise
-
-  createExternalImageActions: (variant) ->
-    actions = []
-    return actions if _.size(variant.images) is 0
-    for image in variant.images
-      action =
-        action: 'addExternalImage'
-        variantId: variant.id
-        image:
-          url: image.url
-          dimensions: image.dimensions
-#          label: image.label
-      actions.push action
-
-    actions
 
 
 module.exports = Import
