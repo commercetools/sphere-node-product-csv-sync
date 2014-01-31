@@ -4,13 +4,15 @@ set -e
 
 BRANCH_NAME='latest'
 
-grunt build
+rm -rf lib
 rm -rf node_modules
 
 npm version patch
 git checkout ${BRANCH_NAME}
 git merge master
 
+npm install
+grunt build
 rm -rf node_modules
 npm install --production
 git add -f lib/
