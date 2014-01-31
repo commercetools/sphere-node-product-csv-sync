@@ -127,6 +127,7 @@ class Mapping
       else rawVariant[@header.toIndex attribute.name] # works for text, enum and lenum
 
   # TODO: support channels in prices
+  # IDEA: regex = /^(([A-Za-z]{2})-|)([A-Z]{3}) (\d+)( (\w+)|)(#(\w+)|)$/
   mapPrices: (raw, rowIndex) ->
     return [] if raw is undefined
     prices = []
