@@ -153,7 +153,7 @@ foo,myProduct,1"
       prices = @map.mapPrices 'EUR 9.99', 7
       expect(prices.length).toBe 0
       expect(@map.errors.length).toBe 1
-      expect(@map.errors[0]).toBe "[row 7:prices] The number '9.99' isn't valid!"
+      expect(@map.errors[0]).toBe "[row 7:prices] Can not parse price 'EUR 9.99'!"
 
     it 'should give feedback when number part is not a number', ->
       prices = @map.mapPrices 'EUR1', 8
@@ -175,7 +175,7 @@ foo,myProduct,1"
       prices = @map.mapPrices 'CH-DE-EUR 700', 99
       expect(prices.length).toBe 0
       expect(@map.errors.length).toBe 1
-      expect(@map.errors[0]).toBe "[row 99:prices] Can not extract county from price!"
+      expect(@map.errors[0]).toBe "[row 99:prices] Can not parse price 'CH-DE-EUR 700'!"
 
     it 'should map price with customer group', ->
       @map.customerGroups =
@@ -197,6 +197,28 @@ foo,myProduct,1"
       expect(prices.length).toBe 0
       expect(@map.errors.length).toBe 1
       expect(@map.errors[0]).toBe "[row 5:prices] Can not find customer group 'unknownGroup'!"
+
+    it 'should map price with channel', ->
+      @map.channels =
+        key2id:
+          retailerA: 'channelId123'
+      prices = @map.mapPrices 'YEN 19999 #retailerA', 1234
+      expect(prices.length).toBe 1
+      expect(@map.errors.length).toBe 0
+      expectedPrice =
+        value:
+          centAmount: 19999
+          currencyCode: 'YEN'
+        supplyChannel:
+          typeId: 'channel'
+          id: 'channelId123'
+      expect(prices[0]).toEqual expectedPrice
+
+    it 'should give feedback that channel with key does not exist', ->
+      prices = @map.mapPrices 'YEN 777 #nonExistingChannelKey', 42
+      expect(prices.length).toBe 0
+      expect(@map.errors.length).toBe 1
+      expect(@map.errors[0]).toBe "[row 42:prices] Can not find channel with key 'nonExistingChannelKey'!"
 
     it 'should map muliple prices', ->
       prices = @map.mapPrices 'EUR 100;UK-USD 200;YEN 999'
@@ -223,7 +245,7 @@ foo,myProduct,1"
       expect(@validator.map.mapNumber('0')).toBe 0
 
     it 'should fail when input is not a valid number', ->
-      number = @validator.map.mapNumber 9.99, 'myAttrib', 4
+      number = @validator.map.mapNumber '9.99', 'myAttrib', 4
       expect(number).toBeUndefined()
       expect(@validator.map.errors.length).toBe 1
       expect(@validator.map.errors[0]).toBe "[row 4:myAttrib] The number '9.99' isn't valid!"

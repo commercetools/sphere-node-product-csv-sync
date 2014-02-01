@@ -8,6 +8,7 @@ class Mapping
     @customerGroups = options.customerGroups
     @categories = options.categories
     @taxes = options.taxes
+    @channels = options.channels
     @errors = []
 
   mapProduct: (raw, productType) ->
@@ -126,64 +127,64 @@ class Mapping
       when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant, attribute.name
       else rawVariant[@header.toIndex attribute.name] # works for text, enum and lenum
 
-  # TODO: support channels in prices
-  # IDEA: regex = /^(([A-Za-z]{2})-|)([A-Z]{3}) (\d+)( (\w+)|)(#(\w+)|)$/
   mapPrices: (raw, rowIndex) ->
-    return [] if raw is undefined
+    return [] unless raw
+    REGEX_PRICE = /^(([A-Za-z]{2})-|)([A-Z]{3}) (\d+)( (\w*)|)(#(\w+)|)$/
     prices = []
     rawPrices = raw.split CONS.DELIM_MULTI_VALUE
     for rawPrice in rawPrices
-      parts = rawPrice.split ' '
-      price = {}
-      if _.size(parts) is 2 or _.size(parts) is 3
-        currencyCode = parts[0]
-        centAmount = parts[1]
-        splitted = currencyCode.split '-'
-        if _.size(splitted) is 2
-          price.country = splitted[0]
-          currencyCode = splitted[1]
-        else if _.size(splitted) isnt 1
-          @errors.push "[row #{rowIndex}:#{CONS.HEADER_PRICES}] Can not extract county from price!"
-          return []
-        price.value = @mapMoney "#{currencyCode} #{centAmount}", CONS.HEADER_PRICES, rowIndex
-        return [] unless price.value
-      else
+      matchedPrice = rawPrice.match REGEX_PRICE
+      unless matchedPrice
         @errors.push "[row #{rowIndex}:#{CONS.HEADER_PRICES}] Can not parse price '#{rawPrice}'!"
-        return []
-      if _.size(parts) is 3
-        customerGroupName = parts[2]
+        continue
+      country = matchedPrice[2]
+      currencyCode = matchedPrice[3]
+      centAmount = matchedPrice[4]
+      customerGroupName = matchedPrice[6]
+      channelKey = matchedPrice[8]
+      price =
+        value: @mapMoney "#{currencyCode} #{centAmount}", CONS.HEADER_PRICES, rowIndex
+      price.country = country if country
+      if customerGroupName
         unless _.has(@customerGroups.name2id, customerGroupName)
           @errors.push "[row #{rowIndex}:#{CONS.HEADER_PRICES}] Can not find customer group '#{customerGroupName}'!"
           return []
         price.customerGroup =
           typeId: 'customer-group'
           id: @customerGroups.name2id[customerGroupName]
+      if channelKey
+        unless _.has(@channels.key2id, channelKey)
+          @errors.push "[row #{rowIndex}:#{CONS.HEADER_PRICES}] Can not find channel with key '#{channelKey}'!"
+          return []
+        price.supplyChannel =
+          typeId: 'channel'
+          id: @channels.key2id[channelKey]
 
       prices.push price
-
     prices
 
   # EUR 300
   # USD 999
   mapMoney: (rawMoney, attribName, rowIndex) ->
-    parts = rawMoney.split ' '
-    if parts.length isnt 2
+    return unless rawMoney
+    REGEX_MONEY = /^([A-Z]{3}) (\d+)$/
+    matchedMoney = rawMoney.match REGEX_MONEY
+    unless matchedMoney
       @errors.push "[row #{rowIndex}:#{attribName}] Can not parse money '#{rawMoney}'!"
       return
-    amount = @mapNumber parts[1], attribName, rowIndex
-    return unless _.isNumber amount
     # TODO: check for correct currencyCode
     money =
-      currencyCode: parts[0]
-      centAmount: amount
+      currencyCode: matchedMoney[1]
+      centAmount: parseInt matchedMoney[2]
 
   mapNumber: (rawNumber, attribName, rowIndex) ->
-    return if _.isString(rawNumber) and rawNumber.length is 0
-    number = parseInt rawNumber
-    if "#{number}" isnt rawNumber
+    return unless rawNumber
+    REGEX_NUMBER = /^\d+$/
+    matchedNumber = rawNumber.match REGEX_NUMBER
+    unless matchedNumber
       @errors.push "[row #{rowIndex}:#{attribName}] The number '#{rawNumber}' isn't valid!"
       return
-    number
+    parseInt matchedNumber[0]
 
   # "a.en,a.de,a.it"
   # "hi,Hallo,ciao"

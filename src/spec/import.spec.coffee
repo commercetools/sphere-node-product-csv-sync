@@ -5,7 +5,7 @@ Config = require '../config'
 
 jasmine.getEnv().defaultTimeoutInterval = 20000
 
-describe 'Import', ->
+xdescribe 'Import', ->
   beforeEach (done) ->
     @import = new Import Config
     @rest = @import.validator.rest
