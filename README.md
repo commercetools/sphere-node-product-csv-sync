@@ -7,7 +7,7 @@ SPHERE.IO component to import and update products via CSV.
 
 # Setup
 
-* install [NodeJS](http://support.sphere.io/knowledgebase/articles/307722-install-nodejs-and-get-a-component-running)
+* install [NodeJS](http://support.sphere.io/knowledgebase/articles/307722-install-nodejs-and-get-a-component-running) (platform for running application)
 * install [NPM](https://npmjs.org/doc/install.html) (NodeJS package manager)
 * install [grunt-cli] (http://gruntjs.com/getting-started) (automation tool)
 * build javascript sources.
