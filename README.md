@@ -11,9 +11,8 @@ SPHERE.IO component to import and update products via CSV.
 * install [grunt-cli] (http://gruntjs.com/getting-started)
 * build javascript sources.
 ```bash
-grunt build
+$ grunt build
 ```
-
 # Usage
 ```bash
 $ node lib/run.js
