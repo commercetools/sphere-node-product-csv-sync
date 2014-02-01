@@ -77,7 +77,7 @@ Non required product attributes
 - metaDescription
 - metaKeywords
 
-> The slug is actually required by SPHERE.IO, but will be generated for the given default language out of the `name` column if not provided.
+> The slug is actually required by SPHERE.IO, but will be generated for the given default language out of the `name` column, when no slug information given.
 
 Non required variant attributes
 - sku
