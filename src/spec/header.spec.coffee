@@ -17,10 +17,11 @@ describe 'Header', ->
 
   describe '#validate', ->
     it 'should return error for each missing header', (done) ->
-      csv = "
-foo,productType\n
-1,2
-"
+      csv =
+        """
+        foo,productType
+        1,2
+        """
       @validator.parse csv, =>
         errors = @validator.header.validate()
         expect(errors.length).toBe 2
@@ -29,10 +30,11 @@ foo,productType\n
         done()
 
     it 'should return error on duplicate header', (done) ->
-      csv = "
-productType,name,variantId,name\n
-1,2,3,4
-"
+      csv =
+        """
+        productType,name,variantId,name
+        1,2,3,4
+        """
       @validator.parse csv, =>
         errors = @validator.header.validate()
         expect(errors.length).toBe 1
@@ -41,10 +43,11 @@ productType,name,variantId,name\n
 
   describe '#toIndex', ->
     it 'should create mapping', (done) ->
-      csv = "
-productType,foo,variantId\n
-1,2,3
-"
+      csv =
+        """
+        productType,foo,variantId
+        1,2,3
+        """
       @validator.parse csv, =>
         h2i = @validator.header.toIndex()
         expect(_.size h2i).toBe 3
@@ -62,10 +65,10 @@ productType,foo,variantId\n
           type:
             name: 'ltext'
         ]
-      @csv = "
-someHeader,foo.en,foo.de
-"
-
+      @csv =
+        """
+        someHeader,foo.en,foo.de
+        """
     it 'should create language header index for ltext attributes', (done) ->
       @validator.parse @csv, =>
         langH2i = @validator.header._productTypeLanguageIndexes @productType
@@ -85,9 +88,10 @@ someHeader,foo.en,foo.de
 
   describe '#_languageToIndex', ->
     it 'should create mapping for language attributes', (done) ->
-      csv = "
-foo,a1.de,bar,a1.it
-"
+      csv =
+        """
+        foo,a1.de,bar,a1.it
+        """
       @validator.parse csv, =>
         langH2i = @validator.header._languageToIndex(['a1'])
         expect(_.size langH2i).toBe 1

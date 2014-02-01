@@ -18,21 +18,23 @@ describe 'Validator', ->
         done()
 
     it 'should store header', (done) ->
-      csv = "
-myHeader\n
-row1\n
-"
+      csv =
+        """
+        myHeader
+        row1
+        """
       @validator.parse csv, =>
         expect(@validator.header).toBeDefined
         expect(@validator.header.rawHeader).toEqual ['myHeader']
         done()
 
-    it 'should pass rest as content to callback', (done) ->
-      csv = "
-myHeader\n
-row1\n
-row2,foo
-"
+    it 'should pass everything but the header as content to callback', (done) ->
+      csv =
+        """
+        myHeader
+        row1
+        row2,foo
+        """
       @validator.parse csv, (content) ->
         expect(content.length).toBe 2
         expect(content[0]).toEqual ['row1']
@@ -53,14 +55,15 @@ row2,foo
     beforeEach ->
 
     it 'should build 2 products their variants', (done) ->
-      csv = "
-productType,name,variantId\n
-foo,n1,1\n
-,,2\n
-,,3\n
-bar,n2,1\n
-,,2"
-
+      csv =
+        """
+        productType,name,variantId
+        foo,n1,1
+        ,,2
+        ,,3
+        bar,n2,1
+        ,,2
+        """
       @validator.parse csv, (content) =>
         @validator.buildProducts content
         expect(@validator.errors.length).toBe 0
@@ -74,11 +77,12 @@ bar,n2,1\n
         done()
 
     xit 'should return error if first row in not a product', (done) ->
-      csv = "
-productType,name,variantId\n
-,,1\n
-,,2"
-
+      csv =
+        """
+        productType,name,variantId
+        ,,1
+        ,,2
+        """
       @validator.parse csv, (content) =>
         @validator.buildProducts content
         expect(@validator.errors.length).toBe 2
@@ -88,19 +92,21 @@ productType,name,variantId\n
 
   describe '#valProduct', ->
     it 'should return no error', ->
-      csv = "
-productType,name,variantId\n
-foo,bar,bla"
-
+      csv =
+        """
+        productType,name,variantId
+        foo,bar,bla
+        """
       @validator.parse csv, (content) ->
         #@validator.valProduct content
 
   describe '#validateOffline', ->
     it 'should return no error', ->
-      csv = "
-productType,name,variantId\n
-foo,bar,bla"
-
+      csv =
+        """
+        productType,name,variantId
+        foo,bar,bla
+        """
       @validator.parse csv, (content) =>
         @validator.validateOffline content
         expect(@validator.errors).toEqual []

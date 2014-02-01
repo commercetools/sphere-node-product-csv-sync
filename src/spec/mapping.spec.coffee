@@ -24,10 +24,11 @@ describe 'Mapping', ->
 
   describe '#mapLocalizedAttrib', ->
     it 'should create mapping for language attributes', ->
-      csv = "
-foo,name.de,bar,name.it\n
-x,Hallo,y,ciao"
-
+      csv =
+        """
+        foo,name.de,bar,name.it
+        x,Hallo,y,ciao
+        """
       @validator.parse csv, (content) =>
         values = @map.mapLocalizedAttrib content[0], CONS.HEADER_NAME, @validator.header.toLanguageIndex()
         expect(_.size values).toBe 2
@@ -35,10 +36,11 @@ x,Hallo,y,ciao"
         expect(values['it']).toBe 'ciao'
 
     it 'should fallback to non localized column', ->
-      csv = "
-foo,a1,bar,\n
-x,hi,y"
-
+      csv =
+        """
+        foo,a1,bar
+        x,hi,y
+        """
       @validator.parse csv, (content, count) =>
         @validator.header.toIndex()
         values = @map.mapLocalizedAttrib(content[0], 'a1', {})
@@ -46,10 +48,11 @@ x,hi,y"
         expect(values['en']).toBe 'hi'
 
     it 'should return undefined if header can not be found', ->
-      csv = "
-foo,a1,bar,\n
-x,hi,y"
-
+      csv =
+        """
+        foo,a1,bar
+        x,hi,y
+        """
       @validator.parse csv, (content, count) =>
         @validator.header.toIndex()
         values = @map.mapLocalizedAttrib(content[0], 'a2', {})
@@ -57,10 +60,11 @@ x,hi,y"
 
   describe '#mapBaseProduct', ->
     it 'should map base product', ->
-      csv = "
-productType,name,variantId,\n
-foo,myProduct,1"
-
+      csv =
+        """
+        productType,name,variantId
+        foo,myProduct,1
+        """
       pt =
         id: '123'
       @validator.parse csv, (content, count) =>
@@ -254,12 +258,13 @@ foo,myProduct,1"
     it 'should map a product', ->
       productType =
         attributes: []
-      csv = "
-productType,name,variantId,sku\n
-foo,myProduct,1,x\n
-,,2,y\n
-,,3,z\n"
-
+      csv =
+        """
+        productType,name,variantId,sku
+        foo,myProduct,1,x
+        ,,2,y
+        ,,3,z
+        """
       @validator.parse csv, (content, count) =>
         @validator.validateOffline content
         product = @validator.map.mapProduct @validator.rawProducts[0], productType
