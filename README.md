@@ -99,11 +99,12 @@ productType,name.en,name.de,description.en,description.de,slug.en,slug.de
 myType,my Product,mein Produkt,foo bar,bla bal,my-product,mein-product
 ```
 
-> <attribute name>.<language>
+The pattern for the language header is:
+`<attribute name>.<language>`
 
 #### Tax Category
 
-Just provided the name of the tax category in the `tax` column.
+Just provide the name of the tax category in the `tax` column.
 
 #### Categories
 
