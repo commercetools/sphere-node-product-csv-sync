@@ -31,11 +31,11 @@ The following 3 attributes are the bare minimum to create products:
 productType,name,variantId
 ```
 
-You can define the productType via name or id.
+You can define the productType via id or name (as long as it is unique).
 
 ### Variants
 
-Variants are defined by leaving the productType cell empty and defining the variantId > 1:
+Variants are defined by leaving the `productType` cell empty and defining a `variantId > 1`:
 ```
 productType,name,variantId,myAttribute
 typeName,myProduct,1,value
@@ -54,31 +54,35 @@ row 4: product with master variant
 row 5: 1st variant of product in row 4
 ```
 
-Non requiresd base attributes
+Non required product attributes
 - slug
-- sku
 - metaTitle
 - metaDescription
 - metaKeywords
 
-> The slug is actually required by SPHERE.IO, but will be generated out of the `name` column if not provided.
+> The slug is actually required by SPHERE.IO, but will be generated for the given default language out of the `name` column if not provided.
+
+Non required variant attributes
+- sku
 
 ### Localized attributes
 
-The following attributes can be localized:
+The following product attributes can be localized:
 - name
 - description
 - slug
 
-> And any custom attribute of type `ltext`
+> Further any custom attribute of type `ltext` can be filled with several language values.
 
 Using the command line option `--language`, you can define in which language the values should be imported.
 
-Further it is allowed to define for each language an own column:
+Multiple languages can be imported by defining for each language an own column with the following schema:
 ```
 productType,name.en,name.de,description.en,description.de,slug.en,slug.de
 myType,my Product,mein Produkt,foo bar,bla bal,my-product,mein-product
 ```
+
+> <attribute name>.<language>
 
 #### Tax Category
 
@@ -86,7 +90,7 @@ Just provided the name of the tax category in the `tax` column.
 
 #### Categories
 
-In the `categories` column you can define a list of categories the product should be included separated by `;`:
+In the `categories` column you can define a list of categories the product should be categorized in separated by `;`:
 ```
 Root>Category>SameSubCategory;Root2;Root>Category2>SameSubCategory
 ```
@@ -108,3 +112,9 @@ The `country` and `customerGroupName` part is optional.
 
 #### Images
 
+In the `images` column you can define a list of urls for each variant separated by `;`:
+```
+https://example.com/image.jpg;http://www.example.com/picture.bmp
+```
+
+> In general we recommend to import images without the protocol like `//example.com/image.png`
