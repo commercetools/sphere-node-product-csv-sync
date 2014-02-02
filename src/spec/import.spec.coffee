@@ -3,9 +3,9 @@ Import = require '../lib/import'
 Q = require 'q'
 Config = require '../config'
 
-jasmine.getEnv().defaultTimeoutInterval = 20000
+jasmine.getEnv().defaultTimeoutInterval = 60000
 
-xdescribe 'Import', ->
+describe 'Import', ->
   beforeEach (done) ->
     @import = new Import Config
     @rest = @import.validator.rest
