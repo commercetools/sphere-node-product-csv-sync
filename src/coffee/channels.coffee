@@ -21,8 +21,8 @@ class Channels
     deferred.promise
 
   buildMaps: (channels) ->
-    for channel, index in channels
-      name = channel.key
+    for channel in channels
+      key = channel.key
       id = channel.id
       @key2id[key] = id
 

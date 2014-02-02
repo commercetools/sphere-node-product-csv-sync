@@ -50,7 +50,11 @@ describe 'Import', ->
             @rest.POST '/product-types', JSON.stringify(@productType), (error, response, body) =>
               expect(response.statusCode).toBe 201
               @productType = JSON.parse body
-              done()
+              channel =
+                key: 'retailerA'
+                roles: [ 'InventorySupply' ]
+              @rest.POST '/channels', JSON.stringify(channel), (error, response, body) ->
+                done()
           .fail (msg) ->
             expect(true).toBe false
         .fail (msg) ->
@@ -62,6 +66,17 @@ describe 'Import', ->
         """
         productType,name,variantId,slug
         #{@productType.id},myProduct,1,slug
+        """
+      @import.import csv, (res) ->
+        expect(res.status).toBe true
+        expect(res.message).toBe 'New product created.'
+        done()
+
+    it 'should import a product with prices', (done) ->
+      csv =
+        """
+        productType,name,variantId,slug,prices
+        #{@productType.id},myProduct,1,slug,EUR 899;CH-EUR 999;CH-USD 77777700 #retailerA
         """
       @import.import csv, (res) ->
         expect(res.status).toBe true

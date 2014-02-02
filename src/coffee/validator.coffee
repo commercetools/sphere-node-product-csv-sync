@@ -51,13 +51,15 @@ class Validator
       @customerGroups.getAll @rest
       @categories.getAll @rest
       @taxes.getAll @rest
+      @channels.getAll @rest
     ]
-    Q.all(gets).then ([productTypes, customerGroups, categories, taxes]) =>
+    Q.all(gets).then ([productTypes, customerGroups, categories, taxes, channels]) =>
       @productTypes = productTypes
       @types.buildMaps productTypes
       @customerGroups.buildMaps customerGroups
       @categories.buildMaps categories
       @taxes.buildMaps taxes
+      @channels.buildMaps channels
       @valProducts @rawProducts
 
       if _.size(@errors) is 0

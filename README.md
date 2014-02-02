@@ -125,12 +125,19 @@ to ensure you can link to leaf categories with same names but different bread cr
 
 In the `prices` column you can define a list of prices for each variant separated by `;`:
 ```
-CH-EUR 999 B2B;EUR 899
+CH-EUR 999 B2B;EUR 899;USD 19900 #retailerA
 ```
 The pattern for one price is:
-`<country>-<currenyCode> <centAmount> <customerGroupName>`
+`<country>-<currenyCode> <centAmount> <customerGroupName>#<channelKey>`
 
-The `country` and `customerGroupName` part is optional. 
+mandatory:
+- currenyCode
+- centAmount
+
+optional:
+- country
+- customerGroupName
+- country
 
 #### Images
 
