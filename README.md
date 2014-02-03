@@ -69,10 +69,10 @@ The CSV above contains:
 ```
 row 0: header
 row 1: product with master variant
-row 2: 1st variant of product in row 1
-row 3: 2nd variant of product in row 1
+row 2: 2nd variant of product in row 1
+row 3: 3rd variant of product in row 1
 row 4: product with master variant
-row 5: 1st variant of product in row 4
+row 5: 2nd variant of product in row 4
 ```
 
 Non required product attributes
@@ -119,7 +119,7 @@ Root>Category>SameSubCategory;Root2;Root>Category2>SameSubCategory
 This example contains 3 categories defined by their full path. The path segments are thereby separated with `>`
 to ensure you can link to leaf categories with same names but different bread crumb.
 
-> You can also use the category name as long as it is unqiue within the whole category tree.
+> You can also just use the category name as long as it is unqiue within the whole category tree. In addtion, the category ID (UUID) can also be used.
 
 #### Prices
 
@@ -137,7 +137,7 @@ mandatory:
 optional:
 - country
 - customerGroupName
-- country
+- channel
 
 #### Images
 
