@@ -9,7 +9,14 @@ describe 'Import', ->
   beforeEach (done) ->
     @import = new Import Config
     @rest = @import.validator.rest
-    
+
+
+    values = [
+      { key: 'x', label: 'X' }
+      { key: 'y', label: 'Y' }
+      { key: 'z', label: 'Z' }
+    ]
+
     @productType =
       name: 'myType'
       description: 'foobar'
@@ -19,6 +26,7 @@ describe 'Import', ->
         { name: 'descCU1', label: { name: 'descCU1' }, type: { name: 'text'}, attributeConstraint: 'CombinationUnique', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
         { name: 'descCU2', label: { name: 'descCU2' }, type: { name: 'text'}, attributeConstraint: 'CombinationUnique', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
         { name: 'descS', label: { name: 'descS' }, type: { name: 'text'}, attributeConstraint: 'SameForAll', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
+        { name: 'multiEnum', label: { name: 'multiEnum' }, type: { name: 'set', elementType: { name: 'enum', values: values } }, attributeConstraint: 'None', isRequired: false, isSearchable: false }
       ]
 
     deleteProduct = (product) =>
@@ -163,3 +171,22 @@ describe 'Import', ->
           expect(res.status).toBe true
           expect(res.message['Product update not necessary.']).toBe 3
           done()
+
+    it 'should handle set of enums', (done) ->
+      csv =
+        """
+        productType,name,variantId,multiEnum
+        #{@productType.id},myProduct1,1,x;y
+        ,,2,x;z
+        """
+      @import.import csv, (res) ->
+        expect(res.status).toBe true
+        expect(res.message).toBe 'New product created.'
+
+        done()
+#        im = new Import Config
+#        im.import csv, (res) ->
+#          console.log res
+#          expect(res.status).toBe true
+#          expect(res.message['Product update not necessary.']).toBe 1
+#          done()

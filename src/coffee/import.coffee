@@ -15,17 +15,20 @@ class Import extends CommonUpdater
 
   import: (fileContent, callback) ->
     @validator.parse fileContent, (data, count) =>
+      console.log "CSV with #{count} row(s) loaded."
       @validator.validate(data).then (rawProducts) =>
         if _.size(@validator.errors) isnt 0
           @returnResult false, @validator.map.errors, callback
           return
         products = []
+        console.log "Mapping #{_.size rawProducts} product(s) ..."
         for rawProduct in @validator.rawProducts
           products.push @validator.map.mapProduct(rawProduct)
         if _.size(@validator.map.errors) isnt 0
           @returnResult false, @validator.map.errors, callback
           return
         @getAllExistingProducts().then (existingProducts) =>
+          console.log "Comparing against #{_.size existingProducts} existing product(s) ..."
           @initMatcher existingProducts
           @createOrUpdate products, @validator.types, callback
         .fail (msg) =>
@@ -47,7 +50,7 @@ class Import extends CommonUpdater
     deferred.promise
 
   initMatcher: (existingProducts) ->
-    console.log "initMatcher: ", _.size existingProducts
+    # console.log "initMatcher: ", _.size existingProducts
     @existingProducts = existingProducts
     @id2index = {}
     @sku2index = {}
@@ -62,9 +65,9 @@ class Import extends CommonUpdater
         vSku = @getSku(variant)
         @sku2index[vSku] = index if vSku
 
-    console.log "id2index: ", _.size @id2index
-    console.log "sku2index: ", _.size @sku2index
-    console.log "slug2index: ", _.size @slug2index
+    # console.log "id2index: ", _.size @id2index
+    # console.log "sku2index: ", _.size @sku2index
+    # console.log "slug2index: ", _.size @slug2index
 
   getSku: (variant) ->
     variant.sku
