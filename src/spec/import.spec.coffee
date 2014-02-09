@@ -175,18 +175,15 @@ describe 'Import', ->
     it 'should handle set of enums', (done) ->
       csv =
         """
-        productType,name,variantId,multiEnum
-        #{@productType.id},myProduct1,1,x;y
-        ,,2,x;z
+        productType,name,variantId,slug,descU,descCU1
+        #{@productType.id},myProduct1,1,slug1,y;x,a,b
+        ,,2,slug2,x;z,b,a
         """
       @import.import csv, (res) ->
         expect(res.status).toBe true
         expect(res.message).toBe 'New product created.'
-
-        done()
-#        im = new Import Config
-#        im.import csv, (res) ->
-#          console.log res
-#          expect(res.status).toBe true
-#          expect(res.message['Product update not necessary.']).toBe 1
-#          done()
+        im = new Import Config
+        im.import csv, (res) ->
+          expect(res.status).toBe true
+          expect(res.message).toBe 'Product update not necessary.'
+          done()
