@@ -5,7 +5,7 @@ set -e
 BRANCH_NAME='latest'
 
 set +e
-git branch -d ${BRANCH_NAME}
+git branch -D ${BRANCH_NAME}
 set -e
 
 git branch ${BRANCH_NAME}
