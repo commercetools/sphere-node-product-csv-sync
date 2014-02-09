@@ -1,9 +1,12 @@
 # Features
-- support Set type
+- on update to handle changes in
+  * categories
+  * taxes
+- Allow to define if match is against staged or published existing products (current it's staged)
 
 # Command line options
-- delimiter
-- validateOnly
+- allow to overwrite delimiters
+- add option to "validateOnly"
 
 # Ideas
 - allow to define publish state as column
@@ -13,4 +16,3 @@
 - How to handle attributes that are called like base attributes?
   (eg. name, description, productType, slug, etc.) - maybe some prefix like "."
 - Do we have negative prices?
-
