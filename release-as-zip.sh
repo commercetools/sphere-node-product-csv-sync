@@ -4,12 +4,17 @@ set -e
 
 BRANCH_NAME='latest'
 
+set +e
+git branch -d ${BRANCH_NAME}
+set -e
+
+git branch ${BRANCH_NAME}
+
 rm -rf lib
 rm -rf node_modules
 
 npm version patch
 git checkout ${BRANCH_NAME}
-git merge master
 
 npm install
 grunt build
@@ -18,7 +23,7 @@ npm install --production
 git add -f lib/
 git add -f node_modules/
 git commit -m "Update generated code and runtime dependencies."
-git push origin ${BRANCH_NAME}
+git push --force origin ${BRANCH_NAME}
 
 git checkout master
 npm version patch
