@@ -179,11 +179,21 @@ describe 'Import', ->
         #{@productType.id},myProduct1,1,slug1,y;x,a,b
         ,,2,slug2,x;z,b,a
         """
-      @import.import csv, (res) ->
+      @import.import csv, (res) =>
         expect(res.status).toBe true
         expect(res.message).toBe 'New product created.'
         im = new Import Config
-        im.import csv, (res) ->
+        im.import csv, (res) =>
           expect(res.status).toBe true
           expect(res.message).toBe 'Product update not necessary.'
-          done()
+          csv =
+            """
+            productType,name,variantId,slug,descU,descCU1
+            #{@productType.id},myProduct1,1,slug1,y;x,a,b
+            ,,2,slug2,z,b,a
+            """
+          im = new Import Config
+          im.import csv, (res) ->
+            expect(res.status).toBe true
+            expect(res.message).toBe 'Product updated.'
+            done()
