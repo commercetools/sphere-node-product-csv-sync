@@ -1,18 +1,36 @@
-# Features
-- on update to handle changes in
+# Import
+- on update handle changes of
   * categories
   * taxes
 - Allow to define if match is against staged or published existing products (current it's staged)
 
-# Command line options
+
+### Command line options
 - allow to overwrite delimiters
 - add option to "validateOnly"
 
-# Ideas
+### Ideas
 - allow to define publish state as column
 - allow to define slug of category instead of id or tree path
 
-# Questions
+### Questions
 - How to handle attributes that are called like base attributes?
   (eg. name, description, productType, slug, etc.) - maybe some prefix like "."
 - Do we have negative prices?
+
+# Export
+- support export of
+  * product type
+  * taxes
+  * prices
+  * sku
+  * variantId
+  * categories
+  * money-typed attributes
+
+### Command line options
+- select wheter to use staged or published
+- allow to provide product type
+
+### Ideas
+- generate CSV template for one product type
