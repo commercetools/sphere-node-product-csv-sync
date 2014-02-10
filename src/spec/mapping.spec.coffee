@@ -14,6 +14,16 @@ describe 'Mapping', ->
       expect(-> new Mapping()).toBeDefined()
       expect(@map).toBeDefined()
 
+  describe '#isValidValue', ->
+    it 'should return false for undefined and null', ->
+      expect(@map.isValidValue(undefined)).toBe false
+      expect(@map.isValidValue(null)).toBe false
+    it 'should return false for empty string', ->
+      expect(@map.isValidValue('')).toBe false
+      expect(@map.isValidValue("")).toBe false
+    it 'should return true for strings with length > 0', ->
+      expect(@map.isValidValue("foo")).toBe true
+
   describe '#ensureValidSlug', ->
     it 'should accept unique slug', ->
       expect(@map.ensureValidSlug 'foo').toBe 'foo'

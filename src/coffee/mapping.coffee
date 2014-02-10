@@ -56,12 +56,17 @@ class Mapping
       return currentSlug
     @ensureValidSlug slug, Math.floor((Math.random()*89999)+10001) # five digets
 
+  hasValidValueForHeader: (row, headerName) ->
+    return false unless @header.has(headerName)
+    @isValidValue(row[@header.toIndex headerName])
+
+  isValidValue: (rawValue) ->
+    return _.isString(rawValue) and rawValue.length > 0
+
   mapCategories: (rawMaster, rowIndex) ->
-    return [] unless @header.has CONS.HEADER_CATEGORIES
     categories = []
-    raw = rawMaster[@header.toIndex CONS.HEADER_CATEGORIES]
-    return [] if _.isString(raw) and raw.length is 0
-    rawCategories = raw.split CONS.DELIM_MULTI_VALUE
+    return categories unless @hasValidValueForHeader(rawMaster, CONS.HEADER_CATEGORIES)
+    rawCategories = rawMaster[@header.toIndex CONS.HEADER_CATEGORIES].split CONS.DELIM_MULTI_VALUE
     for rawCategory in rawCategories
       cat =
         typeId: 'category'
@@ -81,9 +86,8 @@ class Mapping
     categories
 
   mapTaxCategory: (rawMaster, rowIndex) ->
-    return unless @header.has CONS.HEADER_TAX
+    return unless @hasValidValueForHeader(rawMaster, CONS.HEADER_TAX)
     rawTax = rawMaster[@header.toIndex CONS.HEADER_TAX]
-    return [] if _.isString(rawTax) and rawTax.length is 0
     if _.contains(@taxes.duplicateNames, rawTax)
       @errors.push "[row #{rowIndex}:#{CONS.HEADER_TAX}] The tax category '#{rawTax}' is not unqiue!"
       return
@@ -130,20 +134,20 @@ class Mapping
 
   # We currently only support Set of (l)enum
   mapSetAttribute: (raw, attribute, rowIndex) ->
-    return raw unless raw
+    return unless @isValidValue(raw)
     rawValues = raw.split CONS.DELIM_MULTI_VALUE
     values = []
     for rawValue in rawValues
       values.push rawValue
-    return values
+    
+    values
 
   mapPrices: (raw, rowIndex) ->
-    return [] unless raw
-    REGEX_PRICE = /^(([A-Za-z]{2})-|)([A-Z]{3}) (\d+)( (\w*)|)(#(\w+)|)$/
     prices = []
+    return prices unless @isValidValue(raw)
     rawPrices = raw.split CONS.DELIM_MULTI_VALUE
     for rawPrice in rawPrices
-      matchedPrice = rawPrice.match REGEX_PRICE
+      matchedPrice = rawPrice.match CONS.REGEX_PRICE
       unless matchedPrice
         @errors.push "[row #{rowIndex}:#{CONS.HEADER_PRICES}] Can not parse price '#{rawPrice}'!"
         continue
@@ -171,29 +175,30 @@ class Mapping
           id: @channels.key2id[channelKey]
 
       prices.push price
+
     prices
 
   # EUR 300
   # USD 999
   mapMoney: (rawMoney, attribName, rowIndex) ->
-    return unless rawMoney
-    REGEX_MONEY = /^([A-Z]{3}) (\d+)$/
-    matchedMoney = rawMoney.match REGEX_MONEY
+    return unless @isValidValue(rawMoney)
+    matchedMoney = rawMoney.match CONS.REGEX_MONEY
     unless matchedMoney
       @errors.push "[row #{rowIndex}:#{attribName}] Can not parse money '#{rawMoney}'!"
       return
     # TODO: check for correct currencyCode
+    
     money =
       currencyCode: matchedMoney[1]
       centAmount: parseInt matchedMoney[2]
 
   mapNumber: (rawNumber, attribName, rowIndex) ->
-    return unless rawNumber
-    REGEX_NUMBER = /^\d+$/
-    matchedNumber = rawNumber.match REGEX_NUMBER
+    return unless @isValidValue(rawNumber)
+    matchedNumber = rawNumber.match CONS.REGEX_NUMBER
     unless matchedNumber
       @errors.push "[row #{rowIndex}:#{attribName}] The number '#{rawNumber}' isn't valid!"
       return
+
     parseInt matchedNumber[0]
 
   # "a.en,a.de,a.it"
@@ -209,17 +214,17 @@ class Mapping
         values[language] = row[index]
     # fall back to non localized column if language columns could not be found
     if _.size(values) is 0
-      return undefined unless @header.has attribName
+      return unless @header.has(attribName)
       val = row[@header.toIndex attribName]
       values[CONS.DEFAULT_LANGUAGE] = val
+
     values
 
   mapImages: (rawVariant, variantId, rowIndex) ->
-    return [] unless @header.has CONS.HEADER_IMAGES
-    raw = rawVariant[@header.toIndex CONS.HEADER_IMAGES]
-    return [] if _.isString(raw) and raw.length is 0
-    rawImages = raw.split CONS.DELIM_MULTI_VALUE
     images = []
+    return images unless @hasValidValueForHeader(rawVariant, CONS.HEADER_IMAGES)
+    rawImages = rawVariant[@header.toIndex CONS.HEADER_IMAGES].split CONS.DELIM_MULTI_VALUE
+    
     for rawImage in rawImages
       image =
         url: rawImage

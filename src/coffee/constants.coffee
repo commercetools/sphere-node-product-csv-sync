@@ -29,6 +29,11 @@ constants =
 
   ATTRIBUTE_CONSTRAINT_SAME_FOR_ALL: 'SameForAll'
 
+  REGEX_PRICE: /^(([A-Za-z]{2})-|)([A-Z]{3}) (\d+)( (\w*)|)(#(\w+)|)$/
+  REGEX_MONEY: /^([A-Z]{3}) (\d+)$/
+  REGEX_NUMBER: /^\d+$/
+
+
 for name,value of constants
   exports[name] = value
 
