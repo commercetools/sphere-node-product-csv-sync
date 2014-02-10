@@ -213,7 +213,7 @@ describe 'Mapping', ->
         value:
           centAmount: 19999
           currencyCode: 'YEN'
-        supplyChannel:
+        channel:
           typeId: 'channel'
           id: 'channelId123'
       expect(prices[0]).toEqual expectedPrice

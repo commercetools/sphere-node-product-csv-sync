@@ -166,7 +166,7 @@ class Mapping
         unless _.has(@channels.key2id, channelKey)
           @errors.push "[row #{rowIndex}:#{CONS.HEADER_PRICES}] Can not find channel with key '#{channelKey}'!"
           return []
-        price.supplyChannel =
+        price.channel =
           typeId: 'channel'
           id: @channels.key2id[channelKey]
 
