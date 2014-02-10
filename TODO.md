@@ -2,12 +2,12 @@
 - on update handle changes of
   * categories
   * taxes
-- Allow to define if match is against staged or published existing products (current it's staged)
-
+- allow to define if match is against staged or published existing products (current it's staged)
 
 ### Command line options
 - allow to overwrite delimiters
 - add option to "validateOnly"
+- add option to re-index after import
 
 ### Ideas
 - allow to define publish state as column
