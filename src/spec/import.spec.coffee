@@ -175,7 +175,7 @@ describe 'Import', ->
     it 'should handle set of enums', (done) ->
       csv =
         """
-        productType,name,variantId,slug,descU,descCU1
+        productType,name,variantId,slug,multiEnum,descU,descCU1
         #{@productType.id},myProduct1,1,slug1,y;x,a,b
         ,,2,slug2,x;z,b,a
         """
@@ -188,8 +188,8 @@ describe 'Import', ->
           expect(res.message).toBe 'Product update not necessary.'
           csv =
             """
-            productType,name,variantId,slug,descU,descCU1
-            #{@productType.id},myProduct1,1,slug1,y;x,a,b
+            productType,name,variantId,slug,multiEnum,descU,descCU1
+            #{@productType.id},myProduct1,1,slug1,y;x;z,a,b
             ,,2,slug2,z,b,a
             """
           im = new Import Config
