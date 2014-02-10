@@ -31,7 +31,7 @@
   "dependencies": {
     "csv": "0.3.6",
     "sphere-node-connect": "0.2.6",
-    "sphere-node-sync": "0.3.13",
+    "sphere-node-sync": "0.3.14",
     "optimist": "0.6.0",
     "q": "1.0.0",
     "underscore": "1.5.2",
