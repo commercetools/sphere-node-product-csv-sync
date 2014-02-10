@@ -8,12 +8,11 @@ set +e
 git branch -D ${BRANCH_NAME}
 set -e
 
-git branch ${BRANCH_NAME}
-
 rm -rf lib
 rm -rf node_modules
 
 npm version patch
+git branch ${BRANCH_NAME}
 git checkout ${BRANCH_NAME}
 
 npm install
