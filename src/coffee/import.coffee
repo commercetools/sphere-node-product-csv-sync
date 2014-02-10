@@ -1,6 +1,7 @@
 _ = require 'underscore'
 CONS = require '../lib/constants'
 Validator = require '../lib/validator'
+Products = require '../lib/products'
 ProductSync = require('sphere-node-sync').ProductSync
 CommonUpdater = require('sphere-node-sync').CommonUpdater
 Q = require 'q'
@@ -12,6 +13,7 @@ class Import extends CommonUpdater
     @validator = new Validator options
     @sync = new ProductSync options
     @rest = @validator.rest
+    @productService = new Products()
 
   import: (fileContent, callback) ->
     @validator.parse fileContent, (data, count) =>
@@ -27,7 +29,7 @@ class Import extends CommonUpdater
         if _.size(@validator.map.errors) isnt 0
           @returnResult false, @validator.map.errors, callback
           return
-        @getAllExistingProducts().then (existingProducts) =>
+        @productService.getAllExistingProducts(@rest, true).then (existingProducts) =>
           console.log "Comparing against #{_.size existingProducts} existing product(s) ..."
           @initMatcher existingProducts
           @createOrUpdate products, @validator.types, callback
@@ -35,19 +37,6 @@ class Import extends CommonUpdater
           @returnResult false, msg, callback
       .fail (msg) =>
         @returnResult false, msg, callback
-
-  getAllExistingProducts: ->
-    deferred = Q.defer()
-    @rest.GET '/product-projections?limit=0&staged=true', (error, response, body) ->
-      if error
-        deferred.reject 'Error on getting existing products: ' + error
-      else
-        if response.statusCode is 200
-          deferred.resolve JSON.parse(body).results
-        else
-          deferred.reject 'Problem on getting existing products: ' + body
-
-    deferred.promise
 
   initMatcher: (existingProducts) ->
     # console.log "initMatcher: ", _.size existingProducts
