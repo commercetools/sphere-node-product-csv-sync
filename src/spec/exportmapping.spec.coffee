@@ -67,9 +67,9 @@ describe 'ExportMapping', ->
       row = @exportMapping.mapVariant(variant)
       expect(row).toEqual [ 'bar' ]
 
-  xdescribe '#mapBaseProduct', ->
+  describe '#mapBaseProduct', ->
     it 'should map productType and id', ->
-      @exportMapping.header = new Header("#{CONS.HEADER_PRODUCT_TYPE},#{CONS.HEADER_ID}")
+      @exportMapping.header = new Header([CONS.HEADER_PRODUCT_TYPE,CONS.HEADER_ID])
       @exportMapping.header.toIndex()
       product =
         id: '123'
