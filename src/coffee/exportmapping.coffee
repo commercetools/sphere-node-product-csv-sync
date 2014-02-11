@@ -12,7 +12,7 @@ class ExportMapping
       name2attributeDef[attribute.name] = attribute
 
     masterRow = @mapVariant product.masterVariant, productType
-    masterRow = mapBaseProduct masterRow, product, productType
+    masterRow = @mapBaseProduct masterRow, product, productType
 
     rows = []
     rows.push masterRow
@@ -20,6 +20,7 @@ class ExportMapping
     if product.variants
       for variant in product.variants
         rows.push @mapVariant variant, productType
+
     rows
 
   mapBaseProduct: (masterRow, product, productType) ->
@@ -33,7 +34,6 @@ class ExportMapping
     # TODO
     # - tax
     # - categories
-    # - ...
 
     for attribName, h2i of @header.toLanguageIndex()
       for lang, index of h2i
@@ -41,15 +41,17 @@ class ExportMapping
 
     masterRow
 
-
   mapVariant: (variant, productType) ->
     row = []
-
     if @header.has(CONS.HEADER_VARIANT_ID)
       row[@header.toIndex CONS.HEADER_VARIANT_ID] = variant.id
 
     if @header.has(CONS.HEADER_SKU)
       row[@header.toIndex CONS.HEADER_SKU] = variant.sku
+
+    # TODO:
+    # - prices
+    # - images
 
     if variant.attributes
       for attribute in variant.attributes
@@ -60,12 +62,16 @@ class ExportMapping
           if h2i
             for lang, index of h2i
               row[index] = attribute.value[lang]
+
     row
 
   isEnum: (value) ->
     _.has(value, 'key') and _.has(value, 'label')
 
   mapAttribute: (attribute, productType) ->
+    # TODO:
+    # - money
+    # -
     if @isEnum(attribute.value)
       attribute.value.key
     else

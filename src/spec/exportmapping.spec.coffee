@@ -77,3 +77,24 @@ describe 'ExportMapping', ->
         id: 'typeId123'
       row = @exportMapping.mapBaseProduct([], product, type)
       expect(row).toEqual [ 'typeId123', '123' ]
+
+    it 'should map localized base attributes', ->
+      @exportMapping.header = new Header(['name.de','slug.it','description.en'])
+      @exportMapping.header.toIndex()
+      product =
+        id: '123'
+        name:
+          de: 'Hallo'
+          en: 'Hello'
+          it: 'Ciao'
+        slug:
+          de: 'hallo'
+          en: 'hello'
+          it: 'ciao'
+        description:
+          de: 'Bla bla'
+          en: 'Foo bar'
+          it: 'Ciao Bella'
+
+      row = @exportMapping.mapBaseProduct([], product, {})
+      expect(row).toEqual [ 'Hallo', 'ciao', 'Foo bar' ]

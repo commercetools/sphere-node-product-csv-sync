@@ -13,6 +13,7 @@ class Export extends CommonUpdater
 
   constructor: (options = {}) ->
     super(options)
+    @staged = true # TODO
     @types = new Types()
     @productService = new Products()
     @exportMapping = new ExportMapping()
@@ -33,14 +34,16 @@ class Export extends CommonUpdater
         @types.buildMaps productTypes
         for productType in productTypes
           header._productTypeLanguageIndexes(productType)
-        @productService.getAllExistingProducts(@rest).then (products) =>
+        @productService.getAllExistingProducts(@rest, @staged).then (products) =>
           console.log "Number of products: #{_.size products}."
           if _.size(products) is 0
             @returnResult true, 'No products found.', callback
+            return
           csv = [ header.rawHeader ]
           for product in products
             csv = csv.concat(@exportMapping.mapProduct(product, productTypes))
-          x = Csv().from(csv).to.path(outputFile)
+          Csv().from(csv).to.path(outputFile)
+          @returnResult true, 'Export done.', callback
         .fail (msg) ->
           @returnResult false, msg, callback
       .fail (msg) ->
