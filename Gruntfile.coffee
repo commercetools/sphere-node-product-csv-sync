@@ -1,6 +1,6 @@
 'use strict'
 
-module.exports = (grunt)->
+module.exports = (grunt) ->
   # project configuration
   grunt.initConfig
     # load package information
@@ -15,16 +15,7 @@ module.exports = (grunt)->
         "*/\n"
 
     coffeelint:
-      options:
-        indentation:
-          value: 2
-          level: "error"
-        no_trailing_semicolons:
-          level: "error"
-        no_trailing_whitespace:
-          level: "error"
-        max_line_length:
-          level: "ignore"
+      options: grunt.file.readJSON('node_modules/sphere-coffeelint/coffeelint.json')
       default: ["Gruntfile.coffee", "src/**/*.coffee"]
 
     clean:

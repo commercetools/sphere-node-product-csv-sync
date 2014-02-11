@@ -2,7 +2,7 @@ Q = require 'q'
 
 class Products
 
-  getAllExistingProducts: (rest, staged=false) ->
+  getAllExistingProducts: (rest, staged = false) ->
     deferred = Q.defer()
     rest.GET "/product-projections?limit=0&staged=#{staged}", (error, response, body) ->
       if error

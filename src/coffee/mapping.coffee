@@ -54,7 +54,7 @@ class Mapping
     unless _.contains(@slugs, currentSlug)
       @slugs.push currentSlug
       return currentSlug
-    @ensureValidSlug slug, Math.floor((Math.random()*89999)+10001) # five digets
+    @ensureValidSlug slug, Math.floor((Math.random() * 89999) + 10001) # five digets
 
   hasValidValueForHeader: (row, headerName) ->
     return false unless @header.has(headerName)
