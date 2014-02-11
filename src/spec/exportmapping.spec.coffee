@@ -13,7 +13,7 @@ describe 'ExportMapping', ->
       expect(@exportMapping).toBeDefined()
 
   describe '#mapPrices', ->
-    it '', ->
+    it 'should map simple price', ->
       prices = [
         { value: { centAmount: 999, currencyCode: 'EUR' } }
       ]
