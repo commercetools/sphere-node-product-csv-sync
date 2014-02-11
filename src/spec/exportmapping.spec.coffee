@@ -12,6 +12,13 @@ describe 'ExportMapping', ->
     it 'should initialize', ->
       expect(-> new ExportMapping()).toBeDefined()
 
+  describe '#mapPrices', ->
+    it '', ->
+      prices = [
+        { value: { centAmount: 999, currencyCode: 'EUR' } }
+      ]
+      expect(@exportMapping.mapPrices prices).toBe 'EUR 999'
+
   describe '#mapAttribute', ->
     beforeEach ->
       @exportMapping.types = new Types()
