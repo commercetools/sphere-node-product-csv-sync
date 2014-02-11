@@ -1,6 +1,7 @@
 _ = require('underscore')._
 ExportMapping = require '../lib/exportmapping'
 Header = require '../lib/header'
+Types = require '../lib/types'
 CONS = require '../lib/constants'
 
 describe 'ExportMapping', ->
@@ -12,26 +13,38 @@ describe 'ExportMapping', ->
       expect(-> new ExportMapping()).toBeDefined()
 
   describe '#mapAttribute', ->
+    beforeEach ->
+      @exportMapping.types = new Types()
+      @productType =
+        id: '123'
+        attributes: [
+          { name: 'myTextAttrib', type: { name: 'text' } }
+          { name: 'myEnumAttrib', type: { name: 'enum' } }
+          { name: 'myTextSetAttrib', type: { name: 'set', elementType: { name: 'text' } } }
+          { name: 'myEnumSetAttrib', type: { name: 'set', elementType: { name: 'lenum' } } }
+        ]
+      @exportMapping.types.buildMaps [@productType]
+
     it 'should map simple attribute', ->
       attribute =
-        name: 'foo'
+        name: 'myTextAttrib'
         value: 'some text'
-      expect(@exportMapping.mapAttribute attribute).toBe 'some text'
+      expect(@exportMapping.mapAttribute attribute, @productType.attributes[0].type).toBe 'some text'
 
     it 'should map enum attribute', ->
       attribute =
-        name: 'foo'
+        name: 'myEnumAttrib'
         value:
           label:
             en: 'bla'
           key: 'myEnum'
-      expect(@exportMapping.mapAttribute attribute).toBe 'myEnum'
+      expect(@exportMapping.mapAttribute attribute, @productType.attributes[1].type).toBe 'myEnum'
 
     it 'should map text set attribute', ->
       attribute =
-        name: 'foo'
+        name: 'myTextSetAttrib'
         value: [ 'x', 'y', 'z' ]
-      expect(@exportMapping.mapAttribute attribute).toBe 'x;y;z'
+      expect(@exportMapping.mapAttribute attribute, @productType.attributes[2].type).toBe 'x;y;z'
 
     it 'should map enum set attribute', ->
       attribute =
@@ -44,7 +57,7 @@ describe 'ExportMapping', ->
               en: 'foo'
             key: 'myEnum2' }
         ]
-      expect(@exportMapping.mapAttribute attribute).toBe 'myEnum;myEnum2'
+      expect(@exportMapping.mapAttribute attribute, @productType.attributes[3].type).toBe 'myEnum;myEnum2'
 
   describe '#mapVariant', ->
     it 'should map variant id and sku', ->
@@ -60,11 +73,18 @@ describe 'ExportMapping', ->
     it 'should map variant attributes', ->
       @exportMapping.header = new Header([ 'foo' ])
       @exportMapping.header.toIndex()
+      @exportMapping.types = new Types()
+      productType =
+        id: '123'
+        attributes: [
+          { name: 'foo', type: { name: 'text' } }
+        ]
+      @exportMapping.types.buildMaps [productType]
       variant =
         attributes: [
           { name: 'foo', value: 'bar' }
         ]
-      row = @exportMapping.mapVariant(variant)
+      row = @exportMapping.mapVariant(variant, productType)
       expect(row).toEqual [ 'bar' ]
 
   describe '#mapBaseProduct', ->

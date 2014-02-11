@@ -7,10 +7,6 @@ class ExportMapping
   mapProduct: (product, productTypes) ->
     productType = productTypes[@types.id2index[product.productType.id]]
 
-    name2attributeDef = {}
-    for attribute in productType.attributes
-      name2attributeDef[attribute.name] = attribute
-
     masterRow = @mapVariant product.masterVariant, productType
     masterRow = @mapBaseProduct masterRow, product, productType
 
@@ -55,36 +51,37 @@ class ExportMapping
 
     if variant.attributes
       for attribute in variant.attributes
-        if @header.has attribute.name
-          row[@header.toIndex attribute.name] = @mapAttribute(attribute, productType)
-        else # ltext attributes
-          h2i = @header.productTypeAttributeToIndex productType, attribute.name
-          if h2i
-            for lang, index of h2i
-              row[index] = attribute.value[lang]
+        attributeTypeDef = @types.id2nameAttributeDefMap[productType.id][attribute.name].type
+        if attributeTypeDef.name is CONS.ATTRIBUTE_TYPE_LTEXT
+          @mapLocalizedAttribute attribute, productType
+        else if @header.has attribute.name
+          row[@header.toIndex attribute.name] = @mapAttribute(attribute, attributeTypeDef)
 
     row
 
-  isEnum: (value) ->
-    _.has(value, 'key') and _.has(value, 'label')
+  mapAttribute: (attribute, attributeTypeDef) ->
+    switch attributeTypeDef.name
+      when CONS.ATTRIBUTE_TYPE_SET then @mapSetAttribute(attribute, attributeTypeDef)
+      when CONS.ATTRIBUTE_TYPE_ENUM, CONS.ATTRIBUTE_TYPE_LENUM then attribute.value.key
+      when CONS.ATTRIBUTE_TYPE_MONEY then #TODO
+      else attribute.value
 
-  mapAttribute: (attribute, productType) ->
-    # TODO:
-    # - money
-    # -
-    if @isEnum(attribute.value)
-      attribute.value.key
-    else
-      if _.isArray attribute.value
-        if @isEnum(attribute.value[0])
-          _.reduce(attribute.value, (acc, val, index) ->
-            acc += CONS.DELIM_MULTI_VALUE unless index is 0
-            acc + val.key
-          , '')
-        else
-          attribute.value.join CONS.DELIM_MULTI_VALUE
+  mapLocalizedAttribute: (attribute, productType) ->
+    h2i = @header.productTypeAttributeToIndex productType, attribute.name
+    if h2i
+      for lang, index of h2i
+        attribute.value[lang]
+
+  mapSetAttribute: (attribute, attributeTypeDef) ->
+    switch attributeTypeDef.elementType.name
+      when CONS.ATTRIBUTE_TYPE_ENUM, CONS.ATTRIBUTE_TYPE_LENUM
+        _.reduce(attribute.value, (acc, val, index) ->
+          acc += CONS.DELIM_MULTI_VALUE unless index is 0
+          acc + val.key
+        , '')
+      # TODO: check other elementTypes
       else
-        attribute.value
+        attribute.value.join CONS.DELIM_MULTI_VALUE
 
 
 module.exports = ExportMapping
