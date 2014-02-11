@@ -31,6 +31,9 @@ class Mapping
       masterVariant: {}
       variants: []
 
+    if @header.has(CONS.HEADER_ID)
+      product.id = rawMaster[@header.toIndex CONS.HEADER_ID]
+
     product.categories = @mapCategories rawMaster, rowIndex
     tax = @mapTaxCategory rawMaster, rowIndex
     product.taxCategory = tax if tax

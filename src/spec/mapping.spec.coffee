@@ -72,8 +72,8 @@ describe 'Mapping', ->
     it 'should map base product', ->
       csv =
         """
-        productType,name,variantId
-        foo,myProduct,1
+        productType,id,name,variantId
+        foo,xyz,myProduct,1
         """
       pt =
         id: '123'
@@ -82,6 +82,7 @@ describe 'Mapping', ->
         product = @validator.map.mapBaseProduct @validator.rawProducts[0].master, pt
 
         expectedProduct =
+          id: 'xyz'
           productType:
             typeId: 'product-type'
             id: '123'
