@@ -2,6 +2,7 @@ constants =
   # This isn't a constants - TODO move it to proper location
   DEFAULT_LANGUAGE: 'en'
 
+  HEADER_ID: 'id'
   HEADER_PRODUCT_TYPE: 'productType'
   HEADER_NAME: 'name'
   HEADER_DESCRIPTION: 'description'
