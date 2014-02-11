@@ -88,17 +88,19 @@ describe 'ExportMapping', ->
       expect(row).toEqual [ 'bar' ]
 
   describe '#mapBaseProduct', ->
-    it 'should map productType and id', ->
-      @exportMapping.header = new Header([CONS.HEADER_PRODUCT_TYPE,CONS.HEADER_ID])
+    it 'should map productType, id and tax', ->
+      @exportMapping.header = new Header([CONS.HEADER_PRODUCT_TYPE,CONS.HEADER_ID,CONS.HEADER_TAX])
       @exportMapping.header.toIndex()
       product =
         id: '123'
         masterVariant:
           attributes: []
+        taxCategory:
+          id: 'myTax'
       type =
         id: 'typeId123'
       row = @exportMapping.mapBaseProduct(product, type)
-      expect(row).toEqual [ 'typeId123', '123' ]
+      expect(row).toEqual [ 'typeId123', '123', 'myTax' ]
 
     it 'should map localized base attributes', ->
       @exportMapping.header = new Header(['name.de','slug.it','description.en'])

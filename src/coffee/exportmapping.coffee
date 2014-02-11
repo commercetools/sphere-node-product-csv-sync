@@ -24,10 +24,11 @@ class ExportMapping
 
     if @header.has(CONS.HEADER_PRODUCT_TYPE)
       row[@header.toIndex CONS.HEADER_PRODUCT_TYPE] = productType.id
-      # TODO: Use name of product type if unique
+
+    if @header.has(CONS.HEADER_TAX) and _.has(product, 'taxCategory')
+      row[@header.toIndex CONS.HEADER_TAX] = product.taxCategory.id
 
     # TODO
-    # - tax
     # - categories
 
     for attribName, h2i of @header.toLanguageIndex()
