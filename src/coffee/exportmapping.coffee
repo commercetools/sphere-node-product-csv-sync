@@ -7,11 +7,8 @@ class ExportMapping
   mapProduct: (product, productTypes) ->
     productType = productTypes[@types.id2index[product.productType.id]]
 
-    masterRow = @mapVariant product.masterVariant, productType
-    masterRow = @mapBaseProduct masterRow, product, productType
-
     rows = []
-    rows.push masterRow
+    rows.push @mapBaseProduct product, productType
 
     if product.variants
       for variant in product.variants
@@ -19,12 +16,14 @@ class ExportMapping
 
     rows
 
-  mapBaseProduct: (masterRow, product, productType) ->
+  mapBaseProduct: (product, productType) ->
+    row = @mapVariant product.masterVariant, productType
+
     if @header.has(CONS.HEADER_ID)
-      masterRow[@header.toIndex CONS.HEADER_ID] = product.id
+      row[@header.toIndex CONS.HEADER_ID] = product.id
 
     if @header.has(CONS.HEADER_PRODUCT_TYPE)
-      masterRow[@header.toIndex CONS.HEADER_PRODUCT_TYPE] = productType.id
+      row[@header.toIndex CONS.HEADER_PRODUCT_TYPE] = productType.id
       # TODO: Use name of product type if unique
 
     # TODO
@@ -33,9 +32,9 @@ class ExportMapping
 
     for attribName, h2i of @header.toLanguageIndex()
       for lang, index of h2i
-        masterRow[index] = product[attribName][lang]
+        row[index] = product[attribName][lang]
 
-    masterRow
+    row
 
   mapVariant: (variant, productType) ->
     row = []

@@ -93,9 +93,11 @@ describe 'ExportMapping', ->
       @exportMapping.header.toIndex()
       product =
         id: '123'
+        masterVariant:
+          attributes: []
       type =
         id: 'typeId123'
-      row = @exportMapping.mapBaseProduct([], product, type)
+      row = @exportMapping.mapBaseProduct(product, type)
       expect(row).toEqual [ 'typeId123', '123' ]
 
     it 'should map localized base attributes', ->
@@ -103,6 +105,8 @@ describe 'ExportMapping', ->
       @exportMapping.header.toIndex()
       product =
         id: '123'
+        masterVariant:
+          attributes: []
         name:
           de: 'Hallo'
           en: 'Hello'
@@ -116,5 +120,5 @@ describe 'ExportMapping', ->
           en: 'Foo bar'
           it: 'Ciao Bella'
 
-      row = @exportMapping.mapBaseProduct([], product, {})
+      row = @exportMapping.mapBaseProduct(product, {})
       expect(row).toEqual [ 'Hallo', 'ciao', 'Foo bar' ]
