@@ -38,6 +38,16 @@ class Import extends CommonUpdater
       .fail (msg) =>
         @returnResult false, msg, callback
 
+  publishOnly: (publish = true) ->
+    @publishProducts = true
+    @productService.getAllExistingProducts(@rest, not publish).then (existingProducts) =>
+      posts = []
+      for product in existingProducts
+        posts.push @publishProduct(product, publish, true)
+        @processInBatches posts, callback
+    .fail (msg) =>
+      @returnResult false, msg, callback
+
   initMatcher: (existingProducts) ->
     # console.log "initMatcher: ", _.size existingProducts
     @existingProducts = existingProducts
@@ -141,12 +151,12 @@ class Import extends CommonUpdater
 
     deferred.promise
 
-  publishProduct: (product, publish = true) ->
+  publishProduct: (product, publish = true, ignore400 = false) ->
     deferred = Q.defer()
-    unless @publishProducts
-      deferred.resolve "Do not publish."
-      return deferred.promise
     action = if publish then 'publish' else 'unpublish'
+    unless @publishProducts
+      deferred.resolve "Do not #{action}."
+      return deferred.promise
     data =
       id: product.id
       version: product.version
@@ -155,16 +165,19 @@ class Import extends CommonUpdater
       ]
     @rest.POST "/products/#{product.id}", JSON.stringify(data), (error, response, body) ->
       if error
-        deferred.reject 'Error on publishing product: ' + error
+        deferred.reject "Error on #{action}ing product: " + error
       else
         if response.statusCode is 200
-          deferred.resolve 'Product published.'
+          deferred.resolve "Product #{action}ed."
         else if response.statusCode is 400
-          parsed = JSON.parse body
-          humanReadable = JSON.stringify parsed, null, '  '
-          deferred.reject "Problem on publishing product:\n" + humanReadable
+          if ignore400
+            deferred.resolve "Product is already #{action}ed."
+          else
+            parsed = JSON.parse body
+            humanReadable = JSON.stringify parsed, null, '  '
+            deferred.reject "Problem on #{action}ing product:\n" + humanReadable
         else
-          deferred.reject 'Problem on publishing product: ' + body
+          deferred.reject 'Problem on #{action}ing product: ' + body
 
     deferred.promise
 
