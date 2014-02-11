@@ -36,3 +36,7 @@ describe 'Types', ->
       expect(@types.id2SameForAllAttributes['pt1']).toEqual []
       expect(@types.id2SameForAllAttributes['pt2']).toEqual [ 'foo' ]
       expect(@types.id2SameForAllAttributes['pt3']).toEqual []
+      expect(_.size @types.id2nameAttributeDefMap).toBe 3
+      expectedObj =
+        foo: pt2.attributes[0]
+      expect(@types.id2nameAttributeDefMap['pt2']).toEqual expectedObj
