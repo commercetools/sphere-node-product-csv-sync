@@ -42,7 +42,8 @@ class Export extends CommonUpdater
           csv = [ header.rawHeader ]
           for product in products
             csv = csv.concat(@exportMapping.mapProduct(product, productTypes))
-          Csv().from(csv).to.path(outputFile)
+          Csv().from(csv).to.path(outputFile, encoding: 'utf8')
+          # TODO: Wait for close event
           @returnResult true, 'Export done.', callback
         .fail (msg) ->
           @returnResult false, msg, callback
