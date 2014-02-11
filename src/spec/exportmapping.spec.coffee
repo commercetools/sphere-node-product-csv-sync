@@ -10,7 +10,7 @@ describe 'ExportMapping', ->
 
   describe '#constructor', ->
     it 'should initialize', ->
-      expect(-> new ExportMapping()).toBeDefined()
+      expect(@exportMapping).toBeDefined()
 
   describe '#mapPrices', ->
     it '', ->
