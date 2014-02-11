@@ -3,13 +3,12 @@ Import = require '../lib/import'
 Q = require 'q'
 Config = require '../config'
 
-jasmine.getEnv().defaultTimeoutInterval = 60000
+jasmine.getEnv().defaultTimeoutInterval = 30000
 
 describe 'Import', ->
   beforeEach (done) ->
     @import = new Import Config
     @rest = @import.validator.rest
-
 
     values = [
       { key: 'x', label: 'X' }
