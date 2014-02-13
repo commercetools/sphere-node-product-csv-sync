@@ -12,7 +12,7 @@ SPHERE.IO component to import and update products via CSV.
 ### From scratch
 
 * install [npm]((http://gruntjs.com/getting-started)) (NodeJS package manager, bundled with node since version 0.6.3!)
-* install [grunt-cli] (http://gruntjs.com/getting-started) (automation tool)
+* install [grunt-cli](http://gruntjs.com/getting-started) (automation tool)
 *  resolve dependencies using `npm`
 ```bash
 $ npm install
@@ -105,6 +105,28 @@ myType,my Product,mein Produkt,foo bar,bla bal,my-product,mein-product
 
 The pattern for the language header is:
 `<attribute name>.<language>`
+
+### Set attributes
+
+If you have an attribute of type `set`, you can define multiple values within the same cell separating them with `;`:
+```
+productType,...,colors
+myType,...,green;red;black
+```
+The example above will set the value of the `colors` attribute to `[ 'green', 'red', 'black' ]`
+
+### SameForAll constrainted attributes
+
+To not DRY (don't repeat yourself) when working with attributes that are constrained with `SameForAll`,
+you simply have to define the value for all variants on the masterVariant.
+```
+productType,variantId,mySameForAllAttribute
+myType,1,thisIsTheValueForAllVariants
+,2,
+,3,thisDifferentValueWillBeIgnored
+```
+
+> Please note, that values for those attributes on the variant rows are completely ignored
 
 #### Tax Category
 
