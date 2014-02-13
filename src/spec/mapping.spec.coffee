@@ -97,18 +97,26 @@ describe 'Mapping', ->
         expect(product).toEqual expectedProduct
 
   describe '#mapVariant', ->
+    it 'should give feedback on bad variant id', ->
+      @map.header = new Header [ 'variantId' ]
+      @map.header.toIndex()
+      variant = @map.mapVariant [ 'foo' ], -1, null, 7
+      expect(variant).toBeUndefined()
+      expect(_.size @map.errors).toBe 1
+      expect(@map.errors[0]).toBe "[row 7:variantId] The number 'foo' isn't valid!"
+
     it 'should map variant with one attribute', ->
       productType =
         attributes: [
           { name: 'a2', type: { name: 'text' } }
         ]
 
-      @map.header = new Header [ 'a0', 'a1', 'a2', 'sku' ]
+      @map.header = new Header [ 'a0', 'a1', 'a2', 'sku', 'variantId' ]
       @map.header.toIndex()
-      variant = @map.mapVariant [ 'v0', 'v1', 'v2', 'mySKU' ], 2, productType
+      variant = @map.mapVariant [ 'v0', 'v1', 'v2', 'mySKU', '7' ], -1, productType
 
       expectedVariant =
-        id: 2
+        id: 7
         sku: 'mySKU'
         prices: []
         attributes: [
@@ -292,6 +300,7 @@ describe 'Mapping', ->
   describe '#mapProduct', ->
     it 'should map a product', ->
       productType =
+        id: 'myType'
         attributes: []
       csv =
         """
@@ -307,6 +316,7 @@ describe 'Mapping', ->
         expectedProduct =
           productType:
             typeId: 'product-type'
+            id: 'myType'
           name:
             en: 'myProduct'
           slug:

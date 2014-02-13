@@ -17,9 +17,10 @@ class Mapping
 
     product = @mapBaseProduct raw.master, productType, rowIndex
     product.masterVariant = @mapVariant raw.master, 1, productType, rowIndex, product
-    for rawVariant, index in raw.variants
-      rowIndex += 1 # TODO: get variantId from CSV
-      product.variants.push @mapVariant rawVariant, index + 2, productType, rowIndex, product
+    for rawVariant in raw.variants
+      rowIndex += 1
+      # variantId = -1 indicates it should be taken from the CSV file
+      product.variants.push @mapVariant rawVariant, -1, productType, rowIndex, product
 
     product
 
@@ -103,6 +104,9 @@ class Mapping
       id: @taxes.name2id[rawTax]
 
   mapVariant: (rawVariant, variantId, productType, rowIndex, product) ->
+    if variantId is -1
+      variantId = @mapNumber rawVariant[@header.toIndex CONS.HEADER_VARIANT_ID], CONS.HEADER_VARIANT_ID, rowIndex
+      return unless variantId
     variant =
       id: variantId
       attributes: []
