@@ -17,10 +17,9 @@ class Mapping
 
     product = @mapBaseProduct raw.master, productType, rowIndex
     product.masterVariant = @mapVariant raw.master, 1, productType, rowIndex, product
-    for rawVariant in raw.variants
+    for rawVariant, index in raw.variants
       rowIndex += 1
-      # variantId = -1 indicates it should be taken from the CSV file
-      product.variants.push @mapVariant rawVariant, -1, productType, rowIndex, product
+      product.variants.push @mapVariant rawVariant, index + 2, productType, rowIndex, product
 
     product
 
@@ -104,9 +103,13 @@ class Mapping
       id: @taxes.name2id[rawTax]
 
   mapVariant: (rawVariant, variantId, productType, rowIndex, product) ->
-    if variantId is -1
-      variantId = @mapNumber rawVariant[@header.toIndex CONS.HEADER_VARIANT_ID], CONS.HEADER_VARIANT_ID, rowIndex
-      return unless variantId
+    if variantId > 2
+      vId = @mapNumber rawVariant[@header.toIndex CONS.HEADER_VARIANT_ID], CONS.HEADER_VARIANT_ID, rowIndex
+      return unless vId
+      if vId isnt variantId
+        @errors.push "[row #{rowIndex}:#{CONS.HEADER_VARIANT_ID}] The variantId is not in order!\n" +
+          "Please ensure it's ordered beginning at 2. (the masterVariant has always variantId 1)."
+        return
     variant =
       id: variantId
       attributes: []
