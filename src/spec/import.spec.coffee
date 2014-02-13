@@ -131,7 +131,7 @@ describe 'Import', ->
         productType,name,variantId,slug,descN,descU,descUC1,descUC2,descS
         #{@productType.id},myProduct1,1,slugi,,text1,foo,bar,same
         ,,2,slug,free,text2,foo,baz,same
-        ,,3,slug,,text3,boo,baz,same
+        ,,3,slug,,text3,boo,baz,sameDifferentWhichWillBeIgnoredAsItIsDefined
         """
       @import.import csv, (res) =>
         expect(res.status).toBe true

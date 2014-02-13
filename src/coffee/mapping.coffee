@@ -16,10 +16,10 @@ class Mapping
     rowIndex = raw.startRow
 
     product = @mapBaseProduct raw.master, productType, rowIndex
-    product.masterVariant = @mapVariant raw.master, 1, productType, rowIndex
+    product.masterVariant = @mapVariant raw.master, 1, productType, rowIndex, product
     for rawVariant, index in raw.variants
       rowIndex += 1 # TODO: get variantId from CSV
-      product.variants.push @mapVariant rawVariant, index + 2, productType, rowIndex
+      product.variants.push @mapVariant rawVariant, index + 2, productType, rowIndex, product
 
     product
 
@@ -102,7 +102,7 @@ class Mapping
       typeId: 'tax-category'
       id: @taxes.name2id[rawTax]
 
-  mapVariant: (rawVariant, variantId, productType, rowIndex) ->
+  mapVariant: (rawVariant, variantId, productType, rowIndex, product) ->
     variant =
       id: variantId
       attributes: []
@@ -112,7 +112,11 @@ class Mapping
     languageHeader2Index = @header._productTypeLanguageIndexes productType
     if productType.attributes
       for attribute in productType.attributes
-        attrib = @mapAttribute rawVariant, attribute, languageHeader2Index, rowIndex
+        attrib = if attribute.attributeConstraint is CONS.ATTRIBUTE_CONSTRAINT_SAME_FOR_ALL and variantId > 1
+          _.find product.masterVariant.attributes, (a) ->
+            a.name is attribute.name
+        else
+          @mapAttribute rawVariant, attribute, languageHeader2Index, rowIndex
         variant.attributes.push attrib if attrib
 
     variant.prices = @mapPrices rawVariant[@header.toIndex CONS.HEADER_PRICES], rowIndex

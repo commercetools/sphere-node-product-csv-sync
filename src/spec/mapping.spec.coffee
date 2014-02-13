@@ -100,9 +100,7 @@ describe 'Mapping', ->
     it 'should map variant with one attribute', ->
       productType =
         attributes: [
-          name: 'a2'
-          type:
-            name: 'text'
+          { name: 'a2', type: { name: 'text' } }
         ]
 
       @map.header = new Header [ 'a0', 'a1', 'a2', 'sku' ]
@@ -116,6 +114,32 @@ describe 'Mapping', ->
         attributes: [
           name: 'a2'
           value: 'v2'
+        ]
+        images: []
+
+      expect(variant).toEqual expectedVariant
+
+    it 'should take over SameForAll contrainted attribute from master row', ->
+      @map.header = new Header [ 'aSame' ]
+      @map.header.toIndex()
+      productType =
+        attributes: [
+          { name: 'aSame', type: { name: 'text' }, attributeConstraint: 'SameForAll' }
+        ]
+      product =
+        masterVariant:
+          attributes: [
+            { name: 'aSame', value: 'sameValue' }
+          ]
+
+      variant = @map.mapVariant [ 'whatever' ], 7, productType, 99, product
+
+      expectedVariant =
+        id: 7
+        prices: []
+        attributes: [
+          name: 'aSame'
+          value: 'sameValue'
         ]
         images: []
 
