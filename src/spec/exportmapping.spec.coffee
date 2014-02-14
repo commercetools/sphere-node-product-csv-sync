@@ -105,9 +105,10 @@ describe 'ExportMapping', ->
         taxCategory:
           id: 'myTax'
       type =
+        name: 'myType'
         id: 'typeId123'
       row = @exportMapping.mapBaseProduct(product, type)
-      expect(row).toEqual [ 'typeId123', '123', 'myTax' ]
+      expect(row).toEqual [ 'myType', '123', 'myTax' ]
 
     it 'should map localized base attributes', ->
       @exportMapping.header = new Header(['name.de','slug.it','description.en'])

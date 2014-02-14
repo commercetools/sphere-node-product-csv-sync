@@ -23,7 +23,7 @@ class ExportMapping
       row[@header.toIndex CONS.HEADER_ID] = product.id
 
     if @header.has(CONS.HEADER_PRODUCT_TYPE)
-      row[@header.toIndex CONS.HEADER_PRODUCT_TYPE] = productType.id
+      row[@header.toIndex CONS.HEADER_PRODUCT_TYPE] = productType.name
 
     if @header.has(CONS.HEADER_TAX) and _.has(product, 'taxCategory')
       row[@header.toIndex CONS.HEADER_TAX] = product.taxCategory.id
