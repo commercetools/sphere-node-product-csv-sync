@@ -1,7 +1,7 @@
 sphere-node-product-csv-sync
 ============================
 
-SPHERE.IO component to import and update products via CSV.
+SPHERE.IO component to import, update and export products via CSV.
 
 [![Build Status](https://travis-ci.org/sphereio/sphere-node-product-csv-sync.png?branch=master)](https://travis-ci.org/sphereio/sphere-node-product-csv-sync) [![Coverage Status](https://coveralls.io/repos/sphereio/sphere-node-product-csv-sync/badge.png)](https://coveralls.io/r/sphereio/sphere-node-product-csv-sync) [![Dependency Status](https://david-dm.org/sphereio/sphere-node-product-csv-sync.png?theme=shields.io)](https://david-dm.org/sphereio/sphere-node-product-csv-sync) [![devDependency Status](https://david-dm.org/sphereio/sphere-node-product-csv-sync/dev-status.png?theme=shields.io)](https://david-dm.org/sphereio/sphere-node-product-csv-sync#info=devDependencies)
 
@@ -27,7 +27,10 @@ $ grunt build
 * Switch to [latest branch](https://github.com/sphereio/sphere-node-product-csv-sync/tree/latest) of this repository
 * Download the ready to use application via the button "Download ZIP"
 
-# Usage
+## Import
+
+### Usage
+
 ```bash
 $ node lib/run.js
 
@@ -43,9 +46,9 @@ Options:
   --publish       When given, all changes will be published immediately
 ```
 
-## CSV Format
+### CSV Format
 
-### Base attributes
+#### Base attributes
 
 The following 3 attributes are the bare minimum to create products:
 ```
@@ -54,7 +57,7 @@ productType,name,variantId
 
 You can define the productType via id or name (as long as it is unique).
 
-### Variants
+#### Variants
 
 Variants are defined by leaving the `productType` cell empty and defining a `variantId > 1`:
 ```
@@ -86,7 +89,7 @@ Non required product attributes
 Non required variant attributes
 - sku
 
-### Localized attributes
+#### Localized attributes
 
 The following product attributes can be localized:
 - name
@@ -106,7 +109,7 @@ myType,my Product,mein Produkt,foo bar,bla bal,my-product,mein-product
 The pattern for the language header is:
 `<attribute name>.<language>`
 
-### Set attributes
+#### Set attributes
 
 If you have an attribute of type `set`, you can define multiple values within the same cell separating them with `;`:
 ```
@@ -115,7 +118,7 @@ myType,...,green;red;black
 ```
 The example above will set the value of the `colors` attribute to `[ 'green', 'red', 'black' ]`
 
-### SameForAll constrainted attributes
+#### SameForAll constrainted attributes
 
 To not DRY (don't repeat yourself) when working with attributes that are constrained with `SameForAll`,
 you simply have to define the value for all variants on the masterVariant.
@@ -169,3 +172,30 @@ https://example.com/image.jpg;http://www.example.com/picture.bmp
 ```
 
 > In general we recommend to import images without the protocol like `//example.com/image.png`
+
+## Export
+
+In order to export products into CSV, you have to define what you want to be exported.
+This is defined by providing the exported a CSV template, which needs to contain only a header.
+The header will be analyzed and the output file will contain the corresponding value.
+E.g. when you define `name.en` as header column, the rows will be filled in this column with the english name of the product.
+
+### Usage
+
+```bash
+$ node lib/runexporter.js
+
+Usage: node ./lib/runexporter.js --projectKey key --clientId id --clientSecret secret --template file --out file
+
+Options:
+  --projectKey    your SPHERE.IO project-key                                            [required]
+  --clientId      your OAuth client id for the SPHERE.IO API                            [required]
+  --clientSecret  your OAuth client secret for the SPHERE.IO API                        [required]
+  --template      CSV file containing your header that defines what you want to export  [required]
+  --out           Path to the file the exporter will write the resulting CSV in         [required]
+  --timeout       Set timeout for requests                                              [default: 300000]
+  --language                                                                            [default: "en"]```
+
+### CSV Format
+
+Please refer to the format of the Import as it is equivilant.
