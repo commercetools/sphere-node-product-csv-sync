@@ -48,8 +48,8 @@ class ExportMapping
     if @header.has(CONS.HEADER_PRICES)
       row[@header.toIndex CONS.HEADER_PRICES] = @mapPrices(variant.prices)
 
-    # TODO:
-    # - images
+    if @header.has(CONS.HEADER_IMAGES)
+      row[@header.toIndex CONS.HEADER_IMAGES] = @mapImages(variant.images)
 
     if variant.attributes
       for attribute in variant.attributes
@@ -65,6 +65,12 @@ class ExportMapping
     _.reduce(prices, (acc, price, index) ->
       acc += CONS.DELIM_MULTI_VALUE unless index is 0
       acc + "#{price.value.currencyCode} #{price.value.centAmount}"
+    , '')
+
+  mapImages: (images) ->
+    _.reduce(images, (acc, image, index) ->
+      acc += CONS.DELIM_MULTI_VALUE unless index is 0
+      acc + image.url
     , '')
 
   mapAttribute: (attribute, attributeTypeDef) ->

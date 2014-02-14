@@ -19,6 +19,29 @@ describe 'ExportMapping', ->
       ]
       expect(@exportMapping.mapPrices prices).toBe 'EUR 999'
 
+    it 'should map multiple prices', ->
+      prices = [
+        { value: { centAmount: 999, currencyCode: 'EUR' } }
+        { value: { centAmount: 1099, currencyCode: 'USD' } }
+        { value: { centAmount: 1299, currencyCode: 'CHF' } }
+      ]
+      expect(@exportMapping.mapPrices prices).toBe 'EUR 999;USD 1099;CHF 1299'
+
+  describe '#mapImage', ->
+    it 'should map single image', ->
+      images = [
+        { url: '//example.com/image.jpg' }
+      ]
+      expect(@exportMapping.mapImages images).toBe '//example.com/image.jpg'
+
+    it 'should map multiple images', ->
+      images = [
+        { url: '//example.com/image.jpg' }
+        { url: 'https://www.example.com/pic.png' }
+      ]
+      expect(@exportMapping.mapImages images).toBe '//example.com/image.jpg;https://www.example.com/pic.png'
+
+
   describe '#mapAttribute', ->
     beforeEach ->
       @exportMapping.types = new Types()
