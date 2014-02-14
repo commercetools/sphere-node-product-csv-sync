@@ -9,10 +9,10 @@ argv = require('optimist')
   .describe('projectKey', 'your SPHERE.IO project-key')
   .describe('clientId', 'your OAuth client id for the SPHERE.IO API')
   .describe('clientSecret', 'your OAuth client secret for the SPHERE.IO API')
-  .describe('template', 'CSV file containing products to import')
-  .describe('out', 'CSV file containing products to import')
+  .describe('template', 'CSV file containing your header that defines what you want to export')
+  .describe('out', 'Path to the file the exporter will write the resulting CSV in')
   .describe('timeout', 'Set timeout for requests')
-  .demand(['projectKey', 'clientId', 'clientSecret'])
+  .demand(['projectKey', 'clientId', 'clientSecret', 'template', 'out'])
   .argv
 
 CONS.DEFAULT_LANGUAGE = argv.language
