@@ -26,10 +26,9 @@ git push --force origin ${BRANCH_NAME}
 
 git checkout master
 
-npm version patch
 VERSION=$(cat package.json | jq --raw-output .version)
-git tag -d "v${VERSION}" # Let's delete the development branch
-git push --tags origin master
+git push origin "v${VERSION}"
+npm version patch
 npm install
 
 mkdir tmp
