@@ -107,11 +107,11 @@ describe 'Export', ->
     expectedCSV =
       """
       productType,name,variantId
-      [a-z0-9\-]+,,1
+      myExportType,,1
       """
     @export.export template, file, (res) ->
       expect(res.status).toBe true
       expect(res.message).toBe 'Export done.'
       fs.readFile file, encoding: 'utf8', (err, content) ->
-        expect(content).toMatch expectedCSV
+        expect(content).toBe expectedCSV
         done()
