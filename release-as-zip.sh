@@ -31,6 +31,9 @@ git push origin "v${VERSION}"
 npm version patch
 npm install
 
+if [ -e tmp ]; then
+    rm -rf tmp
+fi
 mkdir tmp
 cd tmp
 curl -L https://github.com/sphereio/sphere-node-product-csv-sync/archive/latest.zip -o latest.zip
