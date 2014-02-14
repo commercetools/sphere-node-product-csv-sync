@@ -34,5 +34,5 @@ mkdir tmp
 cd tmp
 curl -L https://github.com/sphereio/sphere-node-product-csv-sync/archive/latest.zip -o latest.zip
 unzip latest.zip
-cd sphere-node-product-csv-sync
+cd sphere-node-product-csv-sync-latest/
 node lib/run
