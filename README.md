@@ -24,17 +24,18 @@ $ grunt build
 
 ### From ZIP
 
-* Switch to [latest branch](https://github.com/sphereio/sphere-node-product-csv-sync/tree/latest) of this repository
-* Download the ready to use application via the button "Download ZIP"
+* Just download the ready to use application as [ZIP](https://github.com/sphereio/sphere-node-product-csv-sync/archive/latest.zip)
+* Extract the latest.zip with `unzip latest.zip`
+* Change into the directory `cd sphere-node-product-csv-sync-latest`
 
 ## Import
 
 ### Usage
 
 ```bash
-$ node lib/run.js
+$ node lib/run
 
-Usage: node ./lib/run.js --projectKey key --clientId id --clientSecret secret --csv file --language lang --publish
+Usage: node lib/run --projectKey key --clientId id --clientSecret secret --csv file --language lang --publish
 
 Options:
   --projectKey    your SPHERE.IO project-key                             [required]
@@ -183,9 +184,9 @@ E.g. when you define `name.en` as header column, the rows will be filled in this
 ### Usage
 
 ```bash
-$ node lib/runexporter.js
+$ node lib/runexporter
 
-Usage: node ./lib/runexporter.js --projectKey key --clientId id --clientSecret secret --template file --out file
+Usage: node .lib/runexporter --projectKey key --clientId id --clientSecret secret --template file --out file
 
 Options:
   --projectKey    your SPHERE.IO project-key                                            [required]
