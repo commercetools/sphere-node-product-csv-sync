@@ -25,6 +25,16 @@ git commit -m "Update generated code and runtime dependencies."
 git push --force origin ${BRANCH_NAME}
 
 git checkout master
+VERSION=$(cat package.json | jq --raw-output .version )
+git tag "v${VERSION}"
+
 npm version patch
 git push origin master
 npm install
+
+mkdir tmp
+cd tmp
+curl -L https://github.com/sphereio/sphere-node-product-csv-sync/archive/latest.zip -o latest.zip
+unzip latest.zip
+cd sphere-node-product-csv-sync
+node lib/run
