@@ -25,7 +25,7 @@ $ grunt build
 ### From ZIP
 
 * Just download the ready to use application as [ZIP](https://github.com/sphereio/sphere-node-product-csv-sync/archive/latest.zip)
-* Extract the latest.zip with `unzip latest.zip`
+* Extract the latest.zip with `unzip sphere-node-product-csv-sync-latest.zip`
 * Change into the directory `cd sphere-node-product-csv-sync-latest`
 
 ## Import
