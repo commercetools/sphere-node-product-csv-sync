@@ -24,9 +24,8 @@ describe 'Header', ->
         """
       @validator.parse csv, =>
         errors = @validator.header.validate()
-        expect(errors.length).toBe 2
-        expect(errors[0]).toBe "Can't find necessary base header 'name'!"
-        expect(errors[1]).toBe "Can't find necessary base header 'variantId'!"
+        expect(errors.length).toBe 1
+        expect(errors[0]).toBe "Can't find necessary base header 'variantId'!"
         done()
 
     it 'should return error on duplicate header', (done) ->

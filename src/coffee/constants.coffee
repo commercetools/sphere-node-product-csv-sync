@@ -40,7 +40,6 @@ for name,value of constants
 
 exports.BASE_HEADERS = [
   constants.HEADER_PRODUCT_TYPE,
-  constants.HEADER_NAME,
   constants.HEADER_VARIANT_ID
 ]
 
