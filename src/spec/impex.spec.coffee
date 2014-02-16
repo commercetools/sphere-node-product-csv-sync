@@ -58,17 +58,16 @@ describe 'Impex', ->
   it 'should import and re-export a simple product', (done) ->
     csv =
       """
-      productType,name.en,variantId,slug.en
-      #{@productType.name},myProduct,1,my-slug
+      productType,name.en,variantId,slug.en,myAttrib
+      #{@productType.name},myProduct,1,my-slug,some Text
       """
     @import.import csv, (res) =>
-      console.log res
       expect(res.status).toBe true
       expect(res.message).toBe 'New product created.'
       file = '/tmp/y1.csv'
       @export.export csv, file, (res) ->
-        console.log res
         expect(res.status).toBe true
+        expect(res.message).toBe 'Export done.'
         fs.readFile file, encoding: 'utf8', (err, content) ->
           expect(content).toBe csv
           done()
