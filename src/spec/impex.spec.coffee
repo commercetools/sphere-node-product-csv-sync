@@ -18,6 +18,7 @@ describe 'Impex', ->
       description: 'foobar'
       attributes: [
         { name: 'myAttrib', label: { name: 'myAttrib' }, type: { name: 'text'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
+        { name: 'sfa', label: { name: 'sfa' }, type: { name: 'text'}, attributeConstraint: 'SameForAll', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
       ]
 
     deleteProduct = (product) =>
@@ -58,9 +59,9 @@ describe 'Impex', ->
   it 'should import and re-export a simple product', (done) ->
     csv =
       """
-      productType,name.en,variantId,slug.en,prices,myAttrib
-      #{@productType.name},myProduct,1,my-slug,EUR 999;CHF 1099,some Text
-      ,,2,,EUR 799,some other Text
+      productType,name.en,variantId,slug.en,prices,myAttrib,sfa
+      #{@productType.name},myProduct,1,my-slug,EUR 999;CHF 1099,some Text,foo
+      ,,2,,EUR 799,some other Text,foo
       """
     @import.import csv, (res) =>
       expect(res.status).toBe true
