@@ -195,8 +195,8 @@ Options:
   --template      CSV file containing your header that defines what you want to export  [required]
   --out           Path to the file the exporter will write the resulting CSV in         [required]
   --timeout       Set timeout for requests                                              [default: 300000]
-  --language                                                                            [default: "en"]```
-
+  --language                                                                            [default: "en"]
+```
 ### CSV Format
 
 Please refer to the format of the Import as it is equivilant.
