@@ -176,10 +176,16 @@ https://example.com/image.jpg;http://www.example.com/picture.bmp
 
 ## Export
 
-In order to export products into CSV, you have to define what you want to be exported.
-This is defined by providing the exported a CSV template, which needs to contain only a header.
-The header will be analyzed and the output file will contain the corresponding value.
-E.g. when you define `name.en` as header column, the rows will be filled in this column with the english name of the product.
+The export action dumps products to a CSV file. The CSV file can be used as input for the import action.
+
+### CSV Export Template
+
+An export template defines the content of the resulting export CSV file, by listing wanted product attribute names as header row. The header column values will be parsed and the resulting export CSV file will contain corresponding attribute values of the eported products.
+
+```
+# only product id and localized name (english) will be exported
+id,name.en
+```
 
 ### Usage
 
@@ -197,6 +203,3 @@ Options:
   --timeout       Set timeout for requests                                              [default: 300000]
   --language                                                                            [default: "en"]
 ```
-### CSV Format
-
-Please refer to the format of the Import as it is equivilant.
