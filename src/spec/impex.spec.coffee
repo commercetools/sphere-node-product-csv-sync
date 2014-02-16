@@ -58,8 +58,9 @@ describe 'Impex', ->
   it 'should import and re-export a simple product', (done) ->
     csv =
       """
-      productType,name.en,variantId,slug.en,myAttrib
-      #{@productType.name},myProduct,1,my-slug,some Text
+      productType,name.en,variantId,slug.en,prices,myAttrib
+      #{@productType.name},myProduct,1,my-slug,EUR 999;CHF 1099,some Text
+      ,,2,,EUR 799,some other Text
       """
     @import.import csv, (res) =>
       expect(res.status).toBe true
