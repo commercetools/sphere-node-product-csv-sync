@@ -62,14 +62,16 @@ describe 'Impex', ->
       productType,name.en,slug.en,variantId,prices,myAttrib,sfa
       #{@productType.name},myProduct1,my-slug1,1,EUR 999;CHF 1099,some Text,foo
       ,,,2,EUR 799,some other Text,foo
-      #{@productType.name},myProduct2,my-slug2,1,USD 1899
-      ,,,2,USD 1999
-      ,,,3,USD 2099
-      ,,,4,USD 2199
       """
+#      #{@productType.name},myProduct2,my-slug2,1,USD 1899
+#      ,,,2,USD 1999
+#      ,,,3,USD 2099
+#      ,,,4,USD 2199
+#      """
     @import.import csv, (res) =>
       expect(res.status).toBe true
-      expect(res.message['New product created.']).toBe 2
+#      expect(res.message['New product created.']).toBe 2
+      expect(res.message).toBe 'New product created.'
       file = '/tmp/impex.csv'
       @export.export csv, file, (res) ->
         expect(res.status).toBe true
