@@ -2,17 +2,18 @@ Exporter = require '../lib/export'
 package_json = require '../package.json'
 CONS = require '../lib/constants'
 fs = require 'fs'
-argv = require('optimist')
-  .usage('Usage: $0 --projectKey key --clientId id --clientSecret secret --template file --out file')
-  .default('language', 'en')
-  .default('timeout', 300000)
-  .describe('projectKey', 'your SPHERE.IO project-key')
-  .describe('clientId', 'your OAuth client id for the SPHERE.IO API')
-  .describe('clientSecret', 'your OAuth client secret for the SPHERE.IO API')
-  .describe('template', 'CSV file containing your header that defines what you want to export')
-  .describe('out', 'Path to the file the exporter will write the resulting CSV in')
-  .describe('timeout', 'Set timeout for requests')
-  .demand(['projectKey', 'clientId', 'clientSecret', 'template', 'out'])
+argv = require 'optimist'
+  .usage 'Usage: $0 --projectKey key --clientId id --clientSecret secret --template file --out file'
+  .default 'language', 'en'
+  .default 'timeout', 300000
+  .describe 'projectKey', 'your SPHERE.IO project-key'
+  .describe 'clientId', 'your OAuth client id for the SPHERE.IO API'
+  .describe 'clientSecret', 'your OAuth client secret for the SPHERE.IO API'
+  .describe 'template', 'CSV file containing your header that defines what you want to export'
+  .describe 'out', 'Path to the file the exporter will write the resulting CSV in'
+  .describe 'timeout', 'Set timeout for requests'
+  .describe 'query', 'Query string to specify the products to executed'
+  .demand ['projectKey', 'clientId', 'clientSecret', 'template', 'out']
   .argv
 
 CONS.DEFAULT_LANGUAGE = argv.language
@@ -27,6 +28,7 @@ options =
   user_agent: "#{package_json.name} Export - #{package_json.version}"
 
 exporter = new Exporter options
+exporter.queryString = argv.queryString
 exporter.publishProducts = argv.publish
 
 fs.readFile argv.template, 'utf8', (err, content) ->

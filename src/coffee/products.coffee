@@ -2,9 +2,10 @@ Q = require 'q'
 
 class Products
 
-  getAllExistingProducts: (rest, staged = false) ->
+  getAllExistingProducts: (rest, staged, queryString = 'limit=0') ->
     deferred = Q.defer()
-    rest.GET "/product-projections?limit=0&staged=#{staged}", (error, response, body) ->
+    console.log "/product-projections?#{queryString}&staged=#{staged}"
+    rest.GET "/product-projections?#{queryString}&staged=#{staged}", (error, response, body) ->
       if error
         deferred.reject 'Error on getting existing products: ' + error
       else

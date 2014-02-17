@@ -19,6 +19,7 @@ class Export extends CommonUpdater
     @exportMapping = new ExportMapping()
     @exportMapping.types = @types
     @rest = new Rest options if options.config
+    @queryString = ''
 
   export: (templateContent, outputFile, callback) ->
     @parse(templateContent).then (header) =>
@@ -34,7 +35,7 @@ class Export extends CommonUpdater
         @types.buildMaps productTypes
         for productType in productTypes
           header._productTypeLanguageIndexes(productType)
-        @productService.getAllExistingProducts(@rest, @staged).then (products) =>
+        @productService.getAllExistingProducts(@rest, @staged, @queryString).then (products) =>
           console.log "Number of products: #{_.size products}."
           if _.size(products) is 0
             @returnResult true, 'No products found.', callback
@@ -44,11 +45,11 @@ class Export extends CommonUpdater
             csv = csv.concat(@exportMapping.mapProduct(product, productTypes))
           Csv().from(csv).to.path(outputFile, encoding: 'utf8').on 'close', (count) =>
             @returnResult true, 'Export done.', callback
-        .fail (msg) ->
+        .fail (msg) =>
           @returnResult false, msg, callback
-      .fail (msg) ->
+      .fail (msg) =>
         @returnResult false, msg, callback
-    .fail (msg) ->
+    .fail (msg) =>
       @returnResult false, msg, callback
 
   parse: (csvString) ->
