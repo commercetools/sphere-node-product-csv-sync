@@ -183,8 +183,8 @@ The export action dumps products to a CSV file. The CSV file can be used as inpu
 An export template defines the content of the resulting export CSV file, by listing wanted product attribute names as header row. The header column values will be parsed and the resulting export CSV file will contain corresponding attribute values of the eported products.
 
 ```
-# only product id and localized name (english) will be exported
-id,name.en
+# only productType.name, the variant id and localized name (english) will be exported
+productType,name.en,varianId
 ```
 
 ### Usage
