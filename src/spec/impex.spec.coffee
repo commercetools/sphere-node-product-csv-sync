@@ -69,7 +69,7 @@ describe 'Impex', ->
       """
     @import.import csv, (res) =>
       expect(res.status).toBe true
-      expect(res.message).toBe 'New product created.'
+      expect(res.message['New product created.']).toBe 2
       file = '/tmp/impex.csv'
       @export.export csv, file, (res) ->
         expect(res.status).toBe true
