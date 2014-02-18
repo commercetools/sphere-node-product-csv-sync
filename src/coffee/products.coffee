@@ -1,11 +1,15 @@
+_ = require 'underscore'
 Q = require 'q'
 
 class Products
 
   getAllExistingProducts: (rest, staged, queryString = 'limit=0') ->
     deferred = Q.defer()
-    console.log "/product-projections?#{queryString}&staged=#{staged}"
-    rest.GET "/product-projections?#{queryString}&staged=#{staged}", (error, response, body) ->
+    if _.isString(queryString) and queryString.length > 0
+      queryString += '&'
+    queryString += "staged=#{staged}"
+    console.log "#{queryString}"
+    rest.GET "/product-projections?#{queryString}", (error, response, body) ->
       if error
         deferred.reject 'Error on getting existing products: ' + error
       else

@@ -14,25 +14,29 @@ class Export extends CommonUpdater
   constructor: (options = {}) ->
     super(options)
     @staged = true # TODO
-    @types = new Types()
+    @queryString = '' # TODO
+    @typesService = new Types()
     @productService = new Products()
-    @exportMapping = new ExportMapping()
-    @exportMapping.types = @types
     @rest = new Rest options if options.config
-    @queryString = ''
+
+  _initMapping: (typesService, header) ->
+    options =
+      typesService: typesService
+      header: header
+    new ExportMapping(options)
 
   export: (templateContent, outputFile, callback) ->
-    @parse(templateContent).then (header) =>
+    @_parse(templateContent).then (header) =>
       errors = header.validate()
       unless _.size(errors) is 0
         @returnResult false, errors, callback
         return
       header.toIndex()
       header.toLanguageIndex()
-      @exportMapping.header = header
-      @types.getAll(@rest).then (productTypes) =>
+      exportMapping = @_initMapping(@typesService, header)
+      @typesService.getAll(@rest).then (productTypes) =>
         console.log "Number of product types: #{_.size productTypes}."
-        @types.buildMaps productTypes
+        @typesService.buildMaps productTypes
         for productType in productTypes
           header._productTypeLanguageIndexes(productType)
         @productService.getAllExistingProducts(@rest, @staged, @queryString).then (products) =>
@@ -42,7 +46,7 @@ class Export extends CommonUpdater
             return
           csv = [ header.rawHeader ]
           for product in products
-            csv = csv.concat(@exportMapping.mapProduct(product, productTypes))
+            csv = csv.concat(exportMapping.mapProduct(product, productTypes))
           Csv().from(csv).to.path(outputFile, encoding: 'utf8').on 'close', (count) =>
             @returnResult true, 'Export done.', callback
         .fail (msg) =>
@@ -52,7 +56,7 @@ class Export extends CommonUpdater
     .fail (msg) =>
       @returnResult false, msg, callback
 
-  parse: (csvString) ->
+  _parse: (csvString) ->
     deferred = Q.defer()
     Csv().from.string(csvString)
     .to.array (data, count) ->

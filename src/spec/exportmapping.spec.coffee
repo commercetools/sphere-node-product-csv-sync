@@ -17,7 +17,7 @@ describe 'ExportMapping', ->
       prices = [
         { value: { centAmount: 999, currencyCode: 'EUR' } }
       ]
-      expect(@exportMapping.mapPrices prices).toBe 'EUR 999'
+      expect(@exportMapping._mapPrices prices).toBe 'EUR 999'
 
     it 'should map multiple prices', ->
       prices = [
@@ -25,26 +25,26 @@ describe 'ExportMapping', ->
         { value: { centAmount: 1099, currencyCode: 'USD' } }
         { value: { centAmount: 1299, currencyCode: 'CHF' } }
       ]
-      expect(@exportMapping.mapPrices prices).toBe 'EUR 999;USD 1099;CHF 1299'
+      expect(@exportMapping._mapPrices prices).toBe 'EUR 999;USD 1099;CHF 1299'
 
   describe '#mapImage', ->
     it 'should map single image', ->
       images = [
         { url: '//example.com/image.jpg' }
       ]
-      expect(@exportMapping.mapImages images).toBe '//example.com/image.jpg'
+      expect(@exportMapping._mapImages images).toBe '//example.com/image.jpg'
 
     it 'should map multiple images', ->
       images = [
         { url: '//example.com/image.jpg' }
         { url: 'https://www.example.com/pic.png' }
       ]
-      expect(@exportMapping.mapImages images).toBe '//example.com/image.jpg;https://www.example.com/pic.png'
+      expect(@exportMapping._mapImages images).toBe '//example.com/image.jpg;https://www.example.com/pic.png'
 
 
   describe '#mapAttribute', ->
     beforeEach ->
-      @exportMapping.types = new Types()
+      @exportMapping.typesService = new Types()
       @productType =
         id: '123'
         attributes: [
@@ -53,13 +53,13 @@ describe 'ExportMapping', ->
           { name: 'myTextSetAttrib', type: { name: 'set', elementType: { name: 'text' } } }
           { name: 'myEnumSetAttrib', type: { name: 'set', elementType: { name: 'lenum' } } }
         ]
-      @exportMapping.types.buildMaps [@productType]
+      @exportMapping.typesService.buildMaps [@productType]
 
     it 'should map simple attribute', ->
       attribute =
         name: 'myTextAttrib'
         value: 'some text'
-      expect(@exportMapping.mapAttribute attribute, @productType.attributes[0].type).toBe 'some text'
+      expect(@exportMapping._mapAttribute attribute, @productType.attributes[0].type).toBe 'some text'
 
     it 'should map enum attribute', ->
       attribute =
@@ -68,13 +68,13 @@ describe 'ExportMapping', ->
           label:
             en: 'bla'
           key: 'myEnum'
-      expect(@exportMapping.mapAttribute attribute, @productType.attributes[1].type).toBe 'myEnum'
+      expect(@exportMapping._mapAttribute attribute, @productType.attributes[1].type).toBe 'myEnum'
 
     it 'should map text set attribute', ->
       attribute =
         name: 'myTextSetAttrib'
         value: [ 'x', 'y', 'z' ]
-      expect(@exportMapping.mapAttribute attribute, @productType.attributes[2].type).toBe 'x;y;z'
+      expect(@exportMapping._mapAttribute attribute, @productType.attributes[2].type).toBe 'x;y;z'
 
     it 'should map enum set attribute', ->
       attribute =
@@ -87,7 +87,7 @@ describe 'ExportMapping', ->
               en: 'foo'
             key: 'myEnum2' }
         ]
-      expect(@exportMapping.mapAttribute attribute, @productType.attributes[3].type).toBe 'myEnum;myEnum2'
+      expect(@exportMapping._mapAttribute attribute, @productType.attributes[3].type).toBe 'myEnum;myEnum2'
 
   describe '#mapVariant', ->
     it 'should map variant id and sku', ->
@@ -97,24 +97,24 @@ describe 'ExportMapping', ->
         id: '12'
         sku: 'mySKU'
         attributes: []
-      row = @exportMapping.mapVariant(variant)
+      row = @exportMapping._mapVariant(variant)
       expect(row).toEqual [ '12', 'mySKU' ]
 
     it 'should map variant attributes', ->
       @exportMapping.header = new Header([ 'foo' ])
       @exportMapping.header.toIndex()
-      @exportMapping.types = new Types()
+      @exportMapping.typesService = new Types()
       productType =
         id: '123'
         attributes: [
           { name: 'foo', type: { name: 'text' } }
         ]
-      @exportMapping.types.buildMaps [productType]
+      @exportMapping.typesService.buildMaps [productType]
       variant =
         attributes: [
           { name: 'foo', value: 'bar' }
         ]
-      row = @exportMapping.mapVariant(variant, productType)
+      row = @exportMapping._mapVariant(variant, productType)
       expect(row).toEqual [ 'bar' ]
 
   describe '#mapBaseProduct', ->
@@ -130,7 +130,7 @@ describe 'ExportMapping', ->
       type =
         name: 'myType'
         id: 'typeId123'
-      row = @exportMapping.mapBaseProduct(product, type)
+      row = @exportMapping._mapBaseProduct(product, type)
       expect(row).toEqual [ 'myType', '123', 'myTax' ]
 
     it 'should map localized base attributes', ->
@@ -153,5 +153,5 @@ describe 'ExportMapping', ->
           en: 'Foo bar'
           it: 'Ciao Bella'
 
-      row = @exportMapping.mapBaseProduct(product, {})
+      row = @exportMapping._mapBaseProduct(product, {})
       expect(row).toEqual [ 'Hallo', 'ciao', 'Foo bar' ]
