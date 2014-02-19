@@ -19,6 +19,7 @@ describe 'Impex', ->
       attributes: [
         { name: 'myAttrib', label: { name: 'myAttrib' }, type: { name: 'text'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
         { name: 'sfa', label: { name: 'sfa' }, type: { name: 'text'}, attributeConstraint: 'SameForAll', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
+        { name: 'myMultiText', label: { name: 'myMultiText' }, type: { name: 'set', elementType: { name: 'text'} }, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
       ]
 
     deleteProduct = (product) =>
@@ -57,11 +58,11 @@ describe 'Impex', ->
           expect(true).toBe false
 
   it 'should import and re-export a simple product', (done) ->
-    header = 'productType,name.en,slug.en,variantId,prices,myAttrib,sfa'
+    header = 'productType,name.en,slug.en,variantId,prices,myAttrib,sfa,myMultiText'
     p1 =
       """
-      #{@productType.name},myProduct1,my-slug1,1,EUR 999;CHF 1099,some Text,foo
-      ,,,2,EUR 799,some other Text,foo
+      #{@productType.name},myProduct1,my-slug1,1,FR-EUR 999;CHF 1099,some Text,foo
+      ,,,2,EUR 799,some other Text,foo,t1;t2;t3
       """
     p2 =
       """
