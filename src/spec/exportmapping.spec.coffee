@@ -16,11 +16,19 @@ describe 'ExportMapping', ->
     beforeEach ->
       @exportMapping.channelService =
         id2key: {}
+      @exportMapping.customerGroupService =
+        id2name: {}
     it 'should map simple price', ->
       prices = [
         { value: { centAmount: 999, currencyCode: 'EUR' } }
       ]
       expect(@exportMapping._mapPrices prices).toBe 'EUR 999'
+
+    it 'should map price with country', ->
+      prices = [
+        { value: { centAmount: 77, currencyCode: 'EUR' }, country: 'DE' }
+      ]
+      expect(@exportMapping._mapPrices prices).toBe 'DE-EUR 77'
 
     it 'should map multiple prices', ->
       prices = [
@@ -36,6 +44,13 @@ describe 'ExportMapping', ->
         { value: { centAmount: 999, currencyCode: 'EUR' }, channel: { id: 'c123' } }
       ]
       expect(@exportMapping._mapPrices prices).toBe 'EUR 999#myKey'
+
+    it 'should map customerGroup on price', ->
+      @exportMapping.customerGroupService.id2name['cg987'] = 'B2B'
+      prices = [
+        { value: { centAmount: 9999999, currencyCode: 'USD' }, customerGroup: { id: 'cg987' } }
+      ]
+      expect(@exportMapping._mapPrices prices).toBe 'USD 9999999 B2B'
 
 
   describe '#mapImage', ->

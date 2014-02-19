@@ -7,6 +7,7 @@ class ExportMapping
   constructor: (options = {}) ->
     @typesService = options.typesService
     @channelService = options.channelService
+    @customerGroupService = options.customerGroupService
     @header = options.header
 
   mapProduct: (product, productTypes) ->
@@ -70,11 +71,16 @@ class ExportMapping
   _mapPrices: (prices) ->
     _.reduce(prices, (acc, price, index) =>
       acc += CONS.DELIM_MULTI_VALUE unless index is 0
+      countryPart = ''
+      if price.country
+        countryPart = "#{price.country}-"
       customerGroupPart = ''
+      if price.customerGroup and _.has(@customerGroupService.id2name, price.customerGroup.id)
+        customerGroupPart = " #{@customerGroupService.id2name[price.customerGroup.id]}"
       channelKeyPart = ''
       if price.channel and _.has(@channelService.id2key, price.channel.id)
         channelKeyPart = "##{@channelService.id2key[price.channel.id]}"
-      acc + "#{price.value.currencyCode} #{price.value.centAmount}#{customerGroupPart}#{channelKeyPart}"
+      acc + "#{countryPart}#{price.value.currencyCode} #{price.value.centAmount}#{customerGroupPart}#{channelKeyPart}"
     , '')
 
   _mapImages: (images) ->

@@ -3,6 +3,7 @@ Csv = require 'csv'
 CONS = require '../lib/constants'
 Types = require '../lib/types'
 Channels = require '../lib/channels'
+CustomerGroups = require '../lib/customergroups'
 Header = require '../lib/header'
 Products = require '../lib/products'
 ExportMapping = require '../lib/exportmapping'
@@ -18,6 +19,7 @@ class Export extends CommonUpdater
     @queryString = '' # TODO
     @typesService = new Types()
     @channelService = new Channels()
+    @customerGroupService = new CustomerGroups()
     @productService = new Products()
     @rest = new Rest options if options.config
 
@@ -25,6 +27,7 @@ class Export extends CommonUpdater
     options =
       channelService: @channelService
       typesService: @typesService
+      customerGroupService: @customerGroupService
       header: header
     new ExportMapping(options)
 
@@ -42,18 +45,22 @@ class Export extends CommonUpdater
         @typesService.buildMaps productTypes
         @channelService.getAll(@rest).then (channels) =>
           @channelService.buildMaps channels
-          for productType in productTypes
-            header._productTypeLanguageIndexes(productType)
-          @productService.getAllExistingProducts(@rest, @staged, @queryString).then (products) =>
-            console.log "Number of products: #{_.size products}."
-            if _.size(products) is 0
-              @returnResult true, 'No products found.', callback
-              return
-            csv = [ header.rawHeader ]
-            for product in products
-              csv = csv.concat(exportMapping.mapProduct(product, productTypes))
-            Csv().from(csv).to.path(outputFile, encoding: 'utf8').on 'close', (count) =>
-              @returnResult true, 'Export done.', callback
+          @customerGroupService.getAll(@rest).then (customerGroups) =>
+            @customerGroupService.buildMaps customerGroups
+            for productType in productTypes
+              header._productTypeLanguageIndexes(productType)
+            @productService.getAllExistingProducts(@rest, @staged, @queryString).then (products) =>
+              console.log "Number of products: #{_.size products}."
+              if _.size(products) is 0
+                @returnResult true, 'No products found.', callback
+                return
+              csv = [ header.rawHeader ]
+              for product in products
+                csv = csv.concat(exportMapping.mapProduct(product, productTypes))
+              Csv().from(csv).to.path(outputFile, encoding: 'utf8').on 'close', (count) =>
+                @returnResult true, 'Export done.', callback
+            .fail (msg) =>
+              @returnResult false, msg, callback
           .fail (msg) =>
             @returnResult false, msg, callback
         .fail (msg) =>

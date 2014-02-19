@@ -5,6 +5,7 @@ Q = require 'q'
 class CustomerGroups
   constructor: ->
     @name2id = {}
+    @id2name = {}
 
   getAll: (rest) ->
     deferred = Q.defer()
@@ -29,6 +30,7 @@ class CustomerGroups
       name = group.name
       id = group.id
       @name2id[name] = id
+      @id2name[id] = name
 
 
 module.exports = CustomerGroups
