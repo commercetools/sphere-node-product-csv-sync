@@ -225,12 +225,13 @@ class Mapping
     values = {}
     if _.has langH2i, attribName
       _.each langH2i[attribName], (index, language) ->
-        values[language] = row[index]
+        val = row[index]
+        values[language] = val if val
     # fall back to non localized column if language columns could not be found
     if _.size(values) is 0
       return unless @header.has(attribName)
       val = row[@header.toIndex attribName]
-      values[CONS.DEFAULT_LANGUAGE] = val
+      values[CONS.DEFAULT_LANGUAGE] = val if val
 
     values
 

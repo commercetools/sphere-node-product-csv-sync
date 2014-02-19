@@ -62,7 +62,7 @@ class ExportMapping
       for attribute in variant.attributes
         attributeTypeDef = @typesService.id2nameAttributeDefMap[productType.id][attribute.name].type
         if attributeTypeDef.name is CONS.ATTRIBUTE_TYPE_LTEXT
-          @mapLocalizedAttribute attribute, productType
+          row = @_mapLocalizedAttribute attribute, productType, row
         else if @header.has attribute.name
           row[@header.toIndex attribute.name] = @_mapAttribute(attribute, attributeTypeDef)
 
@@ -96,11 +96,13 @@ class ExportMapping
       when CONS.ATTRIBUTE_TYPE_MONEY then #TODO
       else attribute.value
 
-  _mapLocalizedAttribute: (attribute, productType) ->
-    h2i = @header.productTypeAttributeToIndex productType, attribute.name
+  _mapLocalizedAttribute: (attribute, productType, row) ->
+    h2i = @header.productTypeAttributeToIndex productType, attribute
     if h2i
       for lang, index of h2i
-        attribute.value[lang]
+        row[index] = attribute.value[lang]
+
+    row
 
   _mapSetAttribute: (attribute, attributeTypeDef) ->
     switch attributeTypeDef.elementType.name
