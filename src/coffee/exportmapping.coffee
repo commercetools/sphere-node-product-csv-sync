@@ -6,6 +6,7 @@ class ExportMapping
 
   constructor: (options = {}) ->
     @typesService = options.typesService
+    @channelService = options.channelService
     @header = options.header
 
   mapProduct: (product, productTypes) ->
@@ -67,10 +68,12 @@ class ExportMapping
     row
 
   _mapPrices: (prices) ->
-    _.reduce(prices, (acc, price, index) ->
+    _.reduce(prices, (acc, price, index) =>
       acc += CONS.DELIM_MULTI_VALUE unless index is 0
       customerGroupPart = ''
       channelKeyPart = ''
+      if price.channel and _.has(@channelService.id2key, price.channel.id)
+        channelKeyPart = "##{@channelService.id2key[price.channel.id]}"
       acc + "#{price.value.currencyCode} #{price.value.centAmount}#{customerGroupPart}#{channelKeyPart}"
     , '')
 

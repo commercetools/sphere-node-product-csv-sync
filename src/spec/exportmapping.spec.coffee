@@ -13,6 +13,9 @@ describe 'ExportMapping', ->
       expect(@exportMapping).toBeDefined()
 
   describe '#mapPrices', ->
+    beforeEach ->
+      @exportMapping.channelService =
+        id2key: {}
     it 'should map simple price', ->
       prices = [
         { value: { centAmount: 999, currencyCode: 'EUR' } }
@@ -26,6 +29,14 @@ describe 'ExportMapping', ->
         { value: { centAmount: 1299, currencyCode: 'CHF' } }
       ]
       expect(@exportMapping._mapPrices prices).toBe 'EUR 999;USD 1099;CHF 1299'
+
+    it 'should map channel on price', ->
+      @exportMapping.channelService.id2key['c123'] = 'myKey'
+      prices = [
+        { value: { centAmount: 999, currencyCode: 'EUR' }, channel: { id: 'c123' } }
+      ]
+      expect(@exportMapping._mapPrices prices).toBe 'EUR 999#myKey'
+
 
   describe '#mapImage', ->
     it 'should map single image', ->
