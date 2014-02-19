@@ -257,8 +257,8 @@ describe 'Mapping', ->
       @map.channels =
         key2id:
           retailerA: 'channelId123'
-      prices = @map.mapPrices 'YEN 19999 #retailerA', 1234
-      expect(prices.length).toBe 1
+      prices = @map.mapPrices 'YEN 19999#retailerA;USD 1 #retailerA', 1234
+      expect(prices.length).toBe 2
       expect(@map.errors.length).toBe 0
       expectedPrice =
         value:
@@ -268,6 +268,14 @@ describe 'Mapping', ->
           typeId: 'channel'
           id: 'channelId123'
       expect(prices[0]).toEqual expectedPrice
+      expectedPrice =
+        value:
+          centAmount: 1
+          currencyCode: 'USD'
+        channel:
+          typeId: 'channel'
+          id: 'channelId123'
+      expect(prices[1]).toEqual expectedPrice
 
     it 'should give feedback that channel with key does not exist', ->
       prices = @map.mapPrices 'YEN 777 #nonExistingChannelKey', 42
