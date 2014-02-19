@@ -57,26 +57,38 @@ describe 'Impex', ->
           expect(true).toBe false
 
   it 'should import and re-export a simple product', (done) ->
-    csv =
+    header = 'productType,name.en,slug.en,variantId,prices,myAttrib,sfa'
+    p1 =
       """
-      productType,name.en,slug.en,variantId,prices,myAttrib,sfa
       #{@productType.name},myProduct1,my-slug1,1,EUR 999;CHF 1099,some Text,foo
       ,,,2,EUR 799,some other Text,foo
+      """
+    p2 =
+      """
       #{@productType.name},myProduct2,my-slug2,1,USD 1899
       ,,,2,USD 1999
       ,,,3,USD 2099
       ,,,4,USD 2199
       """
+    csv =
+      """
+      #{header}
+      #{p1}
+      #{p2}
+      """
     @import.import csv, (res) =>
-      console.log 1, res
+      console.log "import", res
       expect(res.status).toBe true
       expect(res.message['New product created.']).toBe 2
       file = '/tmp/impex.csv'
-      #@export.queryString = 'sort=name%20asc'
+      @export.queryString = ''
       @export.export csv, file, (res) ->
-        console.log 2, res
+        console.log "export", res
         expect(res.status).toBe true
         expect(res.message).toBe 'Export done.'
         fs.readFile file, encoding: 'utf8', (err, content) ->
-          expect(content).toBe csv
+          console.log content
+          expect(content).toMatch header
+          expect(content).toMatch p1
+          expect(content).toMatch p2
           done()

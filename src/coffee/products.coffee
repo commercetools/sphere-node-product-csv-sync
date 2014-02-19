@@ -8,7 +8,6 @@ class Products
     if _.isString(queryString) and queryString.length > 0
       queryString += '&'
     queryString += "staged=#{staged}"
-    console.log "#{queryString}"
     rest.GET "/product-projections?#{queryString}", (error, response, body) ->
       if error
         deferred.reject 'Error on getting existing products: ' + error
