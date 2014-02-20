@@ -51,9 +51,9 @@ Options:
 
 #### Base attributes
 
-The following 3 attributes are the bare minimum to create products:
+The following 2 attributes are the bare minimum to create products:
 ```
-productType,name,variantId
+productType,variantId
 ```
 
 You can define the productType via id or name (as long as it is unique).
@@ -78,6 +78,8 @@ row 3: 3rd variant of product in row 1
 row 4: product with master variant
 row 5: 2nd variant of product in row 4
 ```
+
+> Please note that the `variantId` column must be sorted in ascending order.
 
 Non required product attributes
 - slug
