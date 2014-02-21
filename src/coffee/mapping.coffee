@@ -233,6 +233,7 @@ class Mapping
       val = row[@header.toIndex attribName]
       values[CONS.DEFAULT_LANGUAGE] = val if val
 
+    return if _.isEmpty values
     values
 
   mapImages: (rawVariant, variantId, rowIndex) ->

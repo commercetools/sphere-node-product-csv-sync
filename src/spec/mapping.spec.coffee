@@ -50,12 +50,16 @@ describe 'Mapping', ->
         """
         foo,a1,bar
         x,hi,y
+        aaa,,bbb
         """
       @validator.parse csv, (content, count) =>
         @validator.header.toIndex()
         values = @map.mapLocalizedAttrib(content[0], 'a1', {})
         expect(_.size values).toBe 1
         expect(values['en']).toBe 'hi'
+
+        values = @map.mapLocalizedAttrib(content[1], 'a1', {})
+        expect(values).toBeUndefined()
 
     it 'should return undefined if header can not be found', ->
       csv =
