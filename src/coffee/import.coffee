@@ -117,15 +117,14 @@ class Import extends CommonUpdater
         deferred.reject 'Error on updating product: ' + error
       else
         if response.statusCode is 200
-          @publishProduct(JSON.parse(body)).then (msg) ->
+          @publishProduct(body).then (msg) ->
             deferred.resolve 'Product updated.'
           .fail (msg) ->
             deferred.reject msg
         else if response.statusCode is 304
           deferred.resolve 'Product update not necessary.'
         else if response.statusCode is 400
-          parsed = JSON.parse body
-          humanReadable = JSON.stringify parsed, null, '  '
+          humanReadable = JSON.stringify body, null, '  '
           deferred.resolve "Problem on updating product:\n" + humanReadable
         else
           deferred.reject 'Problem on updating product: ' + body
@@ -140,13 +139,12 @@ class Import extends CommonUpdater
         deferred.reject 'Error on creating new product: ' + error
       else
         if response.statusCode is 201
-          @publishProduct(JSON.parse(body)).then (msg) ->
+          @publishProduct(body).then (msg) ->
             deferred.resolve 'New product created.'
           .fail (msg) ->
             deferred.reject msg
         else if response.statusCode is 400
-          parsed = JSON.parse body
-          humanReadable = JSON.stringify parsed, null, '  '
+          humanReadable = JSON.stringify body, null, '  '
           deferred.reject "Problem on creating new product:\n" + humanReadable
         else
           deferred.reject 'Problem on creating new product: ' + body
@@ -175,8 +173,7 @@ class Import extends CommonUpdater
           if ignore400
             deferred.resolve "Product is already #{action}ed."
           else
-            parsed = JSON.parse body
-            humanReadable = JSON.stringify parsed, null, '  '
+            humanReadable = JSON.stringify body, null, '  '
             deferred.reject "Problem on #{action}ing product:\n" + humanReadable
         else
           deferred.reject 'Problem on #{action}ing product: ' + body
