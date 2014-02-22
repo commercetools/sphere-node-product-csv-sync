@@ -161,7 +161,7 @@ class Mapping
     return prices unless @isValidValue(raw)
     rawPrices = raw.split CONS.DELIM_MULTI_VALUE
     for rawPrice in rawPrices
-      matchedPrice = rawPrice.match CONS.REGEX_PRICE
+      matchedPrice = CONS.REGEX_PRICE.exec rawPrice
       unless matchedPrice
         @errors.push "[row #{rowIndex}:#{CONS.HEADER_PRICES}] Can not parse price '#{rawPrice}'!"
         continue
@@ -196,7 +196,7 @@ class Mapping
   # USD 999
   mapMoney: (rawMoney, attribName, rowIndex) ->
     return unless @isValidValue(rawMoney)
-    matchedMoney = rawMoney.match CONS.REGEX_MONEY
+    matchedMoney = CONS.REGEX_MONEY.exec rawMoney
     unless matchedMoney
       @errors.push "[row #{rowIndex}:#{attribName}] Can not parse money '#{rawMoney}'!"
       return
@@ -208,7 +208,7 @@ class Mapping
 
   mapNumber: (rawNumber, attribName, rowIndex) ->
     return unless @isValidValue(rawNumber)
-    matchedNumber = rawNumber.match CONS.REGEX_NUMBER
+    matchedNumber = CONS.REGEX_NUMBER.exec rawNumber
     unless matchedNumber
       @errors.push "[row #{rowIndex}:#{attribName}] The number '#{rawNumber}' isn't valid!"
       return
