@@ -176,7 +176,7 @@ class Import extends CommonUpdater
             humanReadable = JSON.stringify body, null, '  '
             deferred.reject "Problem on #{action}ing product:\n" + humanReadable
         else
-          deferred.reject 'Problem on #{action}ing product: ' + body
+          deferred.reject "Problem on #{action}ing product: " + body
 
     deferred.promise
 
