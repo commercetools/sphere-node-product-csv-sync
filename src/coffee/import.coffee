@@ -38,7 +38,7 @@ class Import extends CommonUpdater
       .fail (msg) =>
         @returnResult false, msg, callback
 
-  publishOnly: (publish = true) ->
+  publishOnly: (publish = true, callback) ->
     @publishProducts = true
     action = if publish then 'publish' else 'unpublish'
     @productService.getAllExistingProducts(@rest, publish).then (existingProducts) =>
@@ -176,7 +176,7 @@ class Import extends CommonUpdater
             humanReadable = JSON.stringify body, null, '  '
             deferred.reject "Problem on #{action}ing product:\n" + humanReadable
         else
-          deferred.reject "Problem on #{action}ing product: " + body
+          deferred.reject "Problem on #{action}ing product (code #{response.statusCode}: " + body
 
     deferred.promise
 
