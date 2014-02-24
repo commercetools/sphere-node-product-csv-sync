@@ -1,17 +1,19 @@
 # Import
-- on update handle changes of
-  * categories
-  * taxes
 - allow to define if match is against staged or published existing products (current it's staged)
+- allow to define custom attribute for matching (eg. EAN, externalId etc.)
+- allow to define image dimensions
 
 ### Command line options
 - allow to overwrite delimiters
 - add option to "validateOnly"
-- add option to re-index after import
+- add option to re-index after import (new endpoint necessary)
 
 ### Ideas
 - allow to define publish state as column
 - allow to define slug of category instead of id or tree path
+- allow to define "delete product" as "action" column
+- allow to delete all products
+- download existing products in batches
 
 ### Questions
 - How to handle attributes that are called like base attributes?
@@ -20,17 +22,15 @@
 
 # Export
 - support export of
-  * product type
-  * taxes
-  * prices
-  * sku
-  * variantId
+  * tax
   * categories
   * money-typed attributes
+  * image labels
+  * image dimensions
 
 ### Command line options
-- select wheter to use staged or published
-- allow to provide product type
+- select wheter to use staged or published products on export
+- allow to define query for export
 
 ### Ideas
-- generate CSV template for one product type
+- generate CSV template for one product type providing the languages via command line option for the localized strings
