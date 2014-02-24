@@ -24,8 +24,17 @@ describe 'Impex', ->
 
     deleteProduct = (product) =>
       deferred = Q.defer()
-      @rest.DELETE "/products/#{product.id}?version=#{product.version}", (error, response, body) ->
-        deferred.resolve response.statusCode
+      data =
+        id: product.id
+        version: product.version
+        actions: [
+          action: 'unpublish'
+        ]
+      @rest.POST "/products/#{product.id}", JSON.stringify(data), (error, response, body) =>
+        if response.statusCode is 200
+          product.version = body.version
+        @rest.DELETE "/products/#{product.id}?version=#{product.version}", (error, response, body) ->
+          deferred.resolve response.statusCode
       deferred.promise
 
     deleteProductType = (productType) =>
@@ -36,21 +45,19 @@ describe 'Impex', ->
 
     @rest.GET '/products?limit=0', (error, response, body) =>
       expect(response.statusCode).toBe 200
-      parsed = JSON.parse body
       productDeletes = []
       typesDeletes = []
-      for product in parsed.results
+      for product in body.results
         productDeletes.push deleteProduct(product)
       @rest.GET '/product-types?limit=0', (error, response, body) =>
         expect(response.statusCode).toBe 200
-        parsed = JSON.parse body
-        for productType in parsed.results
+        for productType in body.results
           typesDeletes.push deleteProductType(productType)
         Q.all(productDeletes).then (statusCodes) =>
           Q.all(typesDeletes).then (statusCodes) =>
             @rest.POST '/product-types', JSON.stringify(@productType), (error, response, body) =>
               expect(response.statusCode).toBe 201
-              @productType = JSON.parse body
+              @productType = body
               done()
           .fail (msg) ->
             expect(true).toBe false
@@ -58,18 +65,18 @@ describe 'Impex', ->
           expect(true).toBe false
 
   it 'should import and re-export a simple product', (done) ->
-    header = 'productType,name.en,slug.en,variantId,prices,myAttrib.en,sfa,myMultiText'
+    header = 'productType,name.en,slug.en,variantId,sku,prices,myAttrib.en,sfa,myMultiText'
     p1 =
       """
-      #{@productType.name},myProduct1,my-slug1,1,FR-EUR 999;CHF 1099,some Text,foo
-      ,,,2,EUR 799,some other Text,foo,t1;t2;t3
+      #{@productType.name},myProduct1,my-slug1,1,sku1,FR-EUR 999;CHF 1099,some Text,foo
+      ,,,2,sku2,EUR 799,some other Text,foo,t1;t2;t3
       """
     p2 =
       """
-      #{@productType.name},myProduct2,my-slug2,1,USD 1899
-      ,,,2,USD 1999
-      ,,,3,USD 2099
-      ,,,4,USD 2199
+      #{@productType.name},myProduct2,my-slug2,1,sku3,USD 1899
+      ,,,2,sku4,USD 1999
+      ,,,3,sku5,USD 2099
+      ,,,4,,USD 2199
       """
     csv =
       """

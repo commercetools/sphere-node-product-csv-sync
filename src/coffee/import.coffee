@@ -51,7 +51,6 @@ class Import extends CommonUpdater
       @returnResult false, msg, callback
 
   initMatcher: (existingProducts) ->
-    # console.log "initMatcher: ", _.size existingProducts
     @existingProducts = existingProducts
     @id2index = {}
     @sku2index = {}
@@ -66,15 +65,14 @@ class Import extends CommonUpdater
         vSku = @getSku(variant)
         @sku2index[vSku] = index if vSku
 
-    # console.log "id2index: ", _.size @id2index
-    # console.log "sku2index: ", _.size @sku2index
-    # console.log "slug2index: ", _.size @slug2index
+    #console.log "Matched #{_.size @id2index} product(s) by id."
+    #console.log "Matched #{_.size @sku2index} product(s) by sku."
+    #console.log "Matched #{_.size @slug2index} product(s) by slug."
 
   getSku: (variant) ->
     variant.sku
 
   match: (product) ->
-#    console.log "match %j", product
     index = @id2index[product.id] if product.id
     unless index
       index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku
@@ -89,7 +87,6 @@ class Import extends CommonUpdater
     posts = []
     for product in products
       existingProduct = @match(product)
-#      console.log "existingProduct %j", existingProduct
       if existingProduct
         posts.push @update(product, existingProduct, types)
       else
@@ -176,7 +173,7 @@ class Import extends CommonUpdater
             humanReadable = JSON.stringify body, null, '  '
             deferred.reject "Problem on #{action}ing product:\n" + humanReadable
         else
-          deferred.reject "Problem on #{action}ing product (code #{response.statusCode}: " + body
+          deferred.reject "Problem on #{action}ing product (code #{response.statusCode}): " + body
 
     deferred.promise
 

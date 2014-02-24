@@ -30,8 +30,17 @@ describe 'Import', ->
 
     deleteProduct = (product) =>
       deferred = Q.defer()
-      @rest.DELETE "/products/#{product.id}?version=#{product.version}", (error, response, body) ->
-        deferred.resolve response.statusCode
+      data =
+        id: product.id
+        version: product.version
+        actions: [
+          action: 'unpublish'
+        ]
+      @rest.POST "/products/#{product.id}", JSON.stringify(data), (error, response, body) =>
+        if response.statusCode is 200
+          product.version = body.version
+        @rest.DELETE "/products/#{product.id}?version=#{product.version}", (error, response, body) ->
+          deferred.resolve response.statusCode
       deferred.promise
 
     deleteProductType = (productType) =>
@@ -42,21 +51,19 @@ describe 'Import', ->
 
     @rest.GET '/products?limit=0', (error, response, body) =>
       expect(response.statusCode).toBe 200
-      parsed = JSON.parse body
       productDeletes = []
       typesDeletes = []
-      for product in parsed.results
+      for product in body.results
         productDeletes.push deleteProduct(product)
       @rest.GET '/product-types?limit=0', (error, response, body) =>
         expect(response.statusCode).toBe 200
-        parsed = JSON.parse body
-        for productType in parsed.results
+        for productType in body.results
           typesDeletes.push deleteProductType(productType)
         Q.all(productDeletes).then (statusCodes) =>
           Q.all(typesDeletes).then (statusCodes) =>
             @rest.POST '/product-types', JSON.stringify(@productType), (error, response, body) =>
               expect(response.statusCode).toBe 201
-              @productType = JSON.parse body
+              @productType = body
               channel =
                 key: 'retailerA'
                 roles: [ 'InventorySupply' ]

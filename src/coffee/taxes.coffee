@@ -13,11 +13,10 @@ class Taxes
       if error
         deferred.reject 'Error on getting tax categories: ' + error
       else if response.statusCode is 200
-        taxCategories = JSON.parse(body).results
+        taxCategories = body.results
         deferred.resolve taxCategories
       else if response.statusCode is 400
-        parsed = JSON.parse body
-        humanReadable = JSON.stringify parsed, null, '  '
+        humanReadable = JSON.stringify body, null, '  '
         deferred.resolve "Problem on getting tax categories:\n" + humanReadable
       else
         deferred.reject "Problem on getting tax categories:\n" +

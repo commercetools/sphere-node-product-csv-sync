@@ -17,7 +17,7 @@ class Channels
           "status #{response.statusCode})\n" +
           "body " + response.body
       else
-        channels = JSON.parse(body).results
+        channels = body.results
         deferred.resolve channels
     deferred.promise
 

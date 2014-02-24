@@ -20,7 +20,7 @@ class Types
           "status #{response.statusCode})\n" +
           "body " + response.body
       else
-        productTypes = JSON.parse(body).results
+        productTypes = body.results
         deferred.resolve productTypes
     deferred.promise
 

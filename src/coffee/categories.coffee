@@ -20,7 +20,7 @@ class Categories
           "status #{response.statusCode})\n" +
           "body " + response.body
       else
-        categories = JSON.parse(body).results
+        categories = body.results
         deferred.resolve categories
     deferred.promise
 

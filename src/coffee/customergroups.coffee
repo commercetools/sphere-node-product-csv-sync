@@ -13,11 +13,10 @@ class CustomerGroups
       if error
         deferred.reject 'Error on getting customer groups: ' + error
       else if response.statusCode is 200
-        customerGroups = JSON.parse(body).results
+        customerGroups = body.results
         deferred.resolve customerGroups
       else if response.statusCode is 400
-        parsed = JSON.parse body
-        humanReadable = JSON.stringify parsed, null, '  '
+        humanReadable = JSON.stringify body, null, '  '
         deferred.resolve "Problem on getting customer groups:\n" + humanReadable
       else
         deferred.reject "Problem on getting customer groups:\n" +
