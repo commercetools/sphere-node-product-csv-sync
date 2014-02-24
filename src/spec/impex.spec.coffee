@@ -77,6 +77,7 @@ describe 'Impex', ->
       #{p1}
       #{p2}
       """
+    @import.publishProducts = true
     @import.import csv, (res) =>
       console.log "import", res
       expect(res.status).toBe true
