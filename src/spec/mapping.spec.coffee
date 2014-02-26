@@ -32,6 +32,18 @@ describe 'Mapping', ->
       expect(@map.ensureValidSlug 'foo').toBe 'foo'
       expect(@map.ensureValidSlug 'foo').toMatch /foo\d{5}/
 
+    it 'should fail for undefined or null', ->
+      expect(@map.ensureValidSlug undefined, 99).toBeUndefined()
+      expect(@map.errors[0]).toBe "[row 99:slug] Can't generate valid slug out of 'undefined'!"
+
+      expect(@map.ensureValidSlug null, 3).toBeUndefined()
+      expect(@map.errors[1]).toBe "[row 3:slug] Can't generate valid slug out of 'null'!"
+
+    it 'should fail for too short slug', ->
+      expect(@map.ensureValidSlug '1', 7).toBeUndefined()
+      expect(_.size @map.errors).toBe 1
+      expect(@map.errors[0]).toBe "[row 7:slug] Can't generate valid slug out of '1'!"
+
   describe '#mapLocalizedAttrib', ->
     it 'should create mapping for language attributes', ->
       csv =

@@ -44,20 +44,20 @@ class Mapping
 
     unless product.slug
       product.slug = {}
-      product.slug[CONS.DEFAULT_LANGUAGE] = @ensureValidSlug(_s.slugify product.name[CONS.DEFAULT_LANGUAGE])
+      product.slug[CONS.DEFAULT_LANGUAGE] = @ensureValidSlug(_s.slugify product.name[CONS.DEFAULT_LANGUAGE], rowIndex)
 
     product
 
-  # TODO
-  # - check min length of 2
-  # - check max lenght of 64
-  ensureValidSlug: (slug, appendix = '') ->
+  ensureValidSlug: (slug, rowIndex, appendix = '') ->
+    unless _.isString(slug) and slug.length > 2
+      @errors.push "[row #{rowIndex}:#{CONS.HEADER_SLUG}] Can't generate valid slug out of '#{slug}'!"
+      return
     @slugs or= []
     currentSlug = "#{slug}#{appendix}"
     unless _.contains(@slugs, currentSlug)
       @slugs.push currentSlug
       return currentSlug
-    @ensureValidSlug slug, Math.floor((Math.random() * 89999) + 10001) # five digets
+    @ensureValidSlug slug, rowIndex, Math.floor((Math.random() * 89999) + 10001) # five digets
 
   hasValidValueForHeader: (row, headerName) ->
     return false unless @header.has(headerName)
