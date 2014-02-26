@@ -46,17 +46,17 @@ describe 'Validator', ->
       @validator.header = new Header CONS.BASE_HEADERS
 
     it 'should be true for a variant', ->
-      expect(@validator.isVariant ['', '', 2]).toBe true
+      expect(@validator.isVariant ['', '2']).toBe true
 
     it 'should be false for a product', ->
-      expect(@validator.isVariant ['myProduct', 1]).toBe false
+      expect(@validator.isVariant ['myProduct', '1']).toBe false
 
   describe '#isProduct', ->
     beforeEach ->
       @validator.header = new Header CONS.BASE_HEADERS
 
-    it 'should be false for a variantId > 1 with a product type give', ->
-      expect(@validator.isProduct ['foo', '', 2]).toBe false
+    it 'should be false for a variantId > 1 with a product type given', ->
+      expect(@validator.isProduct ['foo', '2']).toBe false
 
   describe '#buildProducts', ->
     beforeEach ->

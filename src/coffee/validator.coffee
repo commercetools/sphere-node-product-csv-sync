@@ -1,4 +1,5 @@
 _ = require('underscore')._
+_s = require 'underscore.string'
 Csv = require 'csv'
 CONS = require '../lib/constants'
 Types = require '../lib/types'
@@ -108,11 +109,11 @@ class Validator
       @errors.push "[row #{raw.startRow}] Can't find product type for '#{ptInfo}"
 
   isVariant: (row) ->
-    row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)] is '' and
+    _s.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)]) and
     row[@header.toIndex(CONS.HEADER_VARIANT_ID)] isnt '1'
 
   isProduct: (row) ->
-    row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)] isnt '' and
+    not _s.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)]) and
     row[@header.toIndex(CONS.HEADER_VARIANT_ID)] is '1' and
     not @isVariant row
 
