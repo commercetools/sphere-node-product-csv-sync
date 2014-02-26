@@ -26,6 +26,8 @@ options =
   timeout: argv.timeout
   show_progress: true
   user_agent: "#{package_json.name} - #{package_json.version}"
+  logConfig:
+    levelStream: 'warn'
 
 importer = new Import options
 importer.publishProducts = argv.publish

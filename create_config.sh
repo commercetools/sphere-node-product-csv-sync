@@ -8,5 +8,9 @@ exports.config = {
   project_key: "${SPHERE_PROJECT_KEY}",
 }
 
+exports.logConfig = {
+  levelStream: 'warn'
+}
+
 exports.logentries_token = "${LOGENTRIES_TOKEN}"
 EOF
