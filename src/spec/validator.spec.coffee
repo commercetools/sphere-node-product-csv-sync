@@ -51,6 +51,13 @@ describe 'Validator', ->
     it 'should be false for a product', ->
       expect(@validator.isVariant ['myProduct', 1]).toBe false
 
+  describe '#isProduct', ->
+    beforeEach ->
+      @validator.header = new Header CONS.BASE_HEADERS
+
+    it 'should be false for a variantId > 1 with a product type give', ->
+      expect(@validator.isProduct ['foo', '', 2]).toBe false
+
   describe '#buildProducts', ->
     beforeEach ->
 
@@ -76,19 +83,33 @@ describe 'Validator', ->
         expect(@validator.rawProducts[1].startRow).toBe 5
         done()
 
-    xit 'should return error if first row in not a product', (done) ->
+    it 'should return error if row isnt a variant nor product', (done) ->
       csv =
         """
         productType,name,variantId
+        myType,,1
         ,,1
-        ,,2
+        myType,,2
         """
       @validator.parse csv, (content) =>
         @validator.buildProducts content
         expect(@validator.errors.length).toBe 2
-        expect(@validator.errors[0]).toBe '[row 1] We need a product before starting with a variant!'
-        expect(@validator.errors[1]).toBe '[row 2] We need a product before starting with a variant!'
+        expect(@validator.errors[0]).toBe '[row 2] Could not be identified as product or variant!'
+        expect(@validator.errors[1]).toBe '[row 3] Could not be identified as product or variant!'
         done()
+
+    it 'should return error if first row isnt a product row', (done) ->
+      csv =
+        """
+        productType,name,variantId
+        ,,2
+        """
+      @validator.parse csv, (content) =>
+        @validator.buildProducts content
+        expect(@validator.errors.length).toBe 1
+        expect(@validator.errors[0]).toBe '[row 1] We need a product before starting with a variant!'
+        done()
+
 
   describe '#valProduct', ->
     it 'should return no error', ->
