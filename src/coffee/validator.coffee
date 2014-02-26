@@ -112,6 +112,8 @@ class Validator
     row[@header.toIndex(CONS.HEADER_VARIANT_ID)] isnt '1'
 
   isProduct: (row) ->
+    row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)] isnt '' and
+    row[@header.toIndex(CONS.HEADER_VARIANT_ID)] is '1' and
     not @isVariant row
 
 module.exports = Validator
