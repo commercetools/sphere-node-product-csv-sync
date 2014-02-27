@@ -5,6 +5,7 @@ Q = require 'q'
 class Taxes
   constructor: ->
     @name2id = {}
+    @id2name = {}
     @duplicateNames = []
 
   getAll: (rest) ->
@@ -31,6 +32,7 @@ class Taxes
       if _.has @name2id, name
         @duplicateNames.push name
       @name2id[name] = id
+      @id2name[id] = name
 
 
 module.exports = Taxes

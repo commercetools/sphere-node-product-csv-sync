@@ -8,6 +8,7 @@ class ExportMapping
     @typesService = options.typesService
     @channelService = options.channelService
     @customerGroupService = options.customerGroupService
+    @taxService = options.taxService
     @header = options.header
 
   mapProduct: (product, productTypes) ->
@@ -31,9 +32,9 @@ class ExportMapping
     if @header.has(CONS.HEADER_PRODUCT_TYPE)
       row[@header.toIndex CONS.HEADER_PRODUCT_TYPE] = productType.name
 
-    # TODO: Use taxCategory name
     if @header.has(CONS.HEADER_TAX) and _.has(product, 'taxCategory')
-      row[@header.toIndex CONS.HEADER_TAX] = product.taxCategory.id
+      if _.has @taxService.id2name, product.taxCategory.id
+        row[@header.toIndex CONS.HEADER_TAX] = @taxService.id2name[product.taxCategory.id]
 
     # TODO
     # - categories

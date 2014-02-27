@@ -6,6 +6,7 @@ Channels = require '../lib/channels'
 CustomerGroups = require '../lib/customergroups'
 Header = require '../lib/header'
 Products = require '../lib/products'
+Taxes = require '../lib/taxes'
 ExportMapping = require '../lib/exportmapping'
 Rest = require('sphere-node-connect').Rest
 CommonUpdater = require('sphere-node-sync').CommonUpdater
@@ -21,6 +22,7 @@ class Export extends CommonUpdater
     @channelService = new Channels()
     @customerGroupService = new CustomerGroups()
     @productService = new Products()
+    @taxService = new Taxes()
     @rest = new Rest options if options.config
 
   _initMapping: (header) ->
@@ -28,6 +30,7 @@ class Export extends CommonUpdater
       channelService: @channelService
       typesService: @typesService
       customerGroupService: @customerGroupService
+      taxService: @taxService
       header: header
     new ExportMapping(options)
 
@@ -40,33 +43,30 @@ class Export extends CommonUpdater
       header.toIndex()
       header.toLanguageIndex()
       exportMapping = @_initMapping(header)
-      @typesService.getAll(@rest).then (productTypes) =>
+      data = [
+        @typesService.getAll @rest
+        @channelService.getAll @rest
+        @customerGroupService.getAll @rest
+        @taxService.getAll @rest
+        @productService.getAllExistingProducts @rest, @staged, @queryString
+      ]
+      Q.all(data).then ([productTypes, channels, customerGroups, taxes, products]) =>
         console.log "Number of product types: #{_.size productTypes}."
+        if _.size(products) is 0
+          @returnResult true, 'No products found.', callback
+          return
+        console.log "Number of products: #{_.size products}."
         @typesService.buildMaps productTypes
-        @channelService.getAll(@rest).then (channels) =>
-          @channelService.buildMaps channels
-          @customerGroupService.getAll(@rest).then (customerGroups) =>
-            @customerGroupService.buildMaps customerGroups
-            for productType in productTypes
-              header._productTypeLanguageIndexes(productType)
-            @productService.getAllExistingProducts(@rest, @staged, @queryString).then (products) =>
-              console.log "Number of products: #{_.size products}."
-              if _.size(products) is 0
-                @returnResult true, 'No products found.', callback
-                return
-              csv = [ header.rawHeader ]
-              for product in products
-                csv = csv.concat(exportMapping.mapProduct(product, productTypes))
-              Csv().from(csv).to.path(outputFile, encoding: 'utf8').on 'close', (count) =>
-                @returnResult true, 'Export done.', callback
-            .fail (msg) =>
-              @returnResult false, msg, callback
-          .fail (msg) =>
-            @returnResult false, msg, callback
-        .fail (msg) =>
-          @returnResult false, msg, callback
-      .fail (msg) =>
-        @returnResult false, msg, callback
+        @channelService.buildMaps channels
+        @customerGroupService.buildMaps customerGroups
+        @taxService.buildMaps taxes
+        for productType in productTypes
+          header._productTypeLanguageIndexes(productType)
+        csv = [ header.rawHeader ]
+        for product in products
+          csv = csv.concat exportMapping.mapProduct(product, productTypes)
+        Csv().from(csv).to.path(outputFile, encoding: 'utf8').on 'close', (count) =>
+          @returnResult true, 'Export done.', callback
     .fail (msg) =>
       @returnResult false, msg, callback
 
