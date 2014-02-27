@@ -23,6 +23,14 @@ class ExportMapping
 
     rows
 
+  createTemplate: (productType, languages = [CONS.DEFAULT_LANGUAGE]) ->
+    header = []
+    _.each productType.attributes, (attribute) ->
+      switch attribute.type.name
+        when CONS.ATTRIBUTE_TYPE_LTEXT then _.each languages, (lang) -> header.push "#{attribute.name}#{CONS.DELIM_HEADER_LANGUAGE}#{lang}"
+        else header.push attribute.name
+    header
+
   _mapBaseProduct: (product, productType) ->
     row = @_mapVariant product.masterVariant, productType
 
