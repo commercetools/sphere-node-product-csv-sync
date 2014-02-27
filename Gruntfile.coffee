@@ -39,6 +39,13 @@ module.exports = (grunt) ->
         src: ["*.spec.coffee"]
         dest: "test"
         ext: ".spec.js"
+      unittest:
+        expand: true
+        flatten: true
+        cwd: "src/spec"
+        src: ["*.spec.coffee"]
+        dest: "test"
+        ext: ".spec.js"
 
     concat:
       options:
@@ -59,6 +66,10 @@ module.exports = (grunt) ->
       test:
         files: ["src/**/*.coffee"]
         tasks: ["test"]
+      unittest:
+        files: ["src/**/*.coffee"]
+        tasks: ["unittest"]
+
 
     shell:
       options:
@@ -67,6 +78,8 @@ module.exports = (grunt) ->
         failOnError: true
       jasmine:
         command: "jasmine-node --verbose --captureExceptions test"
+      jasmineunit:
+        command: "jasmine-node --verbose --captureExceptions test/*.js"
       coverage:
         command: "istanbul cover jasmine-node --captureExceptions test && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
       run:
@@ -84,3 +97,4 @@ module.exports = (grunt) ->
   grunt.registerTask "build", ["clean", "coffeelint", "coffee", "concat"]
   grunt.registerTask "coverage", ["build", "shell:coverage"]
   grunt.registerTask "test", ["build", "shell:jasmine"]
+  grunt.registerTask "unittest", ["build", "shell:jasmineunit"]
