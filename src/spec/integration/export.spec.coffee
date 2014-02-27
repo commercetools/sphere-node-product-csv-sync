@@ -95,7 +95,7 @@ describe 'Export', ->
       done()
 
   it 'should inform that there are no products', (done) ->
-    @export.staged = false
+    @export.queryString = 'staged=false'
     template =
       '''
       productType,name,variantId

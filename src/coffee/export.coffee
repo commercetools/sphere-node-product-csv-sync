@@ -16,8 +16,7 @@ class Export extends CommonUpdater
 
   constructor: (options = {}) ->
     super(options)
-    @staged = true # TODO
-    @queryString = '' # TODO
+    @queryString = options.queryString
     @typesService = new Types()
     @channelService = new Channels()
     @customerGroupService = new CustomerGroups()
@@ -48,7 +47,7 @@ class Export extends CommonUpdater
         @channelService.getAll @rest
         @customerGroupService.getAll @rest
         @taxService.getAll @rest
-        @productService.getAllExistingProducts @rest, @staged, @queryString
+        @productService.getAllExistingProducts @rest, @queryString
       ]
       Q.all(data).then ([productTypes, channels, customerGroups, taxes, products]) =>
         console.log "Number of product types: #{_.size productTypes}."

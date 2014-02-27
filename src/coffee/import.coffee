@@ -29,7 +29,7 @@ class Import extends CommonUpdater
         if _.size(@validator.map.errors) isnt 0
           @returnResult false, @validator.map.errors, callback
           return
-        @productService.getAllExistingProducts(@rest, true).then (existingProducts) =>
+        @productService.getAllExistingProducts(@rest).then (existingProducts) =>
           console.log "Comparing against #{_.size existingProducts} existing product(s) ..."
           @initMatcher existingProducts
           @createOrUpdate products, @validator.types, callback
@@ -44,7 +44,7 @@ class Import extends CommonUpdater
     @productService.getAllExistingProducts(@rest, publish).then (existingProducts) =>
       posts = []
       for product in existingProducts
-        posts.push @publishProduct(product, publish, true)
+        posts.push @publishProduct(product, "staged=#{publish}&limit=0")
       console.log "#{action}ing #{_.size posts} product(s) ..."
       @processInBatches posts, callback
     .fail (msg) =>
