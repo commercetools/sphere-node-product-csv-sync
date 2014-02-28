@@ -18,19 +18,13 @@
 ### Questions
 - How to handle attributes that are called like base attributes?
   (eg. name, description, productType, slug, etc.) - maybe some prefix like "."
-- Do we have negative prices?
 
 # Export
 - support export of
-  * tax
   * categories
   * money-typed attributes
   * image labels
   * image dimensions
-
-### Command line options
-- select wheter to use staged or published products on export
-- allow to define query for export
 
 ### Ideas
 - generate CSV template for one product type providing the languages via command line option for the localized strings
