@@ -49,7 +49,8 @@ class ExportMapping
 
     for attribName, h2i of @header.toLanguageIndex()
       for lang, index of h2i
-        row[index] = product[attribName][lang]
+        if product[attribName]
+          row[index] = product[attribName][lang]
 
     row
 
@@ -109,7 +110,8 @@ class ExportMapping
     h2i = @header.productTypeAttributeToIndex productType, attribute
     if h2i
       for lang, index of h2i
-        row[index] = attribute.value[lang]
+        if attribute.value
+          row[index] = attribute.value[lang]
 
     row
 
