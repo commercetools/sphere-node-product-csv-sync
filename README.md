@@ -153,10 +153,12 @@ to ensure you can link to leaf categories with same names but different bread cr
 
 In the `prices` column you can define a list of prices for each variant separated by `;`:
 ```
-CH-EUR 999 B2B;EUR 899;USD 19900 #retailerA
+CH-EUR 999 B2B;EUR 899;USD 19900 #retailerA;DE-EUR 1000 B2C#wareHouse1
 ```
 The pattern for one price is:
 `<country>-<currenyCode> <centAmount> <customerGroupName>#<channelKey>`
+
+>For the geeks: Have [a look at the regular expression](https://github.com/sphereio/sphere-node-product-csv-sync/blob/e8329dc6a74a560c57a8ab1842decceb42583c0d/src/coffee/constants.coffee#L33) that parses the prices.
 
 mandatory:
 - currenyCode

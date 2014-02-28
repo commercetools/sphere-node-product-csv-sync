@@ -226,7 +226,7 @@ describe 'Mapping', ->
       expect(@map.errors.length).toBe 1
       expect(@map.errors[0]).toBe "[row 7:prices] Can not parse price 'EUR 9.99'!"
 
-    it 'should give feedback when number part is not a number', ->
+    it 'should give feedback when when currency and amount isnt proper separated', ->
       prices = @map.mapPrices 'EUR1', 8
       expect(prices.length).toBe 0
       expect(@map.errors.length).toBe 1
@@ -298,6 +298,28 @@ describe 'Mapping', ->
       expect(prices.length).toBe 0
       expect(@map.errors.length).toBe 1
       expect(@map.errors[0]).toBe "[row 42:prices] Can not find channel with key 'nonExistingChannelKey'!"
+
+    it 'should map price with customer group and channel', ->
+      @map.customerGroups =
+        name2id:
+          b2bCustomer: 'group_123'
+      @map.channels =
+        key2id:
+          wareHouse: 'dwh_987'
+      prices = @map.mapPrices 'DE-EUR 100 b2bCustomer#wareHouse'
+      expect(prices.length).toBe 1
+      expectedPrice =
+        value:
+          centAmount: 100
+          currencyCode: 'EUR'
+        country: 'DE'
+        channel:
+          typeId: 'channel'
+          id: 'dwh_987'
+        customerGroup:
+          typeId: 'customer-group'
+          id: 'group_123'
+      expect(prices[0]).toEqual expectedPrice
 
     it 'should map muliple prices', ->
       prices = @map.mapPrices 'EUR 100;UK-USD 200;YEN 999'

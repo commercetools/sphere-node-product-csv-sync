@@ -52,6 +52,14 @@ describe 'ExportMapping', ->
       ]
       expect(@exportMapping._mapPrices prices).toBe 'USD 9999999 B2B'
 
+    it 'should map customerGroup and channel on price', ->
+      @exportMapping.channelService.id2key['channel_123'] = 'WAREHOUSE-1'
+      @exportMapping.customerGroupService.id2name['987-xyz'] = 'sales'
+      prices = [
+        { value: { centAmount: -13, currencyCode: 'EUR' }, customerGroup: { id: '987-xyz' }, channel: { id: 'channel_123' } }
+      ]
+      expect(@exportMapping._mapPrices prices).toBe 'EUR -13 sales#WAREHOUSE-1'
+
 
   describe '#mapImage', ->
     it 'should map single image', ->
