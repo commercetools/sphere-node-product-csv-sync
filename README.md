@@ -202,14 +202,35 @@ productType,name.en,varianId
 ```bash
 $ node lib/runexporter
 
-Usage: node .lib/runexporter --projectKey key --clientId id --clientSecret secret --template file --out file
+Usage: node ./lib/runexporter --projectKey key --clientId id --clientSecret secret --template file --out file
 
 Options:
-  --projectKey    your SPHERE.IO project-key                                            [required]
-  --clientId      your OAuth client id for the SPHERE.IO API                            [required]
-  --clientSecret  your OAuth client secret for the SPHERE.IO API                        [required]
-  --template      CSV file containing your header that defines what you want to export  [required]
-  --out           Path to the file the exporter will write the resulting CSV in         [required]
-  --timeout       Set timeout for requests                                              [default: 300000]
-  --language                                                                            [default: "en"]
+  --projectKey    your SPHERE.IO project-key                                                                                 [required]
+  --clientId      your OAuth client id for the SPHERE.IO API                                                                 [required]
+  --clientSecret  your OAuth client secret for the SPHERE.IO API                                                             [required]
+  --template      CSV file containing your header that defines what you want to export                                       [required]
+  --out           Path to the file the exporter will write the resulting CSV in                                              [required]
+  --timeout       Set timeout for requests                                                                                   [default: 300000]
+  --queryString   Query string to specify the subset of products to export. Please note that the query must be URL encoded!  [default: "staged=true&limit=0"]
+  --language                                                                                                                 [default: "en"]
+```
+
+#### Export certain products only
+
+You can define the subset of products to export via the `queryString` parameter. The following parameter keys are if interest:
+- limit: Defines the number of products to export. `0` means all and is the default.
+- staged: `true` will export the staged state of the products. `false` will export the published state. `true` is the default.
+- sort: Allows to sort the result set.
+- where: Restrict the products to export using predicates.
+
+Please refer to the [API documentation of SPHERE.IO](http://commercetools.de/dev/http-api.html#query-features) for further information especially regarding the predicates.
+
+> Please note that you have to provide the queryString URL encoded!
+
+##### Example
+
+Query first 10 products of a specific product type
+```
+limit=10&where=productType(id%3D%2224da8abf-7be6-4b27-9ce6-69ee4b026513%22)
+# decoded: limit=0&where=productType(id="24da8abf-7be6-4b27-9ce6-69ee4b026513")
 ```

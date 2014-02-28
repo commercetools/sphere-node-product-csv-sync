@@ -14,6 +14,7 @@ argv = require 'optimist'
   .describe 'template', 'CSV file containing your header that defines what you want to export'
   .describe 'out', 'Path to the file the exporter will write the resulting CSV in'
   .describe 'timeout', 'Set timeout for requests'
+  .describe 'language', 'Default language used during export'
   .describe 'queryString', 'Query string to specify the subset of products to export. Please note that the query must be URL encoded!'
   .demand ['projectKey', 'clientId', 'clientSecret', 'template', 'out']
   .argv
