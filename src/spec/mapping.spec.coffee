@@ -322,7 +322,7 @@ describe 'Mapping', ->
       expect(prices[0]).toEqual expectedPrice
 
     it 'should map muliple prices', ->
-      prices = @map.mapPrices 'EUR 100;UK-USD 200;YEN 999'
+      prices = @map.mapPrices 'EUR 100;UK-USD 200;YEN -999'
       expect(prices.length).toBe 3
       expectedPrice =
         value:
@@ -337,13 +337,16 @@ describe 'Mapping', ->
       expect(prices[1]).toEqual expectedPrice
       expectedPrice =
         value:
-          centAmount: 999
+          centAmount: -999
           currencyCode: 'YEN'
       expect(prices[2]).toEqual expectedPrice
 
   describe '#mapNumber', ->
     it 'should map number', ->
       expect(@validator.map.mapNumber('0')).toBe 0
+
+    it 'should map negative number', ->
+      expect(@validator.map.mapNumber('-100')).toBe -100
 
     it 'should fail when input is not a valid number', ->
       number = @validator.map.mapNumber '9.99', 'myAttrib', 4

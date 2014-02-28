@@ -30,9 +30,9 @@ constants =
 
   ATTRIBUTE_CONSTRAINT_SAME_FOR_ALL: 'SameForAll'
 
-  REGEX_PRICE: new RegExp /^(([A-Za-z]{2})-|)([A-Z]{3}) (\d+)( (\w*)|)(#(\w+)|)$/
-  REGEX_MONEY: new RegExp /^([A-Z]{3}) (\d+)$/
-  REGEX_NUMBER: new RegExp /^\d+$/
+  REGEX_PRICE: new RegExp /^(([A-Za-z]{2})-|)([A-Z]{3}) (-?\d+)( (\w*)|)(#(\w+)|)$/
+  REGEX_MONEY: new RegExp /^([A-Z]{3}) (-?\d+)$/
+  REGEX_NUMBER: new RegExp /^-?\d+$/
 
 
 for name,value of constants

@@ -169,6 +169,12 @@ optional:
 - customerGroupName
 - channel
 
+#### Numbers
+
+Natural numbers are supported. Negative numbers are prepended with a minus (e.g. `-7`).
+
+> Please note that the there is no space allowed between the minus symbol and the digit
+
 #### Images
 
 In the `images` column you can define a list of urls for each variant separated by `;`:
