@@ -2,6 +2,7 @@
 - allow to define if match is against staged or published existing products (current it's staged)
 - allow to define custom attribute for matching (eg. EAN, externalId etc.)
 - allow to define image dimensions
+- allow partial updates - only those columns that are defined are compared.
 
 ### Command line options
 - allow to overwrite delimiters
