@@ -41,10 +41,10 @@ class Import extends CommonUpdater
   publishOnly: (publish = true, callback) ->
     @publishProducts = true
     action = if publish then 'publish' else 'unpublish'
-    @productService.getAllExistingProducts(@rest, publish).then (existingProducts) =>
+    @productService.getAllExistingProducts(@rest, "staged=#{publish}&limit=0").then (existingProducts) =>
       posts = []
       for product in existingProducts
-        posts.push @publishProduct(product, "staged=#{publish}&limit=0")
+        posts.push @publishProduct(product, publish)
       console.log "#{action}ing #{_.size posts} product(s) ..."
       @processInBatches posts, callback
     .fail (msg) =>

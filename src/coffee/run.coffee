@@ -2,42 +2,93 @@ Import = require '../lib/import'
 package_json = require '../package.json'
 CONS = require '../lib/constants'
 fs = require 'fs'
-argv = require('optimist')
-  .usage('Usage: $0 --projectKey key --clientId id --clientSecret secret --csv file --language lang --publish')
-  .default('language', 'en')
-  .default('timeout', 300000)
-  .describe('projectKey', 'your SPHERE.IO project-key')
-  .describe('clientId', 'your OAuth client id for the SPHERE.IO API')
-  .describe('clientSecret', 'your OAuth client secret for the SPHERE.IO API')
-  .describe('csv', 'CSV file containing products to import')
-  .describe('language', 'Default language to using during import')
-  .describe('timeout', 'Set timeout for requests')
-  .describe('publish', 'When given, all changes will be published immediately')
-  .demand(['projectKey', 'clientId', 'clientSecret', 'csv'])
-  .argv
+program = require 'commander'
 
-CONS.DEFAULT_LANGUAGE = argv.language
+program
+  .version package_json.version
+  .option '-p, --projectKey <key>', 'your SPHERE.IO project-key'
+  .option '-i, --clientId <id>', 'your OAuth client id for the SPHERE.IO API'
+  .option '-s, --clientSecret <secret>', 'your OAuth client secret for the SPHERE.IO API'
+  .option '--timeout [millis]', 'Set timeout for requests', parseInt, 300000
+  .option '--verbose', 'give more feedback during action'
+  .option '--debug', 'give as many feedback as possible'
 
-options =
-  config:
-    project_key: argv.projectKey
-    client_id: argv.clientId
-    client_secret: argv.clientSecret
-  timeout: argv.timeout
-  show_progress: true
-  user_agent: "#{package_json.name} - #{package_json.version}"
-  logConfig:
-    levelStream: 'warn'
+program
+  .command 'import'
+  .description 'Import your products from CSV into your SPHERE.IO project'
+  .option '-c, --csv <file>', 'CSV file containing products to import'
+  .option '-l, --language [lang]', 'Default language to using during import', 'en'
+  .option 'publish', 'When given, all changes will be published immediately'
+  .usage 'run import --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>'
+  .action (opts) ->
+    CONS.DEFAULT_LANGUAGE = opts.language
 
-importer = new Import options
-importer.publishProducts = argv.publish
+    options =
+      config:
+        project_key: program.projectKey
+        client_id: program.clientId
+        client_secret: program.clientSecret
+      timeout: program.timeout
+      show_progress: true
+      user_agent: "#{package_json.name} - Import - #{package_json.version}"
+      logConfig:
+        levelStream: 'warn'
+    if program.verbose
+      options.logConfig = 'info'
+    if program.debug
+      options.logConfig = 'debug'
 
-fs.readFile argv.csv, 'utf8', (err, content) ->
-  if err
-    console.error "Problems on reading file '#{argv.csv}': " + err
-    process.exit 2
+    importer = new Import options
+    importer.publishProducts = opts.publish
 
-  importer.import content, (result) ->
-    console.log result.message
-    process.exit 0 if result.status is true
-    process.exit 1
+    fs.readFile opts.csv, 'utf8', (err, content) ->
+      if err
+        console.error "Problems on reading file '#{opts.csv}': " + err
+        process.exit 2
+
+      importer.import content, (result) ->
+        if result.status
+          console.log result.message
+          process.exit 0
+        console.error result.message
+        process.exit 1
+
+program
+  .command 'state'
+  .description 'Allows to publish or unpublish all products of your project.'
+  .option '--changeTo <publish,unpublish>', 'publish all unpublish products/unpublish all published products'
+  .usage 'run state --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo (un)publish', 'will unpublish your published products'
+  .action (opts) ->
+
+    options =
+      config:
+        project_key: program.projectKey
+        client_id: program.clientId
+        client_secret: program.clientSecret
+      timeout: program.timeout
+      show_progress: true
+      user_agent: "#{package_json.name} - Publish - #{package_json.version}"
+      logConfig:
+        levelStream: 'warn'
+    if program.verbose
+      options.logConfig = 'info'
+    if program.debug
+      options.logConfig = 'debug'
+
+    publish = switch opts.changeTo
+      when 'publish' then true
+      when 'unpublish' then false
+      else
+        console.error "Unknown argument '#{opts.changeTo}' for option changeTo!"
+        process.exit 2
+
+    importer = new Import options
+    importer.publishOnly publish, (result) ->
+      if result.status
+        console.log result.message
+        process.exit 0
+      console.error result.message
+      process.exit 1
+
+program.parse process.argv
+program.help() if program.args.length is 0
