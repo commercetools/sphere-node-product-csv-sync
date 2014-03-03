@@ -323,7 +323,7 @@ node lib/run groupvariants --help
     -h, --help              output usage information
     --in <file>             Path to CSV file to analyse.
     --out <file>            Path to the file that will contained the product/variant relations.
-    --headerIndex <number>  Name of column header, that defines the identity of variants to one product
+    --headerIndex <number>  Index of column (starting at 0) header, that defines the identity of variants to one product
 ```
 
 > Please note that you don't need any of the global command line options, such as `--projectKey` etc for this subcommand.
