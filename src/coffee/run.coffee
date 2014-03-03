@@ -157,7 +157,6 @@ module.exports = class
         if program.debug
           options.logConfig = 'debug'
 
-        console.log "O", opts
         exporter = new Exporter options
         exporter.createTemplate program, opts.languages, opts.out, (result) ->
           if result.status
@@ -165,6 +164,22 @@ module.exports = class
             process.exit 0
           console.error result.message
           process.exit 1
+
+    program
+      .command 'groupvariants'
+      .description 'Allows you to group products with its variant in order to proceed with SPHERE.IOs CSV product format.'
+      .option '--in <file>', 'Path to CSV file to analyse.'
+      .option '--out <file>', 'Path to the file that will contained the product/variant relations.'
+      .option '--headerIndex <number>', 'Name of column header, that defines the identity of variants to one product', parseInt
+      .action (opts) ->
+        variants = new Variants()
+        fs.readFile opts.in, 'utf8', (err, content) ->
+          if err
+            console.error "Problems on reading template file '#{opts.template}': " + err
+            process.exit 2
+          csv = variants.groupVariants opts.headerIndex
+          exporter = new Exporter()
+          exporter._saveCSV csv, opts.out
 
     program.parse argv
     program.help() if program.args.length is 0
