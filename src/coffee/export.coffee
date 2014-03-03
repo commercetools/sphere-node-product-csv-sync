@@ -94,7 +94,6 @@ class Export extends CommonUpdater
       deferred.resolve count
     deferred.promise
 
-
   _parse: (csvString) ->
     deferred = Q.defer()
     Csv().from.string(csvString)
