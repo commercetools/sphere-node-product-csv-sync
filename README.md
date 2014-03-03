@@ -28,23 +28,58 @@ $ grunt build
 * Extract the latest.zip with `unzip sphere-node-product-csv-sync-latest.zip`
 * Change into the directory `cd sphere-node-product-csv-sync-latest`
 
+## General Usage
+
+This tool uses subcommands for the various task. Please refer to the usage of the concrete action:
+- [import](#import)
+- [export](#export)
+- [template](#template)
+- [state](#product-state)
+- [groupVariants](#group-variants)
+
+General command line options can be seen by simply executing the command `node lib/run`.
+```
+HajosMac-2:sphere-node-product-csv-sync heichler$ node lib/run.js
+
+  Usage: node lib/run [globals] [sub-command] [options]
+
+  Commands:
+
+    import [options]         Import your products from CSV into your SPHERE.IO project.
+    state [options]          Allows to publish or unpublish all products of your project.
+    export [options]         Export your products from your SPHERE.IO project to CSV using.
+    template [options]       Create a template based on a product type of your SPHERE.IO project.
+    groupvariants [options]  Allows you to group products with its variant in order to proceed with SPHERE.IOs CSV product format.
+
+  Options:
+
+    -h, --help                   output usage information
+    -V, --version                output the version number
+    -p, --projectKey <key>       your SPHERE.IO project-key
+    -i, --clientId <id>          your OAuth client id for the SPHERE.IO API
+    -s, --clientSecret <secret>  your OAuth client secret for the SPHERE.IO API
+    --timeout [millis]           Set timeout for requests
+    --verbose                    give more feedback during action
+    --debug                      give as many feedback as possible
+```
+
+For all sub command specific options please call `node lib/run <subcommand> --help`.
+
 ## Import
 
 ### Usage
 
-```bash
-$ node lib/run
+```
+node lib/run import --help
 
-Usage: node lib/run --projectKey key --clientId id --clientSecret secret --csv file --language lang --publish
+  Usage: import --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>
 
-Options:
-  --projectKey    your SPHERE.IO project-key                             [required]
-  --clientId      your OAuth client id for the SPHERE.IO API             [required]
-  --clientSecret  your OAuth client secret for the SPHERE.IO API         [required]
-  --csv           CSV file containing products to import                 [required]
-  --language      Default language to using during import                [default: "en"]
-  --timeout       Set timeout for requests                               [default: 300000]
-  --publish       When given, all changes will be published immediately
+  Options:
+
+    -h, --help             output usage information
+    -c, --csv <file>       CSV file containing products to import
+    -l, --language [lang]  Default language to using during import
+    publish                When given, all changes will be published immediately
 ```
 
 ### CSV Format
@@ -184,46 +219,82 @@ https://example.com/image.jpg;http://www.example.com/picture.bmp
 
 > In general we recommend to import images without the protocol like `//example.com/image.png`
 
+## Product State
+
+This subcommand allows you to publish/unpublish products with once call.
+
+### Usage
+
+```
+node lib/run state --help
+
+  Usage: state --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo (un)publish
+
+  Options:
+
+    -h, --help                      output usage information
+    --changeTo <publish,unpublish>  publish all unpublish products/unpublish all published products
+```
+
+## Template
+
+Using this subcommand, you can generate a CSV template (does only contain the header row)
+for a specific product type in your project
+
+### Usage
+
+```
+node lib/run template --help
+
+  Usage: template --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --out <file>
+
+  Options:
+
+    -h, --help                   output usage information
+    -o, --out <file>             Path to the file the exporter will write the resulting CSV in
+    -l, --languages [lang,lang]  List of language to use for template
+```
+
+
 ## Export
 
-The export action dumps products to a CSV file. The CSV file can be used as input for the import action.
+The export action dumps products to a CSV file. The CSV file may then later be used as input for the import action.
 
 ### CSV Export Template
 
-An export template defines the content of the resulting export CSV file, by listing wanted product attribute names as header row. The header column values will be parsed and the resulting export CSV file will contain corresponding attribute values of the eported products.
+An export template defines the content of the resulting export CSV file, by listing wanted product attribute names as header row. The header column values will be parsed and the resulting export CSV file will contain corresponding attribute values of the exported products.
 
 ```
 # only productType.name, the variant id and localized name (english) will be exported
 productType,name.en,varianId
 ```
 
+> Please see section [template]() on how to generate a template.
+
 ### Usage
 
-```bash
-$ node lib/runexporter
+```
+node lib/run.js export --help
 
-Usage: node ./lib/runexporter --projectKey key --clientId id --clientSecret secret --template file --out file
+  Usage: export --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>
 
-Options:
-  --projectKey    your SPHERE.IO project-key                                                                                 [required]
-  --clientId      your OAuth client id for the SPHERE.IO API                                                                 [required]
-  --clientSecret  your OAuth client secret for the SPHERE.IO API                                                             [required]
-  --template      CSV file containing your header that defines what you want to export                                       [required]
-  --out           Path to the file the exporter will write the resulting CSV in                                              [required]
-  --timeout       Set timeout for requests                                                                                   [default: 300000]
-  --queryString   Query string to specify the subset of products to export. Please note that the query must be URL encoded!  [default: "staged=true&limit=0"]
-  --language                                                                                                                 [default: "en"]
+  Options:
+
+    -h, --help             output usage information
+    -t, --template <file>  CSV file containing your header that defines what you want to export
+    -o, --out <file>       Path to the file the exporter will write the resulting CSV in
+    -q, --queryString      Query string to specify the subset of products to export. Please note that the query must be URL encoded!
 ```
 
 #### Export certain products only
 
-You can define the subset of products to export via the `queryString` parameter. The following parameter keys are if interest:
+You can define the subset of products to export via the `queryString` parameter. The following parameter keys are of interest:
 - limit: Defines the number of products to export. `0` means all and is the default.
-- staged: `true` will export the staged state of the products. `false` will export the published state. `true` is the default.
+- staged: `false` will export published products. `true` will export the staged products, which is the default.
 - sort: Allows to sort the result set.
 - where: Restrict the products to export using predicates.
 
-Please refer to the [API documentation of SPHERE.IO](http://commercetools.de/dev/http-api.html#query-features) for further information especially regarding the predicates.
+Please refer to the [API documentation of SPHERE.IO](http://commercetools.de/dev/http-api.html#query-features) for further information regarding the predicates.
 
 > Please note that you have to provide the queryString URL encoded!
 
@@ -234,3 +305,25 @@ Query first 10 products of a specific product type
 limit=10&where=productType(id%3D%2224da8abf-7be6-4b27-9ce6-69ee4b026513%22)
 # decoded: limit=0&where=productType(id="24da8abf-7be6-4b27-9ce6-69ee4b026513")
 ```
+
+## Group Variants
+
+With this subcommand you can group several rows in a CSV together as variants of one product.
+It will add a column `variantId` to all rows. Thereby rows are handled as a groups if the they have the same value in the column defined via `headerIndex`.
+
+### Usage
+
+```
+node lib/run groupvariants --help
+
+  Usage: groupvariants --in <file> --out <file> --headerIndex <number>
+
+  Options:
+
+    -h, --help              output usage information
+    --in <file>             Path to CSV file to analyse.
+    --out <file>            Path to the file that will contained the product/variant relations.
+    --headerIndex <number>  Name of column header, that defines the identity of variants to one product
+```
+
+> Please note that you don't need any of the global command line options, such as `--projectKey` etc for this subcommand.

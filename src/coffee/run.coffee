@@ -16,6 +16,7 @@ module.exports = class
   @run: (argv) ->
     program
       .version package_json.version
+      .usage '[globals] [sub-command] [options]'
       .option '-p, --projectKey <key>', 'your SPHERE.IO project-key'
       .option '-i, --clientId <id>', 'your OAuth client id for the SPHERE.IO API'
       .option '-s, --clientSecret <secret>', 'your OAuth client secret for the SPHERE.IO API'
@@ -29,7 +30,7 @@ module.exports = class
       .option '-c, --csv <file>', 'CSV file containing products to import'
       .option '-l, --language [lang]', 'Default language to using during import', 'en'
       .option 'publish', 'When given, all changes will be published immediately'
-      .usage 'run import --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>'
+      .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>'
       .action (opts) ->
         CONS.DEFAULT_LANGUAGE = opts.language
 
@@ -67,7 +68,7 @@ module.exports = class
       .command 'state'
       .description 'Allows to publish or unpublish all products of your project.'
       .option '--changeTo <publish,unpublish>', 'publish all unpublish products/unpublish all published products'
-      .usage 'run state --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo (un)publish', 'will unpublish your published products'
+      .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo (un)publish', 'will unpublish your published products'
       .action (opts) ->
 
         options =
@@ -105,8 +106,8 @@ module.exports = class
       .description 'Export your products from your SPHERE.IO project to CSV using.'
       .option '-t, --template <file>', 'CSV file containing your header that defines what you want to export'
       .option '-o, --out <file>', 'Path to the file the exporter will write the resulting CSV in'
-      .option '-q, --queryString', 'Query string to specify the subset of products to export. Please note that the query must be URL encoded!', 'staged=true&limit=0'
-      .usage 'run export --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
+      .option '-q, --queryString', 'Query string to specify the sub-set of products to export. Please note that the query must be URL encoded!', 'staged=true&limit=0'
+      .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) ->
         CONS.DEFAULT_LANGUAGE = opts.language
 
@@ -145,6 +146,7 @@ module.exports = class
       .description 'Create a template based on a product type of your SPHERE.IO project.'
       .option '-o, --out <file>', 'Path to the file the exporter will write the resulting CSV in'
       .option '-l, --languages [lang,lang]', 'List of language to use for template', @_list, ['en']
+      .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --out <file>'
       .action (opts) ->
         options =
           config:
@@ -174,7 +176,8 @@ module.exports = class
       .description 'Allows you to group products with its variant in order to proceed with SPHERE.IOs CSV product format.'
       .option '--in <file>', 'Path to CSV file to analyse.'
       .option '--out <file>', 'Path to the file that will contained the product/variant relations.'
-      .option '--headerIndex <number>', 'Name of column header, that defines the identity of variants to one product', parseInt
+      .option '--headerIndex <number>', 'Index of column (starting at 0) header, that defines the identity of variants to one product', parseInt
+      .usage '--in <file> --out <file> --headerIndex <number>'
       .action (opts) ->
         variants = new Variants()
         fs.readFile opts.in, 'utf8', (err, content) ->
