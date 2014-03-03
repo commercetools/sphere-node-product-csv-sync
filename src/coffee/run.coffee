@@ -1,9 +1,13 @@
 Importer = require '../lib/import'
 Exporter = require '../lib/export'
+Variants = require '../lib/variants'
 package_json = require '../package.json'
 CONS = require '../lib/constants'
 fs = require 'fs'
 program = require 'commander'
+
+Csv = require 'csv'
+_ = require('underscore')._
 
 module.exports = class
 
@@ -177,9 +181,10 @@ module.exports = class
           if err
             console.error "Problems on reading template file '#{opts.template}': " + err
             process.exit 2
-          csv = variants.groupVariants opts.headerIndex
-          exporter = new Exporter()
-          exporter._saveCSV csv, opts.out
+          Csv().from.string(content).to.array (data, count) ->
+            csv = variants.groupVariants _.rest(data), opts.headerIndex
+            exporter = new Exporter()
+            exporter._saveCSV opts.out, csv
 
     program.parse argv
     program.help() if program.args.length is 0
