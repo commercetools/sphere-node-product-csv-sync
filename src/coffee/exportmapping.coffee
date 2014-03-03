@@ -25,11 +25,16 @@ class ExportMapping
 
   createTemplate: (productType, languages = [CONS.DEFAULT_LANGUAGE]) ->
     header = []
-    _.each productType.attributes, (attribute) ->
+    _.each productType.attributes, (attribute) =>
       switch attribute.type.name
-        when CONS.ATTRIBUTE_TYPE_LTEXT then _.each languages, (lang) -> header.push "#{attribute.name}#{CONS.DELIM_HEADER_LANGUAGE}#{lang}"
-        else header.push attribute.name
+        when CONS.ATTRIBUTE_TYPE_SET then header = header.concat @_mapAttributeTypeDef attribute.type.elementType, attribute, languages
+        else header = header.concat @_mapAttributeTypeDef attribute.type, attribute, languages
     header
+
+  _mapAttributeTypeDef: (attributeTypeDef, attribute, languages) ->
+    switch attributeTypeDef.name
+      when CONS.ATTRIBUTE_TYPE_LTEXT then _.map languages, (lang) -> "#{attribute.name}#{CONS.DELIM_HEADER_LANGUAGE}#{lang}"
+      else [ attribute.name ]
 
   _mapBaseProduct: (product, productType) ->
     row = @_mapVariant product.masterVariant, productType
@@ -93,6 +98,9 @@ class ExportMapping
       acc + "#{countryPart}#{price.value.currencyCode} #{price.value.centAmount}#{customerGroupPart}#{channelKeyPart}"
     , '')
 
+  _mapMoney: (money) ->
+    "#{money.currencyCode} #{money.centAmount}"
+
   _mapImages: (images) ->
     _.reduce(images, (acc, image, index) ->
       acc += CONS.DELIM_MULTI_VALUE unless index is 0
@@ -103,7 +111,7 @@ class ExportMapping
     switch attributeTypeDef.name
       when CONS.ATTRIBUTE_TYPE_SET then @_mapSetAttribute(attribute, attributeTypeDef)
       when CONS.ATTRIBUTE_TYPE_ENUM, CONS.ATTRIBUTE_TYPE_LENUM then attribute.value.key
-      when CONS.ATTRIBUTE_TYPE_MONEY then #TODO
+      when CONS.ATTRIBUTE_TYPE_MONEY then _mapMoney attribute
       else attribute.value
 
   _mapLocalizedAttribute: (attribute, productType, row) ->

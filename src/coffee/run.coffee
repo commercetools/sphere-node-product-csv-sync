@@ -131,5 +131,35 @@ program
         console.error result.message
         process.exit 1
 
+program
+  .command 'template'
+  .description 'Create a template based on a product type of your SPHERE.IO project.'
+  .option '-o, --out <file>', 'Path to the file the exporter will write the resulting CSV in'
+  .option '-l, --languages', 'List of language to use for template', ['en']
+  .action (opts) ->
+    options =
+      config:
+        project_key: program.projectKey
+        client_id: program.clientId
+        client_secret: program.clientSecret
+      timeout: program.timeout
+      show_progress: true
+      user_agent: "#{package_json.name} - Template - #{package_json.version}"
+      logConfig:
+        levelStream: 'warn'
+    if program.verbose
+      options.logConfig = 'info'
+    if program.debug
+      options.logConfig = 'debug'
+
+    console.log "O", opts
+    exporter = new Exporter options
+    exporter.createTemplate program, program.languages, opts.out, (result) ->
+      if result.status
+        console.log result.message
+        process.exit 0
+      console.error result.message
+      process.exit 1
+
 program.parse process.argv
 program.help() if program.args.length is 0

@@ -64,10 +64,36 @@ class Export extends CommonUpdater
         csv = [ header.rawHeader ]
         for product in products
           csv = csv.concat exportMapping.mapProduct(product, productTypes)
-        Csv().from(csv).to.path(outputFile, encoding: 'utf8').on 'close', (count) =>
+        @_saveCSV(outputFile, csv).then =>
           @returnResult true, 'Export done.', callback
     .fail (msg) =>
       @returnResult false, msg, callback
+
+  createTemplate: (program, languages, outputFile, callback) ->
+    @typesService.getAll(@rest).then (productTypes) =>
+      if _.size(productTypes) is 0
+        @returnResult false, 'Can not find any product type.', callback
+        return
+      idsAndNames = _.map productTypes, (productType) ->
+        productType.name
+      program.choose idsAndNames, (index) =>
+        console.log "Generating template for product type '#{productTypes[index].name}' (id: #{productTypes[index].id})."
+        process.stdin.destroy()
+        csv = new ExportMapping().createTemplate(productTypes[index], languages)
+        @_saveCSV(outputFile, csv).then =>
+          @returnResult true, 'Template generated.', callback
+    .fail (msg) =>
+      @returnResult false, msg, callback
+
+  _saveCSV: (file, content) ->
+    deferred = Q.defer()
+    Csv().from(content).to.path(file, encoding: 'utf8')
+    .on 'error', (err) ->
+      deferred.reject err
+    .on 'close', (count) ->
+      deferred.resolve count
+    deferred.promise
+
 
   _parse: (csvString) ->
     deferred = Q.defer()
