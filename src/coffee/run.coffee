@@ -182,9 +182,11 @@ module.exports = class
             console.error "Problems on reading template file '#{opts.template}': " + err
             process.exit 2
           Csv().from.string(content).to.array (data, count) ->
+            header = data[0]
+            header.push ['variantId']
             csv = variants.groupVariants _.rest(data), opts.headerIndex
             exporter = new Exporter()
-            exporter._saveCSV opts.out, csv
+            exporter._saveCSV opts.out, [header].concat(csv)
 
     program.parse argv
     program.help() if program.args.length is 0
