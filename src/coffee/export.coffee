@@ -80,7 +80,7 @@ class Export extends CommonUpdater
         console.log "Generating template for product type '#{productTypes[index].name}' (id: #{productTypes[index].id})."
         process.stdin.destroy()
         csv = new ExportMapping().createTemplate(productTypes[index], languages)
-        @_saveCSV(outputFile, csv).then =>
+        @_saveCSV(outputFile, [csv]).then =>
           @returnResult true, 'Template generated.', callback
     .fail (msg) =>
       @returnResult false, msg, callback
