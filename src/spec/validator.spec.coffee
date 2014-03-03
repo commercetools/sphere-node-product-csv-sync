@@ -126,7 +126,7 @@ describe 'Validator', ->
       csv =
         """
         productType,name,variantId
-        foo,bar,bla
+        foo,bar,1
         """
       @validator.parse csv, (content) =>
         @validator.validateOffline content
