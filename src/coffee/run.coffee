@@ -93,7 +93,7 @@ module.exports = class
             console.error "Unknown argument '#{opts.changeTo}' for option changeTo!"
             process.exit 2
 
-        importer = new Import options
+        importer = new Importer options
         importer.publishOnly publish, (result) ->
           if result.status
             console.log result.message
