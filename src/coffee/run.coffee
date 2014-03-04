@@ -107,6 +107,7 @@ module.exports = class
       .option '-t, --template <file>', 'CSV file containing your header that defines what you want to export'
       .option '-o, --out <file>', 'Path to the file the exporter will write the resulting CSV in'
       .option '-q, --queryString', 'Query string to specify the sub-set of products to export. Please note that the query must be URL encoded!', 'staged=true&limit=0'
+      .option '-l, --language [lang]', 'Default language to using during import', 'en'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) ->
         CONS.DEFAULT_LANGUAGE = opts.language
