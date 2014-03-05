@@ -215,7 +215,7 @@ describe 'ExportMapping', ->
     
     it 'should do nothing if there are no attributes', ->
       template = @exportMapping.createTemplate @productType
-      expect(template).toEqual []
+      expect(template).toEqual CONS.ALL_HEADERS
 
     it 'should get attribute name for all kind of types', ->
       @productType.attributes.push { name: 'a-enum', type: { name: 'enum' } }
@@ -227,9 +227,9 @@ describe 'ExportMapping', ->
       @productType.attributes.push { name: 'a-time', type: { name: 'time' } }
       @productType.attributes.push { name: 'a-datetime', type: { name: 'datetime' } }
       template = @exportMapping.createTemplate @productType
-      expect(template).toEqual [ 'a-enum', 'a-lenum', 'a-text', 'a-number', 'a-money', 'a-date', 'a-time', 'a-datetime' ]
+      expect(template).toEqual CONS.ALL_HEADERS.concat([ 'a-enum', 'a-lenum', 'a-text', 'a-number', 'a-money', 'a-date', 'a-time', 'a-datetime' ])
 
     it 'should add headers for all languages', ->
       @productType.attributes.push { name: 'multilang', type: { name: 'ltext' } }
       template = @exportMapping.createTemplate @productType, [ 'de', 'en', 'it' ]
-      expect(template).toEqual [ 'multilang.de', 'multilang.en', 'multilang.it' ]
+      expect(template).toEqual CONS.ALL_HEADERS.concat([ 'multilang.de', 'multilang.en', 'multilang.it' ])

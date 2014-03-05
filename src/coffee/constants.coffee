@@ -51,3 +51,15 @@ exports.BASE_LOCALIZED_HEADERS = [
   'metaDescription',
   'metaKeywords'
 ]
+
+exports.SPECIAL_HEADERS = [
+  constants.HEADER_ID,
+  constants.HEADER_SKU,
+  constants.HEADER_PRICES,
+  constants.HEADER_TAX,
+  constants.HEADER_CATEGORIES,
+  constants.HEADER_IMAGES,
+  # TODO: image labels and dimensions
+]
+
+exports.ALL_HEADERS = exports.BASE_HEADERS.concat(exports.BASE_LOCALIZED_HEADERS.concat(exports.SPECIAL_HEADERS))
