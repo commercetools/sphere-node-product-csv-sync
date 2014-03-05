@@ -109,12 +109,11 @@ class Validator
       @errors.push "[row #{raw.startRow}] Can't find product type for '#{ptInfo}"
 
   isVariant: (row) ->
-    _s.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)]) and
-    row[@header.toIndex(CONS.HEADER_VARIANT_ID)] isnt '1'
+    variantId = row[@header.toIndex(CONS.HEADER_VARIANT_ID)]
+    parseInt(variantId) > 1
 
   isProduct: (row) ->
     not _s.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)]) and
-    row[@header.toIndex(CONS.HEADER_VARIANT_ID)] is '1' and
-    not @isVariant row
+    row[@header.toIndex(CONS.HEADER_VARIANT_ID)] is '1'
 
 module.exports = Validator

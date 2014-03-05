@@ -90,19 +90,22 @@ describe 'Validator', ->
         myType,,1
         ,,1
         myType,,2
+        ,,foo
+        ,,
         """
       @validator.parse csv, (content) =>
         @validator.buildProducts content
-        expect(@validator.errors.length).toBe 2
+        expect(@validator.errors.length).toBe 3
         expect(@validator.errors[0]).toBe '[row 2] Could not be identified as product or variant!'
-        expect(@validator.errors[1]).toBe '[row 3] Could not be identified as product or variant!'
+        expect(@validator.errors[1]).toBe '[row 4] Could not be identified as product or variant!'
+        expect(@validator.errors[2]).toBe '[row 5] Could not be identified as product or variant!'
         done()
 
     it 'should return error if first row isnt a product row', (done) ->
       csv =
         """
         productType,name,variantId
-        ,,2
+        foo,,2
         """
       @validator.parse csv, (content) =>
         @validator.buildProducts content
