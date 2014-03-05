@@ -24,6 +24,7 @@ class ExportMapping
     rows
 
   createTemplate: (productType, languages = [CONS.DEFAULT_LANGUAGE]) ->
+    # TODO: Add base header columns
     header = []
     _.each productType.attributes, (attribute) =>
       switch attribute.type.name

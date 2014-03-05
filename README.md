@@ -239,7 +239,8 @@ node lib/run state --help
 ## Template
 
 Using this subcommand, you can generate a CSV template (does only contain the header row)
-for a specific product type in your project
+for product types. With `--all` a combined template for all product types will be generated.
+If you leave this options out, you will be ask for which product type to generate the template.
 
 ### Usage
 
@@ -253,6 +254,7 @@ node lib/run template --help
     -h, --help                   output usage information
     -o, --out <file>             Path to the file the exporter will write the resulting CSV in
     -l, --languages [lang,lang]  List of language to use for template
+    --all                        Generates one template for all product types - if not given you will be ask which product type to use
 ```
 
 
