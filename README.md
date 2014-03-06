@@ -11,7 +11,7 @@ SPHERE.IO component to import, update and export products via CSV.
 
 ### From scratch
 
-* install [npm]((http://gruntjs.com/getting-started)) (NodeJS package manager, bundled with node since version 0.6.3!)
+* install [npm](http://gruntjs.com/getting-started) (NodeJS package manager, bundled with node since version 0.6.3!)
 * install [grunt-cli](http://gruntjs.com/getting-started) (automation tool)
 *  resolve dependencies using `npm`
 ```bash
