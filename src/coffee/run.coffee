@@ -146,7 +146,7 @@ module.exports = class
       .command 'template'
       .description 'Create a template for a product type of your SPHERE.IO project.'
       .option '-o, --out <file>', 'Path to the file the exporter will write the resulting CSV in'
-      .option '-l, --languages [lang,lang]', 'List of language to use for template', @_list, ['en']
+      .option '-l, --languages [lang,lang]', 'List of languages to use for template', @_list, ['en']
       .option '--all', 'Generates one template for all product types - if not given you will be ask which product type to use'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --out <file>'
       .action (opts) ->
