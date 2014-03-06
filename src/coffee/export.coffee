@@ -85,6 +85,7 @@ class Export extends CommonUpdater
         @_saveCSV(outputFile, [csv]).then =>
           @returnResult true, 'Template for all product types generated.', callback
       else
+        console.log 'Enter the number of the producttype and press [ENTER]:'
         program.choose idsAndNames, (index) =>
           console.log "Generating template for product type '#{productTypes[index].name}' (id: #{productTypes[index].id})."
           process.stdin.destroy()
