@@ -285,6 +285,7 @@ node lib/run.js export --help
     -h, --help             output usage information
     -t, --template <file>  CSV file containing your header that defines what you want to export
     -o, --out <file>       Path to the file the exporter will write the resulting CSV in
+    -l, --language [lang]  Language used on export for category names
     -q, --queryString      Query string to specify the subset of products to export. Please note that the query must be URL encoded!
 ```
 
