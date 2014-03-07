@@ -124,7 +124,8 @@ class Import extends CommonUpdater
           humanReadable = JSON.stringify body, null, '  '
           deferred.resolve "Problem on updating product:\n" + humanReadable
         else
-          deferred.reject 'Problem on updating product: ' + body
+          humanReadable = JSON.stringify body, null, '  '
+          deferred.reject 'Error on updating product: ' + humanReadable
 
     deferred.promise
 
@@ -144,7 +145,8 @@ class Import extends CommonUpdater
           humanReadable = JSON.stringify body, null, '  '
           deferred.reject "Problem on creating new product:\n" + humanReadable
         else
-          deferred.reject 'Problem on creating new product: ' + body
+          humanReadable = JSON.stringify body, null, '  '
+          deferred.reject 'Error on creating new product: ' + humanReadable
 
     deferred.promise
 
@@ -173,7 +175,8 @@ class Import extends CommonUpdater
             humanReadable = JSON.stringify body, null, '  '
             deferred.reject "Problem on #{action}ing product:\n" + humanReadable
         else
-          deferred.reject "Problem on #{action}ing product (code #{response.statusCode}): " + body
+          humanReadable = JSON.stringify body, null, '  '
+          deferred.reject "Problem on #{action}ing product (code #{response.statusCode}): " + humanReadable
 
     deferred.promise
 
