@@ -140,14 +140,14 @@ class Mapping
 
   mapValue: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
     switch attribute.type.name
-      when CONS.ATTRIBUTE_TYPE_SET then @mapSetAttribute rawVariant[@header.toIndex attribute.name], attribute, languageHeader2Index, rowIndex
+      when CONS.ATTRIBUTE_TYPE_SET then @mapSetAttribute rawVariant[@header.toIndex attribute.name]
       when CONS.ATTRIBUTE_TYPE_LTEXT then @mapLocalizedAttrib rawVariant, attribute.name, languageHeader2Index
       when CONS.ATTRIBUTE_TYPE_NUMBER then @mapNumber rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant[@header.toIndex attribute.name], attribute.name
       else rawVariant[@header.toIndex attribute.name] # works for text, enum and lenum
 
-  # We currently only support Set of (l)enum
-  mapSetAttribute: (raw, attribute, rowIndex) ->
+  # TODO: support set of ltext attributes!
+  mapSetAttribute: (raw) ->
     return unless @isValidValue(raw)
     rawValues = raw.split CONS.DELIM_MULTI_VALUE
     values = []
