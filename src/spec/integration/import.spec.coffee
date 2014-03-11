@@ -209,3 +209,24 @@ describe 'Import', ->
             expect(res.status).toBe true
             expect(res.message).toBe '[row 2] Product updated.'
             done()
+
+    xit 'should addVariant include SameForAll attribute change', (done) ->
+      csv =
+        """
+        productType,name,variantId,slug,descU,descCU1,descS
+        #{@productType.id},myProduct-1,1,slug-1,a,b,SAMESAME
+        """
+      @import.import csv, (res) =>
+        expect(res.status).toBe true
+        expect(res.message).toBe '[row 2] New product created.'
+        csv =
+          """
+          productType,name,variantId,slug,descU,descCU1,descS
+          #{@productType.id},myProduct-1,1,slug-1,a,b,SAMESAME_BUTDIFFERENT
+          ,,2,slug-2,b,a,WE_WILL_IGNORE_THIS
+          """
+        im = new Import Config
+        im.import csv, (res) ->
+          expect(res.status).toBe true
+          expect(res.message).toBe '[row 2] Product updated.'
+          done()
