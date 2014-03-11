@@ -210,7 +210,7 @@ describe 'Import', ->
             expect(res.message).toBe '[row 2] Product updated.'
             done()
 
-    xit 'should addVariant include SameForAll attribute change', (done) ->
+    it 'should addVariant include SameForAll attribute change', (done) ->
       csv =
         """
         productType,name,variantId,slug,descU,descCU1,descS
