@@ -44,10 +44,11 @@ module.exports = class
           user_agent: "#{package_json.name} - Import - #{package_json.version}"
           logConfig:
             levelStream: 'warn'
+            levelFile: 'warn'
         if program.verbose
-          options.logConfig = 'info'
+          options.logConfig.levelStream = 'info'
         if program.debug
-          options.logConfig = 'debug'
+          options.logConfig.levelStream = 'debug'
 
         importer = new Importer options
         importer.publishProducts = opts.publish
