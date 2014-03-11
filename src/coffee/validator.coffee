@@ -74,11 +74,11 @@ class Validator
 
   buildProducts: (content) ->
     _.each content, (row, index) =>
-      rowIndex = index + 1
+      rowIndex = index + 2 # Excel et all start counting at 1 and we already popped the header
       if @isProduct row
         product =
           master: row
-          startRow: rowIndex + 1
+          startRow: rowIndex
           variants: []
         @rawProducts.push product
       else if @isVariant row

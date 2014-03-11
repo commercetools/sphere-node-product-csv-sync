@@ -83,7 +83,7 @@ describe 'Import', ->
         """
       @import.import csv, (res) ->
         expect(res.status).toBe true
-        expect(res.message).toBe 'New product created.'
+        expect(res.message).toBe '[row 2] New product created.'
         done()
 
     it 'should import a product with prices', (done) ->
@@ -94,7 +94,7 @@ describe 'Import', ->
         """
       @import.import csv, (res) ->
         expect(res.status).toBe true
-        expect(res.message).toBe 'New product created.'
+        expect(res.message).toBe '[row 2] New product created.'
         done()
 
     it 'should do nothing on 2nd import run', (done) ->
@@ -105,11 +105,11 @@ describe 'Import', ->
         """
       @import.import csv, (res) ->
         expect(res.status).toBe true
-        expect(res.message).toBe 'New product created.'
+        expect(res.message).toBe '[row 2] New product created.'
         im = new Import Config
         im.import csv, (res) ->
           expect(res.status).toBe true
-          expect(res.message).toBe 'Product update not necessary.'
+          expect(res.message).toBe '[row 2] Product update not necessary.'
           done()
 
     it 'should update 2nd import run', (done) ->
@@ -120,7 +120,7 @@ describe 'Import', ->
         """
       @import.import csv, (res) =>
         expect(res.status).toBe true
-        expect(res.message).toBe 'New product created.'
+        expect(res.message).toBe '[row 2] New product created.'
         im = new Import Config
         csv =
           """
@@ -129,7 +129,7 @@ describe 'Import', ->
           """
         im.import csv, (res) ->
           expect(res.status).toBe true
-          expect(res.message).toBe 'Product updated.'
+          expect(res.message).toBe '[row 2] Product updated.'
           done()
 
     it 'should handle all kind of attributes and constraints', (done) ->
@@ -142,11 +142,11 @@ describe 'Import', ->
         """
       @import.import csv, (res) =>
         expect(res.status).toBe true
-        expect(res.message).toBe 'New product created.'
+        expect(res.message).toBe '[row 2] New product created.'
         im = new Import Config
         im.import csv, (res) =>
           expect(res.status).toBe true
-          expect(res.message).toBe 'Product update not necessary.'
+          expect(res.message).toBe '[row 2] Product update not necessary.'
           csv =
             """
             productType,name,variantId,slug,descN,descU,descCU1,descCU2,descS
@@ -157,7 +157,7 @@ describe 'Import', ->
           im = new Import Config
           im.import csv, (res) ->
             expect(res.status).toBe true
-            expect(res.message).toBe 'Product updated.'
+            expect(res.message).toBe '[row 2] Product updated.'
             done()
 
     it 'should handle multiple products', (done) ->
@@ -171,11 +171,17 @@ describe 'Import', ->
         """
       @import.import csv, (res) ->
         expect(res.status).toBe true
-        expect(res.message['New product created.']).toBe 3
+        expect(_.size res.message).toBe 3
+        expect(res.message['[row 2] New product created.']).toBe 1
+        expect(res.message['[row 4] New product created.']).toBe 1
+        expect(res.message['[row 5] New product created.']).toBe 1
         im = new Import Config
         im.import csv, (res) ->
           expect(res.status).toBe true
-          expect(res.message['Product update not necessary.']).toBe 3
+          expect(_.size res.message).toBe 3
+          expect(res.message['[row 2] Product update not necessary.']).toBe 1
+          expect(res.message['[row 4] Product update not necessary.']).toBe 1
+          expect(res.message['[row 5] Product update not necessary.']).toBe 1
           done()
 
     it 'should handle set of enums', (done) ->
@@ -187,11 +193,11 @@ describe 'Import', ->
         """
       @import.import csv, (res) =>
         expect(res.status).toBe true
-        expect(res.message).toBe 'New product created.'
+        expect(res.message).toBe '[row 2] New product created.'
         im = new Import Config
         im.import csv, (res) =>
           expect(res.status).toBe true
-          expect(res.message).toBe 'Product update not necessary.'
+          expect(res.message).toBe '[row 2] Product update not necessary.'
           csv =
             """
             productType,name,variantId,slug,multiEnum,descU,descCU1
@@ -201,5 +207,5 @@ describe 'Import', ->
           im = new Import Config
           im.import csv, (res) ->
             expect(res.status).toBe true
-            expect(res.message).toBe 'Product updated.'
+            expect(res.message).toBe '[row 2] Product updated.'
             done()

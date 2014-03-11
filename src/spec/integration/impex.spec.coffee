@@ -88,7 +88,9 @@ describe 'Impex', ->
     @import.import csv, (res) =>
       console.log "import", res
       expect(res.status).toBe true
-      expect(res.message['New product created.']).toBe 2
+      expect(_.size res.message).toBe 2
+      expect(res.message['[row 2] New product created.']).toBe 1
+      expect(res.message['[row 4] New product created.']).toBe 1
       file = '/tmp/impex.csv'
       @export.queryString = ''
       @export.export csv, file, (res) ->
@@ -96,7 +98,7 @@ describe 'Impex', ->
         expect(res.status).toBe true
         expect(res.message).toBe 'Export done.'
         fs.readFile file, encoding: 'utf8', (err, content) ->
-          console.log content
+          console.log "export file content", content
           expect(content).toMatch header
           expect(content).toMatch p1
           expect(content).toMatch p2

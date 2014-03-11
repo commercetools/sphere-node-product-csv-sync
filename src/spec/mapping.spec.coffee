@@ -368,7 +368,7 @@ describe 'Mapping', ->
         """
       @validator.parse csv, (content, count) =>
         @validator.validateOffline content
-        product = @validator.map.mapProduct @validator.rawProducts[0], productType
+        data = @validator.map.mapProduct @validator.rawProducts[0], productType
 
         expectedProduct =
           productType:
@@ -391,4 +391,4 @@ describe 'Mapping', ->
             { id: 3, sku: 'z', prices: [], attributes: [], images: [] }
           ]
 
-        expect(product).toEqual expectedProduct
+        expect(data.product).toEqual expectedProduct

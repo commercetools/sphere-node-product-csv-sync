@@ -21,7 +21,9 @@ class Mapping
       rowIndex += 1
       product.variants.push @mapVariant rawVariant, index + 2, productType, rowIndex, product
 
-    product
+    data =
+      product: product
+      rowIndex: raw.startRow
 
   mapBaseProduct: (rawMaster, productType, rowIndex) ->
     product =
