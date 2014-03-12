@@ -29,6 +29,7 @@ class Import extends CommonUpdater
         if _.size(@validator.map.errors) isnt 0
           @returnResult false, @validator.map.errors, callback
           return
+        console.log "Mapping done. Downloading existing products ..."
         @productService.getAllExistingProducts(@rest).then (existingProducts) =>
           console.log "Comparing against #{_.size existingProducts} existing product(s) ..."
           @initMatcher existingProducts
@@ -108,6 +109,7 @@ class Import extends CommonUpdater
     deferred = Q.defer()
     allSameValueAttributes = types.id2SameForAllAttributes[product.productType.id]
     diff = @sync.buildActions(product, existingProduct, allSameValueAttributes)
+    # console.log "ACTIONS %j", diff.get()
     diff.update (error, response, body) =>
       @tickProgress()
       if error
@@ -121,11 +123,9 @@ class Import extends CommonUpdater
         else if response.statusCode is 304
           deferred.resolve "[row #{rowIndex}] Product update not necessary."
         else if response.statusCode is 400
-          humanReadable = JSON.stringify body, null, '  '
-          deferred.resolve "[row #{rowIndex}] Problem on updating product:\n" + humanReadable
+          deferred.resolve "[row #{rowIndex}] Problem on updating product:\n" + body
         else
-          humanReadable = JSON.stringify body, null, '  '
-          deferred.reject "[row #{rowIndex}] Error on updating product: " + humanReadable
+          deferred.reject "[row #{rowIndex}] Error on updating product: " + body
 
     deferred.promise
 
@@ -142,11 +142,9 @@ class Import extends CommonUpdater
           .fail (msg) ->
             deferred.reject msg
         else if response.statusCode is 400
-          humanReadable = JSON.stringify body, null, '  '
-          deferred.reject "[row #{rowIndex}] Problem on creating new product:\n" + humanReadable
+          deferred.reject "[row #{rowIndex}] Problem on creating new product:\n" + body
         else
-          humanReadable = JSON.stringify body, null, '  '
-          deferred.reject "[row #{rowIndex}] Error on creating new product: " + humanReadable
+          deferred.reject "[row #{rowIndex}] Error on creating new product: " + body
 
     deferred.promise
 
@@ -172,11 +170,9 @@ class Import extends CommonUpdater
           if ignore400
             deferred.resolve "[row #{rowIndex}] Product is already #{action}ed."
           else
-            humanReadable = JSON.stringify body, null, '  '
-            deferred.reject "[row #{rowIndex}] Problem on #{action}ing product:\n" + humanReadable
+            deferred.reject "[row #{rowIndex}] Problem on #{action}ing product:\n" + body
         else
-          humanReadable = JSON.stringify body, null, '  '
-          deferred.reject "[row #{rowIndex}] Problem on #{action}ing product (code #{response.statusCode}): " + humanReadable
+          deferred.reject "[row #{rowIndex}] Problem on #{action}ing product (code #{response.statusCode}): " + body
 
     deferred.promise
 
