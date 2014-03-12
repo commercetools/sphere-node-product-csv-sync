@@ -111,7 +111,7 @@ class ExportMapping
     switch attributeTypeDef.name
       when CONS.ATTRIBUTE_TYPE_SET then @_mapSetAttribute(attribute, attributeTypeDef)
       when CONS.ATTRIBUTE_TYPE_ENUM, CONS.ATTRIBUTE_TYPE_LENUM then attribute.value.key
-      when CONS.ATTRIBUTE_TYPE_MONEY then _mapMoney attribute
+      when CONS.ATTRIBUTE_TYPE_MONEY then @_mapMoney attribute
       else attribute.value
 
   _mapLocalizedAttribute: (attribute, productType, row) ->
