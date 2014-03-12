@@ -16,16 +16,23 @@ describe 'Import', ->
       { key: 'z', label: 'Z' }
     ]
 
+    lvalues = [
+      { key: 'aa', label: { en: 'AA', de: 'Aa' } }
+      { key: 'bb', label: { en: 'BB', de: 'mäßig heiß bügeln' } }
+      { key: 'cc', label: { en: 'CC', de: 'Cc' } }
+    ]
+
     @productType =
       name: 'myType'
       description: 'foobar'
       attributes: [
-        { name: 'descN', label: { name: 'descN' }, type: { name: 'text'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
-        { name: 'descU', label: { name: 'descU' }, type: { name: 'text'}, attributeConstraint: 'Unique', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
-        { name: 'descCU1', label: { name: 'descCU1' }, type: { name: 'text'}, attributeConstraint: 'CombinationUnique', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
-        { name: 'descCU2', label: { name: 'descCU2' }, type: { name: 'text'}, attributeConstraint: 'CombinationUnique', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
-        { name: 'descS', label: { name: 'descS' }, type: { name: 'text'}, attributeConstraint: 'SameForAll', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
-        { name: 'multiEnum', label: { name: 'multiEnum' }, type: { name: 'set', elementType: { name: 'enum', values: values } }, attributeConstraint: 'None', isRequired: false, isSearchable: false }
+        { name: 'descN', label: { de: 'descN' }, type: { name: 'text'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
+        { name: 'descU', label: { de: 'descU' }, type: { name: 'text'}, attributeConstraint: 'Unique', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
+        { name: 'descCU1', label: { de: 'descCU1' }, type: { name: 'text'}, attributeConstraint: 'CombinationUnique', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
+        { name: 'descCU2', label: { de: 'descCU2' }, type: { name: 'text'}, attributeConstraint: 'CombinationUnique', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
+        { name: 'descS', label: { de: 'descS' }, type: { name: 'text'}, attributeConstraint: 'SameForAll', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
+        { name: 'multiEnum', label: { de: 'multiEnum' }, type: { name: 'set', elementType: { name: 'enum', values: values } }, attributeConstraint: 'None', isRequired: false, isSearchable: false }
+        { name: 'multiSamelEnum', label: { de: 'multiSamelEnum' }, type: { name: 'set', elementType: { name: 'lenum', values: lvalues } }, attributeConstraint: 'SameForAll', isRequired: false, isSearchable: false }
       ]
 
     deleteProduct = (product) =>
@@ -203,6 +210,42 @@ describe 'Import', ->
             productType,name,variantId,slug,multiEnum,descU,descCU1
             #{@productType.id},myProduct1,1,slug1,y;x;z,a,b
             ,,2,slug2,z,b,a
+            """
+          im = new Import Config
+          im.import csv, (res) ->
+            expect(res.status).toBe true
+            expect(res.message).toBe '[row 2] Product updated.'
+            done()
+
+    it 'should handle set of SameForAll enums', (done) ->
+      csv =
+        """
+        productType,name,variantId,slug,sku,multiSamelEnum,descU,descCU1
+        #{@productType.id},myProduct1,1,slug1,sku1,aa;bb;cc,a,b
+        """
+      @import.import csv, (res) =>
+        expect(res.status).toBe true
+        expect(res.message).toBe '[row 2] New product created.'
+        im = new Import Config
+        im.import csv, (res) =>
+          expect(res.status).toBe true
+          expect(res.message).toBe '[row 2] Product update not necessary.'
+          csv =
+            """
+            productType,name,variantId,slug,sku,multiSamelEnum,descU,descCU1
+            #{@productType.id},myProduct1,1,slug1,sku1,aa;bb;cc,a,b
+            ,,2,slug2,,sku2,b,a
+            ,,3,slug3,,sku3,c,c
+            ,,4,slug4,,sku4,d,d
+            ,,5,slug5,,sku5,e,e
+            ,,6,slug6,,sku6,f,f
+            ,,7,slug7,,sku7,g,g
+            ,,8,slug8,,sku8,h,h
+            ,,9,slug9,,sku9,i,i
+            ,,10,slug10,,sku10,j,j
+            ,,11,slug11,,sku11,k,k
+            ,,12,slug12,,sku12,l,l
+            ,,13,slug13,,sku13,m,m
             """
           im = new Import Config
           im.import csv, (res) ->
