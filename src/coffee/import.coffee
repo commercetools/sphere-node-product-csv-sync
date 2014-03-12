@@ -123,9 +123,11 @@ class Import extends CommonUpdater
         else if response.statusCode is 304
           deferred.resolve "[row #{rowIndex}] Product update not necessary."
         else if response.statusCode is 400
-          deferred.resolve "[row #{rowIndex}] Problem on updating product:\n" + body
+          humanReadable = JSON.stringify body, null, ' '
+          deferred.resolve "[row #{rowIndex}] Problem on updating product:\n" + humanReadable
         else
-          deferred.reject "[row #{rowIndex}] Error on updating product: " + body
+          humanReadable = JSON.stringify body, null, ' '
+          deferred.reject "[row #{rowIndex}] Error on updating product: " + humanReadable
 
     deferred.promise
 
@@ -142,9 +144,11 @@ class Import extends CommonUpdater
           .fail (msg) ->
             deferred.reject msg
         else if response.statusCode is 400
-          deferred.reject "[row #{rowIndex}] Problem on creating new product:\n" + body
+          humanReadable = JSON.stringify body, null, ' '
+          deferred.reject "[row #{rowIndex}] Problem on creating new product:\n" + humanReadable
         else
-          deferred.reject "[row #{rowIndex}] Error on creating new product: " + body
+          humanReadable = JSON.stringify body, null, ' '
+          deferred.reject "[row #{rowIndex}] Error on creating new product: " + humanReadable
 
     deferred.promise
 
@@ -170,9 +174,11 @@ class Import extends CommonUpdater
           if ignore400
             deferred.resolve "[row #{rowIndex}] Product is already #{action}ed."
           else
-            deferred.reject "[row #{rowIndex}] Problem on #{action}ing product:\n" + body
+            humanReadable = JSON.stringify body, null, ' '
+            deferred.reject "[row #{rowIndex}] Problem on #{action}ing product:\n" + humanReadable
         else
-          deferred.reject "[row #{rowIndex}] Problem on #{action}ing product (code #{response.statusCode}): " + body
+          humanReadable = JSON.stringify body, null, ' '
+          deferred.reject "[row #{rowIndex}] Problem on #{action}ing product (code #{response.statusCode}): " + humanReadable
 
     deferred.promise
 
