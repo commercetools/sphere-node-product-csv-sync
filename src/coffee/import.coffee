@@ -47,15 +47,18 @@ class Import extends CommonUpdater
 
       selectedProducts = _.select existingProducts, performProduct
 
-      posts = []
-      for product in selectedProducts
-        if remove
-          posts.push @deleteProduct(product, 0)
-        else
-          posts.push @publishProduct(product, 0, publish)
+      if _.size(selectedProducts) is 0
+        @returnResult true, 'Nothing to do', callback
+      else
+        posts = []
+        for product in selectedProducts
+          if remove
+            posts.push @deleteProduct(product, 0)
+          else
+            posts.push @publishProduct(product, 0, publish)
 
-      console.log "#{action}ing #{_.size posts} product(s) ..."
-      @processInBatches posts, callback
+        console.log "#{action}ing #{_.size posts} product(s) ..."
+        @processInBatches posts, callback
     .fail (msg) =>
       @returnResult false, msg, callback
 

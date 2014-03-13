@@ -71,18 +71,18 @@ describe 'State', ->
       #{@productType.name},myProduct2,my-slug2,1,sku2,bar
       """
     @import.import csv, (res) =>
-      console.log "state", res
+      console.log 'state', res
       expect(res.status).toBe true
       expect(_.size res.message).toBe 2
       expect(res.message['[row 2] New product created.']).toBe 1
       expect(res.message['[row 3] New product created.']).toBe 1
       performProduct = -> true
       @import.publishOnly true, false, performProduct, (res) =>
-        console.log "publish"
+        console.log 'publish', res
         expect(res.status).toBe true
         expect(res.message['[row 0] Product published.']).toBe 2
         @import.publishOnly false, false, performProduct, (res) =>
-          console.log "unpublish"
+          console.log 'unpublish', res
           expect(res.status).toBe true
           expect(res.message['[row 0] Product unpublished.']).toBe 2
           done()
@@ -95,14 +95,14 @@ describe 'State', ->
       #{@productType.name},myProduct2,my-slug2,1,sku2,bar
       """
     @import.import csv, (res) =>
-      console.log "state", res
+      console.log 'state', res
       expect(res.status).toBe true
       expect(_.size res.message).toBe 2
       expect(res.message['[row 2] New product created.']).toBe 1
       expect(res.message['[row 3] New product created.']).toBe 1
       performProduct = -> true
       @import.publishOnly true, true, performProduct, (res) =>
-        console.log "delete"
+        console.log 'delete', res
         expect(res.status).toBe true
         expect(res.message['[row 0] Product deleted.']).toBe 2
         done()

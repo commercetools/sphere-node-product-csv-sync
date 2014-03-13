@@ -68,9 +68,7 @@ module.exports = class
     program
       .command 'state'
       .description 'Allows to publish, unpublish or delete (all) products of your SPHERE.IO project.'
-      .option '--changeTo <publish,unpublish,delete>', 'publish unpublished products / unpublish published products / delete products'
-      .option '--all', 'processes all your products'
-      .option '--csv file', 'processes products defined in a CSV file.'
+      .option '--changeTo <publish,unpublish,delete>', 'publish unpublished products / unpublish published products / delete unpublished products'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo (un)publish'
       .action (opts) ->
 
@@ -90,26 +88,34 @@ module.exports = class
         if program.debug
           options.logConfig = 'debug'
 
-        remove = false
         publish = switch opts.changeTo
-          when 'publish' then true
+          when 'publish','delete' then true
           when 'unpublish' then false
           else
             console.error "Unknown argument '#{opts.changeTo}' for option changeTo!"
             process.exit 2
+        remove = opts.changeTo is 'delete'
 
         filterFunction = (product) -> true
-#        if program.csv
-          # load csv
-          # create filter function
 
-        importer = new Importer options
-        importer.publishOnly publish, remove, filterFunction, (result) ->
-          if result.status
-            console.log result.message
-            process.exit 0
-          console.error result.message
-          process.exit 1
+        run = ->
+          importer = new Importer options
+          importer.publishOnly publish, remove, filterFunction, (result) ->
+            if result.status
+              console.log result.message
+              process.exit 0
+            console.error result.message
+            process.exit 1
+
+        if remove
+          program.confirm 'Do you really want to delete all products?', (ok) ->
+            if ok
+              run()
+            else
+              console.log 'Cancelled.'
+              process.exit 9
+        else
+          run()
 
     program
       .command 'export'
