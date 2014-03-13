@@ -13,8 +13,9 @@ describe 'State', ->
     @export = new Export Config
     @rest = @import.validator.rest
 
+    unique = new Date().getTime()
     @productType =
-      name: 'myStateType'
+      name: "myStateType#{unique}"
       description: 'foobar'
       attributes: [
         { name: 'myAttrib', label: { name: 'myAttrib' }, type: { name: 'text'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
@@ -62,14 +63,13 @@ describe 'State', ->
         .fail (msg) ->
           expect(true).toBe false
 
-  it 'should unpublish products', (done) ->
+  it 'should publish and unplublish products', (done) ->
     csv =
       """
       productType,name.en,slug.en,variantId,sku,myAttrib
       #{@productType.name},myProduct1,my-slug1,1,sku1,foo
       #{@productType.name},myProduct2,my-slug2,1,sku2,bar
       """
-    @import.publishProducts = false
     @import.import csv, (res) =>
       console.log "state", res
       expect(res.status).toBe true
@@ -86,3 +86,23 @@ describe 'State', ->
           expect(res.status).toBe true
           expect(res.message['[row 0] Product unpublished.']).toBe 2
           done()
+
+  it 'should delete unplublished products', (done) ->
+    csv =
+      """
+      productType,name.en,slug.en,variantId,sku,myAttrib
+      #{@productType.name},myProduct1,my-slug1,1,sku1,foo
+      #{@productType.name},myProduct2,my-slug2,1,sku2,bar
+      """
+    @import.import csv, (res) =>
+      console.log "state", res
+      expect(res.status).toBe true
+      expect(_.size res.message).toBe 2
+      expect(res.message['[row 2] New product created.']).toBe 1
+      expect(res.message['[row 3] New product created.']).toBe 1
+      performProduct = -> true
+      @import.publishOnly true, true, performProduct, (res) =>
+        console.log "delete"
+        expect(res.status).toBe true
+        expect(res.message['[row 0] Product deleted.']).toBe 2
+        done()
