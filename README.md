@@ -30,7 +30,7 @@ $ grunt build
 
 ## General Usage
 
-This tool uses subcommands for the various task. Please refer to the usage of the concrete action:
+This tool uses sub commands for the various task. Please refer to the usage of the concrete action:
 - [import](#import)
 - [export](#export)
 - [template](#template)
@@ -39,16 +39,16 @@ This tool uses subcommands for the various task. Please refer to the usage of th
 
 General command line options can be seen by simply executing the command `node lib/run`.
 ```
-HajosMac-2:sphere-node-product-csv-sync heichler$ node lib/run.js
+node lib/run
 
-  Usage: node lib/run [globals] [sub-command] [options]
+  Usage: run [globals] [sub-command] [options]
 
   Commands:
 
-    import [options]         Import your products from CSV into your SPHERE.IO project.
-    state [options]          Allows to publish or unpublish all products of your project.
-    export [options]         Export your products from your SPHERE.IO project to CSV using.
-    template [options]       Create a template based on a product type of your SPHERE.IO project.
+    import [options]       Import your products from CSV into your SPHERE.IO project.
+    state [options]        Allows to publish, unpublish or delete (all) products of your SPHERE.IO project.
+    export [options]       Export your products from your SPHERE.IO project to CSV using.
+    template [options]     Create a template for a product type of your SPHERE.IO project.
     groupvariants [options]  Allows you to group products with its variant in order to proceed with SPHERE.IOs CSV product format.
 
   Options:
@@ -63,7 +63,7 @@ HajosMac-2:sphere-node-product-csv-sync heichler$ node lib/run.js
     --debug                      give as many feedback as possible
 ```
 
-For all sub command specific options please call `node lib/run <subcommand> --help`.
+For all sub command specific options please call `node lib/run <sub command> --help`.
 
 ## Import
 
@@ -79,7 +79,7 @@ node lib/run import --help
     -h, --help             output usage information
     -c, --csv <file>       CSV file containing products to import
     -l, --language [lang]  Default language to using during import
-    publish                When given, all changes will be published immediately
+    --publish                When given, all changes will be published immediately
 ```
 
 ### CSV Format
@@ -221,24 +221,43 @@ https://example.com/image.jpg;http://www.example.com/picture.bmp
 
 ## Product State
 
-This subcommand allows you to publish/unpublish products with once call.
+This sub command allows you to publish/unpublish or delele as set of (or all) products with once call.
 
 ### Usage
 
 ```
 node lib/run state --help
 
-  Usage: state --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo (un)publish
+  Usage: state --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo <state>
 
   Options:
 
-    -h, --help                      output usage information
-    --changeTo <publish,unpublish>  publish all unpublish products/unpublish all published products
+    -h, --help                             output usage information
+    --changeTo <publish,unpublish,delete>  publish unpublished products / unpublish published products / delete unpublished products
+    --csv <file>                           processes products defined in a CSV file by either "sku" or "id". Otherwise all products are processed.
 ```
+
+#### CSV format
+
+To change the state of only a subset of products you have to provide a list to identify them via a CSV file.
+
+There are currently two ways to identify products:
+- id
+- sku
+
+An example for sku may look like this:
+```
+sku
+W1234
+M2345
+M3456
+```
+
+> Please note that you always delete products not variants!
 
 ## Template
 
-Using this subcommand, you can generate a CSV template (does only contain the header row)
+Using this sub command, you can generate a CSV template (does only contain the header row)
 for product types. With `--all` a combined template for all product types will be generated.
 If you leave this options out, you will be ask for which product type to generate the template.
 
@@ -253,7 +272,7 @@ node lib/run template --help
 
     -h, --help                   output usage information
     -o, --out <file>             Path to the file the exporter will write the resulting CSV in
-    -l, --languages [lang,lang]  List of language to use for template
+    -l, --languages [lang,lang]  List of languages to use for template
     --all                        Generates one template for all product types - if not given you will be ask which product type to use
 ```
 
@@ -276,7 +295,7 @@ productType,name.en,varianId
 ### Usage
 
 ```
-node lib/run.js export --help
+node lib/run export --help
 
   Usage: export --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>
 
@@ -311,7 +330,7 @@ limit=10&where=productType(id%3D%2224da8abf-7be6-4b27-9ce6-69ee4b026513%22)
 
 ## Group Variants
 
-With this subcommand you can group several rows in a CSV together as variants of one product.
+With this sub command you can group several rows in a CSV together as variants of one product.
 It will add a column `variantId` to all rows. Thereby rows are handled as a groups if the they have the same value in the column defined via `headerIndex`.
 
 ### Usage
@@ -329,4 +348,4 @@ node lib/run groupvariants --help
     --headerIndex <number>  Index of column (starting at 0) header, that defines the identity of variants to one product
 ```
 
-> Please note that you don't need any of the global command line options, such as `--projectKey` etc for this subcommand.
+> Please note that you don't need any of the global command line options, such as `--projectKey` etc for this sub command.

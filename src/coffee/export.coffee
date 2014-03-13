@@ -11,6 +11,7 @@ ExportMapping = require '../lib/exportmapping'
 Rest = require('sphere-node-connect').Rest
 CommonUpdater = require('sphere-node-sync').CommonUpdater
 Q = require 'q'
+prompt = require 'prompt'
 
 class Export extends CommonUpdater
 
@@ -69,7 +70,7 @@ class Export extends CommonUpdater
     .fail (msg) =>
       @returnResult false, msg, callback
 
-  createTemplate: (program, languages, outputFile, allProductTypes = false, callback) ->
+  createTemplate: (languages, outputFile, allProductTypes = false, callback) ->
     @typesService.getAll(@rest).then (productTypes) =>
       if _.size(productTypes) is 0
         @returnResult false, 'Can not find any product type.', callback
@@ -85,13 +86,24 @@ class Export extends CommonUpdater
         @_saveCSV(outputFile, [csv]).then =>
           @returnResult true, 'Template for all product types generated.', callback
       else
-        console.log 'Enter the number of the producttype and press [ENTER]:'
-        program.choose idsAndNames, (index) =>
-          console.log "Generating template for product type '#{productTypes[index].name}' (id: #{productTypes[index].id})."
-          process.stdin.destroy()
-          csv = new ExportMapping().createTemplate(productTypes[index], languages)
-          @_saveCSV(outputFile, [csv]).then =>
-            @returnResult true, 'Template generated.', callback
+        _.each idsAndNames, (entry, index) ->
+          console.log '  %d) %s', index, entry
+        prompt.start()
+        property =
+          name: 'number'
+          message: 'Enter the number of the producttype.'
+          validator: /\d+/
+          warning: 'Please enter a valid number'
+        prompt.get property, (err, result) =>
+          productType = productTypes[parseInt(result.number)]
+          if productType
+            console.log "Generating template for product type '#{productType.name}' (id: #{productType.id})."
+            process.stdin.destroy()
+            csv = new ExportMapping().createTemplate(productType, languages)
+            @_saveCSV(outputFile, [csv]).then =>
+              @returnResult true, 'Template generated.', callback
+          else
+            @returnResult false, "Please re-run and select a valid number.", callback
     .fail (msg) =>
       @returnResult false, msg, callback
 

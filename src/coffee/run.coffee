@@ -6,6 +6,7 @@ CONS = require '../lib/constants'
 fs = require 'fs'
 Q = require 'q'
 program = require 'commander'
+prompt = require 'prompt'
 
 Csv = require 'csv'
 _ = require('underscore')._
@@ -79,7 +80,7 @@ module.exports = class
       .description 'Import your products from CSV into your SPHERE.IO project.'
       .option '-c, --csv <file>', 'CSV file containing products to import'
       .option '-l, --language [lang]', 'Default language to using during import', 'en'
-      .option 'publish', 'When given, all changes will be published immediately'
+      .option '--publish', 'When given, all changes will be published immediately'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>'
       .action (opts) ->
         CONS.DEFAULT_LANGUAGE = opts.language
@@ -119,8 +120,8 @@ module.exports = class
       .command 'state'
       .description 'Allows to publish, unpublish or delete (all) products of your SPHERE.IO project.'
       .option '--changeTo <publish,unpublish,delete>', 'publish unpublished products / unpublish published products / delete unpublished products'
-      .option '--csv <file>', 'processes products defined in a CSV file by either "sku" or "id".'
-      .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo (un)publish'
+      .option '--csv <file>', 'processes products defined in a CSV file by either "sku" or "id". Otherwise all products are processed.'
+      .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo <state>'
       .action (opts) =>
 
         options =
@@ -161,8 +162,16 @@ module.exports = class
             process.exit 3
 
         if remove
-          program.confirm 'Do you really want to delete products?', (ok) ->
-            if ok
+          prompt.start()
+          property =
+            name: 'ask'
+            message: 'Do you really want to delete products?'
+            validator: /y[es]*|n[o]?/
+            warning: 'Please answer with yes or no'
+            default: 'no'
+
+          prompt.get property, (err, result) ->
+            if result.ask
               run()
             else
               console.log 'Cancelled.'
@@ -237,7 +246,7 @@ module.exports = class
           options.logConfig = 'debug'
 
         exporter = new Exporter options
-        exporter.createTemplate program, opts.languages, opts.out, opts.all, (result) ->
+        exporter.createTemplate opts.languages, opts.out, opts.all, (result) ->
           if result.status
             console.log result.message
             process.exit 0
