@@ -17,11 +17,11 @@ module.exports = class
   @_filterFunction: (opts) ->
     deferred = Q.defer()
     if opts.csv
-      fs.readFile opts.csv, 'utf8', (err, content) =>
+      fs.readFile opts.csv, 'utf8', (err, content) ->
         if err
           console.error "Problems on reading identity file '#{opts.csv}': " + err
           process.exit 2
-        Csv().from.string(content).to.array (data, count) =>
+        Csv().from.string(content).to.array (data, count) ->
           identHeader = data[0][0]
           if identHeader is CONS.HEADER_ID
             productIds = _.flatten _.rest data
@@ -38,7 +38,7 @@ module.exports = class
                 _.contains skus, variant.sku
             deferred.resolve f
           else
-            deferred.reject "CSV does not fit! You only need one column - either '#{CONS.HEADER_ID}' or '#{CONS.HEADER_SKU}'"
+            deferred.reject "CSV does not fit! You only need one column - either '#{CONS.HEADER_ID}' or '#{CONS.HEADER_SKU}'."
 
 #        TODO: you may define a custom attribute to filter on
 #        customAttributeName = ''
