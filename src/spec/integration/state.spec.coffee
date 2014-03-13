@@ -77,11 +77,11 @@ describe 'State', ->
       expect(res.message['[row 2] New product created.']).toBe 1
       expect(res.message['[row 3] New product created.']).toBe 1
       performProduct = -> true
-      @import.publishOnly true, false, performProduct, (res) =>
+      @import.changeState true, false, performProduct, (res) =>
         console.log 'publish', res
         expect(res.status).toBe true
         expect(res.message['[row 0] Product published.']).toBe 2
-        @import.publishOnly false, false, performProduct, (res) =>
+        @import.changeState false, false, performProduct, (res) =>
           console.log 'unpublish', res
           expect(res.status).toBe true
           expect(res.message['[row 0] Product unpublished.']).toBe 2
@@ -101,7 +101,7 @@ describe 'State', ->
       expect(res.message['[row 2] New product created.']).toBe 1
       expect(res.message['[row 3] New product created.']).toBe 1
       performProduct = -> true
-      @import.publishOnly true, true, performProduct, (res) =>
+      @import.changeState true, true, performProduct, (res) =>
         console.log 'delete', res
         expect(res.status).toBe true
         expect(res.message['[row 0] Product deleted.']).toBe 2

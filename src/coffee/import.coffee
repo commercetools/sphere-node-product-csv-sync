@@ -39,7 +39,7 @@ class Import extends CommonUpdater
       .fail (msg) =>
         @returnResult false, msg, callback
 
-  publishOnly: (publish = true, remove = false, performProduct, callback) ->
+  changeState: (publish = true, remove = false, performProduct, callback) ->
     @publishProducts = true
     action = if publish then 'publish' else 'unpublish'
     action = 'delete' if remove

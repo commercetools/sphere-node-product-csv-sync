@@ -4,6 +4,7 @@ Variants = require '../lib/variants'
 package_json = require '../package.json'
 CONS = require '../lib/constants'
 fs = require 'fs'
+Q = require 'q'
 program = require 'commander'
 
 Csv = require 'csv'
@@ -12,6 +13,55 @@ _ = require('underscore')._
 module.exports = class
 
   @_list: (val) -> val.split ','
+
+  @_filterFunction: (opts) ->
+    deferred = Q.defer()
+    if opts.csv
+      fs.readFile opts.csv, 'utf8', (err, content) =>
+        if err
+          console.error "Problems on reading identity file '#{opts.csv}': " + err
+          process.exit 2
+        Csv().from.string(content).to.array (data, count) =>
+          identHeader = data[0][0]
+          if identHeader is CONS.HEADER_ID
+            productIds = _.flatten _.rest data
+            f = (product) ->
+              _.contains productIds, product.id
+            deferred.resolve f
+          else if identHeader is CONS.HEADER_SKU
+            skus = _.flatten _.rest data
+            console.log 'skus', skus
+            f = (product) ->
+              product.variants or= []
+              variants = [product.masterVariant].concat(product.variants)
+              _.find variants, (variant) ->
+                _.contains skus, variant.sku
+            deferred.resolve f
+          else
+            deferred.reject "CSV does not fit! You only need one column - either '#{CONS.HEADER_ID}' or '#{CONS.HEADER_SKU}'"
+
+#        TODO: you may define a custom attribute to filter on
+#        customAttributeName = ''
+#        customAttributeType = ''
+#        customAttributeValues = []
+#        filterFunction = (product) ->
+#          product.variants or= []
+#          variants = [product.masterVariant].concat(product.variants)
+#          _.find variants, (variant) ->
+#            variant.attributes or= []
+#            _.find variant.attributes, (attribute) ->
+#              attribute.name is customAttributeName and
+#              # TODO: pass function for getValueOfType
+#              value = switch customAttributeType
+#                when CONS.ATTRIBUTE_ENUM, CONS.ATTRIBUTE_LENUM then attribute.value.key
+#                else attribute.value
+#              _.contains customAttributeValues, value
+
+    else
+      f = (product) -> true
+      deferred.resolve f
+
+    deferred.promise
 
   @run: (argv) ->
     program
@@ -69,8 +119,9 @@ module.exports = class
       .command 'state'
       .description 'Allows to publish, unpublish or delete (all) products of your SPHERE.IO project.'
       .option '--changeTo <publish,unpublish,delete>', 'publish unpublished products / unpublish published products / delete unpublished products'
+      .option '--csv <file>', 'processes products defined in a CSV file by either "sku" or "id".'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo (un)publish'
-      .action (opts) ->
+      .action (opts) =>
 
         options =
           config:
@@ -88,27 +139,29 @@ module.exports = class
         if program.debug
           options.logConfig = 'debug'
 
+        remove = opts.changeTo is 'delete'
         publish = switch opts.changeTo
           when 'publish','delete' then true
           when 'unpublish' then false
           else
             console.error "Unknown argument '#{opts.changeTo}' for option changeTo!"
             process.exit 2
-        remove = opts.changeTo is 'delete'
 
-        filterFunction = (product) -> true
-
-        run = ->
-          importer = new Importer options
-          importer.publishOnly publish, remove, filterFunction, (result) ->
-            if result.status
-              console.log result.message
-              process.exit 0
-            console.error result.message
-            process.exit 1
+        run = =>
+          @_filterFunction(opts).then (filterFunction) ->
+            importer = new Importer options
+            importer.changeState publish, remove, filterFunction, (result) ->
+              if result.status
+                console.log result.message
+                process.exit 0
+              console.error result.message
+              process.exit 1
+          .fail (msg) ->
+            console.error msg
+            process.exit 3
 
         if remove
-          program.confirm 'Do you really want to delete all products?', (ok) ->
+          program.confirm 'Do you really want to delete products?', (ok) ->
             if ok
               run()
             else
