@@ -10,10 +10,7 @@
 - add option to re-index after import (new endpoint necessary)
 
 ### Ideas
-- allow to define publish state as column
 - allow to define slug of category instead of id or tree path
-- allow to define "delete product" as "action" column
-- allow to delete all products
 - download existing products in batches
 
 ### Questions
@@ -26,6 +23,3 @@
   * money-typed attributes
   * image labels
   * image dimensions
-
-### Ideas
-- generate CSV template for one product type providing the languages via command line option for the localized strings
