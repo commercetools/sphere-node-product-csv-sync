@@ -67,9 +67,11 @@ module.exports = class
 
     program
       .command 'state'
-      .description 'Allows to publish or unpublish all products of your project.'
-      .option '--changeTo <publish,unpublish>', 'publish all unpublish products/unpublish all published products'
-      .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo (un)publish', 'will unpublish your published products'
+      .description 'Allows to publish, unpublish or delete (all) products of your SPHERE.IO project.'
+      .option '--changeTo <publish,unpublish,delete>', 'publish unpublished products / unpublish published products / delete products'
+      .option '--all', 'processes all your products'
+      .option '--csv file', 'processes products defined in a CSV file.'
+      .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo (un)publish'
       .action (opts) ->
 
         options =
@@ -82,11 +84,13 @@ module.exports = class
           user_agent: "#{package_json.name} - Publish - #{package_json.version}"
           logConfig:
             levelStream: 'warn'
+            levelFile: 'warn'
         if program.verbose
           options.logConfig = 'info'
         if program.debug
           options.logConfig = 'debug'
 
+        remove = false
         publish = switch opts.changeTo
           when 'publish' then true
           when 'unpublish' then false
@@ -94,8 +98,13 @@ module.exports = class
             console.error "Unknown argument '#{opts.changeTo}' for option changeTo!"
             process.exit 2
 
+        filterFunction = (product) -> true
+#        if program.csv
+          # load csv
+          # create filter function
+
         importer = new Importer options
-        importer.publishOnly publish, (result) ->
+        importer.publishOnly publish, remove, filterFunction, (result) ->
           if result.status
             console.log result.message
             process.exit 0
@@ -124,6 +133,7 @@ module.exports = class
           queryString: opts.queryString
           logConfig:
             levelStream: 'warn'
+            levelFile: 'warn'
         if program.verbose
           options.logConfig = 'info'
         if program.debug
@@ -161,6 +171,7 @@ module.exports = class
           user_agent: "#{package_json.name} - Template - #{package_json.version}"
           logConfig:
             levelStream: 'warn'
+            levelFile: 'warn'
         if program.verbose
           options.logConfig = 'info'
         if program.debug

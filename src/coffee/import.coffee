@@ -39,15 +39,22 @@ class Import extends CommonUpdater
       .fail (msg) =>
         @returnResult false, msg, callback
 
-  publishOnly: (publish = true, callback) ->
+  publishOnly: (publish = true, remove = false, performProduct, callback) ->
     @publishProducts = true
     action = if publish then 'publish' else 'unpublish'
     @productService.getAllExistingProducts(@rest, "staged=#{publish}&limit=0").then (existingProducts) =>
+
+      selectedProducts = _.select existingProducts, performProduct
+
       posts = []
-      for product in existingProducts
+      deletes = []
+      for product in selectedProducts
         posts.push @publishProduct(product, 0, publish)
+        #posts.push @deleteProduct(product, 0)
+
       console.log "#{action}ing #{_.size posts} product(s) ..."
       @processInBatches posts, callback
+      #@processInBatches deletes, callback
     .fail (msg) =>
       @returnResult false, msg, callback
 
@@ -181,6 +188,20 @@ class Import extends CommonUpdater
           deferred.reject "[row #{rowIndex}] Problem on #{action}ing product (code #{response.statusCode}): " + humanReadable
 
     deferred.promise
+
+  deleteProduct: (product, rowIndex) ->
+    deferred = Q.defer()
+    @rest.DELETE "/products/#{product.id}?version=#{product.version}", (error, response, body) ->
+      if error
+        deferred.reject "[row #{rowIndex}] Error on deleting product: " + error
+      else
+        if response.statusCode is 200
+          deferred.resolve "[row #{rowIndex}] Product deleted."
+        else
+          humanReadable = JSON.stringify body, null, ' '
+          deferred.reject "[row #{rowIndex}] Problem on deleting product (code #{response.statusCode}): " + humanReadable
+    deferred.promise
+
 
 
 module.exports = Import
