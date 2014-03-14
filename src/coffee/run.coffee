@@ -15,7 +15,7 @@ module.exports = class
 
   @_list: (val) -> val.split ','
 
-  @_filterFunction: (opts) ->
+  @_getFilterFunction: (opts) ->
     deferred = Q.defer()
     if opts.csv
       fs.readFile opts.csv, 'utf8', (err, content) ->
@@ -31,12 +31,12 @@ module.exports = class
             deferred.resolve f
           else if identHeader is CONS.HEADER_SKU
             skus = _.flatten _.rest data
-            console.log 'skus', skus
             f = (product) ->
               product.variants or= []
               variants = [product.masterVariant].concat(product.variants)
-              _.find variants, (variant) ->
+              v = _.find variants, (variant) ->
                 _.contains skus, variant.sku
+              v?
             deferred.resolve f
           else
             deferred.reject "CSV does not fit! You only need one column - either '#{CONS.HEADER_ID}' or '#{CONS.HEADER_SKU}'."
@@ -149,7 +149,7 @@ module.exports = class
             process.exit 2
 
         run = =>
-          @_filterFunction(opts).then (filterFunction) ->
+          @_getFilterFunction(opts).then (filterFunction) ->
             importer = new Importer options
             importer.changeState publish, remove, filterFunction, (result) ->
               if result.status
