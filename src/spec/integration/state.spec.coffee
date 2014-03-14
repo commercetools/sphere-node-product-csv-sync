@@ -18,7 +18,7 @@ describe 'State', ->
       name: "myStateType#{unique}"
       description: 'foobar'
       attributes: [
-        { name: 'myAttrib', label: { name: 'myAttrib' }, type: { name: 'text'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
+        { name: 'myStateAttrib', label: { name: 'myStateAttrib' }, type: { name: 'text'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
       ]
 
     deleteProduct = (product) =>
@@ -66,7 +66,7 @@ describe 'State', ->
   it 'should publish and unplublish products', (done) ->
     csv =
       """
-      productType,name.en,slug.en,variantId,sku,myAttrib
+      productType,name.en,slug.en,variantId,sku,myStateAttrib
       #{@productType.name},myProduct1,my-slug1,1,sku1,foo
       #{@productType.name},myProduct2,my-slug2,1,sku2,bar
       """
@@ -90,7 +90,7 @@ describe 'State', ->
   it 'should delete unplublished products', (done) ->
     csv =
       """
-      productType,name.en,slug.en,variantId,sku,myAttrib
+      productType,name.en,slug.en,variantId,sku,myStateAttrib
       #{@productType.name},myProduct1,my-slug1,1,sku1,foo
       #{@productType.name},myProduct2,my-slug2,1,sku2,bar
       """
