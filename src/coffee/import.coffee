@@ -36,6 +36,7 @@ class Import extends CommonUpdater
           @createOrUpdate products, @validator.types, callback
         .fail (msg) =>
           @returnResult false, msg, callback
+        .done()
       .fail (msg) =>
         @returnResult false, msg, callback
 
@@ -43,7 +44,7 @@ class Import extends CommonUpdater
     @publishProducts = true
     action = if publish then 'publish' else 'unpublish'
     action = 'delete' if remove
-    @productService.getAllExistingProducts(@rest, "staged=#{publish}&limit=0").then (existingProducts) =>
+    @productService.getAllExistingProducts(@rest, "staged=#{publish}").then (existingProducts) =>
 
       console.log "Found #{_.size existingProducts} product(s) ..."
       filteredProducts = _.filter existingProducts, filterFunction
@@ -52,7 +53,7 @@ class Import extends CommonUpdater
       if _.size(filteredProducts) is 0
         @returnResult true, 'Nothing to do', callback
       else
-        posts = _.map filteredProducts, (product) ->
+        posts = _.map filteredProducts, (product) =>
           if remove
             @deleteProduct(product, 0)
           else
@@ -62,6 +63,7 @@ class Import extends CommonUpdater
         @processInBatches posts, callback
     .fail (msg) =>
       @returnResult false, msg, callback
+    .done()
 
   initMatcher: (existingProducts) ->
     @existingProducts = existingProducts
