@@ -7,7 +7,7 @@ SPHERE.IO component to import, update and export products via CSV.
 
 # Setup
 
-* install [NodeJS](http://support.sphere.io/knowledgebase/articles/307722-install-nodejs-and-get-a-component-running) (platform for running application) 
+* install [NodeJS](http://support.sphere.io/knowledgebase/articles/307722-install-nodejs-and-get-a-component-running) (platform for running application)
 
 ### From scratch
 
@@ -304,8 +304,19 @@ node lib/run export --help
     -h, --help             output usage information
     -t, --template <file>  CSV file containing your header that defines what you want to export
     -o, --out <file>       Path to the file the exporter will write the resulting CSV in
+    -j, --json <file>      Path to the JSON file the exporter will write the resulting products
     -l, --language [lang]  Language used on export for category names
     -q, --queryString      Query string to specify the subset of products to export. Please note that the query must be URL encoded!
+```
+
+#### Export as JSON
+
+You can export all products as JSON by passing a `--json` flag.
+
+##### Example
+
+```
+node lib/run.js export --projectKey <project_key> --clientId <client_id> --clientSecret <client_secret> -j out.json
 ```
 
 #### Export certain products only
