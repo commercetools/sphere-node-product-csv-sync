@@ -79,7 +79,7 @@ module.exports = class
       .command 'import'
       .description 'Import your products from CSV into your SPHERE.IO project.'
       .option '-c, --csv <file>', 'CSV file containing products to import'
-      .option '-l, --language [lang]', 'Default language to using during import', 'en'
+      .option '-l, --language [lang]', 'Default language to using during import (for slug generation, category linking etc.)', 'en'
       .option '--publish', 'When given, all changes will be published immediately'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>'
       .action (opts) ->
