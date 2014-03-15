@@ -1,6 +1,6 @@
 _ = require 'underscore'
+fs = require 'fs'
 Csv = require 'csv'
-CONS = require '../lib/constants'
 Types = require '../lib/types'
 Channels = require '../lib/channels'
 CustomerGroups = require '../lib/customergroups'
@@ -70,6 +70,18 @@ class Export extends CommonUpdater
     .fail (msg) =>
       @returnResult false, msg, callback
 
+  exportAsJson: (outputFile, callback) ->
+    @productService.getAllExistingProducts @rest, @queryString
+    .then (products) =>
+      if _.size(products) is 0
+        @returnResult true, 'No products found.', callback
+        return
+      console.log "Number of products: #{_.size products}."
+      @_saveJSON(outputFile, products).then =>
+        @returnResult true, 'Export done.', callback
+    .fail (msg) =>
+      @returnResult false, msg, callback
+
   createTemplate: (languages, outputFile, allProductTypes = false, callback) ->
     @typesService.getAll(@rest).then (productTypes) =>
       if _.size(productTypes) is 0
@@ -114,6 +126,13 @@ class Export extends CommonUpdater
       deferred.reject err
     .on 'close', (count) ->
       deferred.resolve count
+    deferred.promise
+
+  _saveJSON: (file, content) ->
+    deferred = Q.defer()
+    fs.writeFile file, JSON.stringify(content, null, 2), {encoding: 'utf8'}, (err) ->
+      deferred.reject err if err
+      deferred.resolve true
     deferred.promise
 
   _parse: (csvString) ->

@@ -184,6 +184,7 @@ module.exports = class
       .description 'Export your products from your SPHERE.IO project to CSV using.'
       .option '-t, --template <file>', 'CSV file containing your header that defines what you want to export'
       .option '-o, --out <file>', 'Path to the file the exporter will write the resulting CSV in'
+      .option '-j, --json <file>', 'Path to the JSON file the exporter will write the resulting products'
       .option '-q, --queryString', 'Query string to specify the sub-set of products to export. Please note that the query must be URL encoded!', 'staged=true'
       .option '-l, --language [lang]', 'Language used on export for category names', 'en'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
@@ -208,18 +209,23 @@ module.exports = class
           options.logConfig = 'debug'
 
         exporter = new Exporter options
+        handleResult = (result) ->
+          if result.status
+            console.log result.message
+            process.exit 0
+          console.error result.message
+          process.exit 1
 
-        fs.readFile opts.template, 'utf8', (err, content) ->
-          if err
-            console.error "Problems on reading template file '#{opts.template}': " + err
-            process.exit 2
+        if opts.json
+          # TODO: check that output extension is `.json` ?
+          exporter.exportAsJson opts.json, handleResult
+        else
+          fs.readFile opts.template, 'utf8', (err, content) ->
+            if err
+              console.error "Problems on reading template file '#{opts.template}': " + err
+              process.exit 2
 
-          exporter.export content, opts.out, (result) ->
-            if result.status
-              console.log result.message
-              process.exit 0
-            console.error result.message
-            process.exit 1
+            exporter.export content, opts.out, handleResult
 
     program
       .command 'template'
