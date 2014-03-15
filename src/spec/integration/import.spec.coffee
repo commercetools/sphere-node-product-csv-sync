@@ -56,7 +56,7 @@ describe 'Import', ->
         deferred.resolve response.statusCode
       deferred.promise
 
-    @rest.GET '/products?staged=true&limit=0', (error, response, body) =>
+    @rest.GET '/products?staged=true', (error, response, body) =>
       expect(response.statusCode).toBe 200
       productDeletes = []
       typesDeletes = []

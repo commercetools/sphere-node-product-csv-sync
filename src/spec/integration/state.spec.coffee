@@ -42,7 +42,7 @@ describe 'State', ->
         deferred.resolve response.statusCode
       deferred.promise
 
-    @rest.GET '/products?limit=0', (error, response, body) =>
+    @rest.GET '/products', (error, response, body) =>
       expect(response.statusCode).toBe 200
       productDeletes = []
       typesDeletes = []

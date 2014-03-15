@@ -43,7 +43,7 @@ describe 'Impex', ->
         deferred.resolve response.statusCode
       deferred.promise
 
-    @rest.GET '/products?staged=false&limit=0', (error, response, body) =>
+    @rest.GET '/products?staged=false', (error, response, body) =>
       expect(response.statusCode).toBe 200
       productDeletes = []
       typesDeletes = []
