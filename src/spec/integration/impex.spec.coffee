@@ -69,7 +69,7 @@ describe 'Impex', ->
     p1 =
       """
       #{@productType.name},myProduct1,my-slug1,1,sku1,FR-EUR 999;CHF 1099,some Text,foo
-      ,,,2,sku2,EUR 799,some other Text,foo,t1;t2;t3
+      ,,,2,sku2,EUR 799,some other Text,foo,t1;t2;t3;Üß
       """
     p2 =
       """
