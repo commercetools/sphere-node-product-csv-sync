@@ -65,6 +65,7 @@ node lib/run
 
 For all sub command specific options please call `node lib/run <sub command> --help`.
 
+
 ## Import
 
 ### Usage
@@ -360,3 +361,38 @@ node lib/run groupvariants --help
 ```
 
 > Please note that you don't need any of the global command line options, such as `--projectKey` etc for this sub command.
+
+## General CSV notes
+
+Please make sure to read the following lines use valid CSV format.
+
+### Multi line text cells
+Make sure you enclose multiline cell values properly in quotes
+
+wrong:
+```csv
+header1,header2,header3
+value 1,value 2,this is a
+multiline value
+```
+right:
+```csv
+header1,header2,header3
+value1,value2,"this is a
+multiline value"
+```
+
+### Text cells with quotes
+If your cell value contains a quote, make sure to escape the quote with a two quotes (change `"` to `""`). Also the whole cell value should be enclosed in quotes in this case.
+
+wrong:
+```csv
+header1,header2,header3
+value 1,value 2,this is "value 3"
+```
+
+right:
+```csv
+header1,header2,header3
+value 1,value 2,"this is ""value 3"""
+```
