@@ -12,7 +12,7 @@ class Categories
 
   getAll: (rest) ->
     deferred = Q.defer()
-    rest.GET "/categories?limit=1000", (error, response, body) ->
+    rest.GET "/categories?limit=0", (error, response, body) ->
       if error
         deferred.reject 'Error on getting categories: ' + error
       else if response.statusCode isnt 200
