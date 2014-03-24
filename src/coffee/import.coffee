@@ -145,7 +145,7 @@ class Import extends CommonUpdater
 
     deferred.promise
 
-  create: (product, rowIndex) ->
+  create: (product, rowIndex, ignore400 = false) ->
     deferred = Q.defer()
     @rest.POST '/products', JSON.stringify(product), (error, response, body) =>
       @tickProgress()
@@ -159,7 +159,11 @@ class Import extends CommonUpdater
             deferred.reject msg
         else if response.statusCode is 400
           humanReadable = JSON.stringify body, null, ' '
-          deferred.reject "[row #{rowIndex}] Problem on creating new product:\n" + humanReadable
+          msg = "[row #{rowIndex}] Problem on creating new product:\n" + humanReadable
+          if ignore400
+            deferred.resolve msg
+          else
+            deferred.reject msg
         else
           humanReadable = JSON.stringify body, null, ' '
           deferred.reject "[row #{rowIndex}] Error on creating new product: " + humanReadable
