@@ -6,8 +6,6 @@ class Products
   getAllExistingProducts: (rest, queryString = 'staged=true') ->
     deferred = Q.defer()
 
-    console.log "QUERY", queryString
-
     process.stdout.write 'Fetching products '
     pageProducts = (offset = 0, limit = 100, total, acc = []) ->
       if total? and (offset + limit) >= total + limit

@@ -14,10 +14,12 @@ class Import extends CommonUpdater
     @sync = new ProductSync options
     @rest = @validator.rest
     @productService = new Products()
+    @publishProducts = false
+    @continueOnProblems = false
 
   import: (fileContent, callback) ->
     @validator.parse fileContent, (data, count) =>
-      console.log "CSV with #{count} row(s) loaded."
+      console.log "CSV file with #{count} row(s) loaded."
       @validator.validate(data).then (rawProducts) =>
         if _.size(@validator.errors) isnt 0
           @returnResult false, @validator.map.errors, callback
@@ -29,7 +31,7 @@ class Import extends CommonUpdater
         if _.size(@validator.map.errors) isnt 0
           @returnResult false, @validator.map.errors, callback
           return
-        console.log "Mapping done. Downloading existing products ..."
+        console.log "Mapping done. Fetching existing product(s) ..."
         @productService.getAllExistingProducts(@rest).then (existingProducts) =>
           console.log "Comparing against #{_.size existingProducts} existing product(s) ..."
           @initMatcher existingProducts
@@ -98,7 +100,7 @@ class Import extends CommonUpdater
   createOrUpdate: (products, types, callback) =>
     if _.size(products) is 0
       return @returnResult true, 'Nothing to do.', callback
-    @initProgressBar 'Updating products', _.size(products)
+    @initProgressBar 'Importing product(s)', _.size(products)
     posts = []
     for entry in products
       existingProduct = @match(entry.product)
@@ -138,14 +140,19 @@ class Import extends CommonUpdater
           deferred.resolve "[row #{rowIndex}] Product update not necessary."
         else if response.statusCode is 400
           humanReadable = JSON.stringify body, null, ' '
-          deferred.resolve "[row #{rowIndex}] Problem on updating product:\n" + humanReadable
+          msg = "[row #{rowIndex}] Problem on updating product:\n" + humanReadable
+          if @continueOnProblems
+            deferred.resolve msg
+          else
+            deferred.reject msg
+
         else
           humanReadable = JSON.stringify body, null, ' '
           deferred.reject "[row #{rowIndex}] Error on updating product: " + humanReadable
 
     deferred.promise
 
-  create: (product, rowIndex, ignore400 = false) ->
+  create: (product, rowIndex) ->
     deferred = Q.defer()
     @rest.POST '/products', JSON.stringify(product), (error, response, body) =>
       @tickProgress()
@@ -160,7 +167,7 @@ class Import extends CommonUpdater
         else if response.statusCode is 400
           humanReadable = JSON.stringify body, null, ' '
           msg = "[row #{rowIndex}] Problem on creating new product:\n" + humanReadable
-          if ignore400
+          if @continueOnProblems
             deferred.resolve msg
           else
             deferred.reject msg
@@ -170,7 +177,7 @@ class Import extends CommonUpdater
 
     deferred.promise
 
-  publishProduct: (product, rowIndex, publish = true, ignore400 = false) ->
+  publishProduct: (product, rowIndex, publish = true) ->
     deferred = Q.defer()
     action = if publish then 'publish' else 'unpublish'
     unless @publishProducts
@@ -189,7 +196,7 @@ class Import extends CommonUpdater
         if response.statusCode is 200
           deferred.resolve "[row #{rowIndex}] Product #{action}ed."
         else if response.statusCode is 400
-          if ignore400
+          if @continueOnProblems
             deferred.resolve "[row #{rowIndex}] Product is already #{action}ed."
           else
             humanReadable = JSON.stringify body, null, ' '
