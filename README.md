@@ -223,7 +223,7 @@ https://example.com/image.jpg;http://www.example.com/picture.bmp
 
 ## Product State
 
-This sub command allows you to publish/unpublish or delele as set of (or all) products with once call.
+This sub command allows you to publish/unpublish or delete as set of (or all) products with a single call.
 
 ### Usage
 
