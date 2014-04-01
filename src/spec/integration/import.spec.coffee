@@ -253,6 +253,31 @@ describe 'Import', ->
             expect(res.message).toBe '[row 2] Product updated.'
             done()
 
+    it 'should removeVariant include SameForAll attribute change', (done) ->
+      csv =
+        """
+        productType,name,variantId,slug,descU,descCU1,descS
+        #{@productType.id},myProduct-1,1,slug-1,a,b,SAMESAME
+        ,,2,slug-2,b,a,
+        """
+      @import.import csv, (res) =>
+        expect(res.status).toBe true
+        expect(res.message).toBe '[row 2] New product created.'
+        csv =
+          """
+          productType,name,variantId,slug,descU,descCU1,descS
+          #{@productType.id},myProduct-1,1,slug-1,a,b,SAMESAME_BUTDIFFERENT
+          """
+        im = new Import Config
+        im.import csv, (res) =>
+          expect(res.status).toBe true
+          expect(res.message).toBe '[row 2] Product updated.'
+          @rest.GET "/products?where=productType(id%3D%22#{@productType.id}%22)", (error, response, body) ->
+            expect(_.size body.results).toBe 1
+            p = body.results[0].masterData.staged
+            expect(_.size p.variants).toBe 0
+            done()
+
     it 'should execute SameForAll attribute change before addVariant', (done) ->
       csv =
         """
