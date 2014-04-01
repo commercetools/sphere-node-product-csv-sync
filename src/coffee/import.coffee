@@ -16,6 +16,7 @@ class Import extends CommonUpdater
     @productService = new Products()
     @publishProducts = false
     @continueOnProblems = false
+    @removeVariants = true
 
   import: (fileContent, callback) ->
     @validator.parse fileContent, (data, count) =>
@@ -131,7 +132,7 @@ class Import extends CommonUpdater
     diff = @sync.buildActions(product, existingProduct, allSameValueAttributes)
 
     #console.log "DIFF %j", diff.get()
-    filtered = diff.filterActions (action) ->
+    filtered = diff.filterActions (action) =>
       #console.log "ACTION", action
       switch action.action
         when 'setAttribute', 'setAttributeInAllVariants' then header.has(action.name) or header.hasLanguage(action.name)
@@ -140,6 +141,9 @@ class Import extends CommonUpdater
         when 'setDescription' then header.has(CONS.HEADER_DESCRIPTION) or header.hasLanguage(CONS.HEADER_DESCRIPTION)
         when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
+        when 'addVariant' then true
+        when 'removeVariant' then @removeVariants
+        else throw Error "The action '#{action.action}' is not supported. Please contact the SPHERE.IO team!"
 
     #console.log "FILTERED %j", filtered.get()
 
