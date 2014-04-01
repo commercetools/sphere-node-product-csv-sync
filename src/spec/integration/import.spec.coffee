@@ -371,6 +371,22 @@ describe 'Import', ->
               expect(p.name.en).toBe 'x'
               expect(p.masterVariant.sku).toBe 'baz'
               expect(p.variants[0].sku).toBeUndefined()
+              ats = p.masterVariant.attributes
+              expect(ats[0]).toEqual { name: 'descN', value: 'a' }
+              expect(ats[1]).toEqual { name: 'descU', value: 'b' }
+              expect(ats[2]).toEqual { name: 'descCU1', value: 'c' }
+              expect(ats[3]).toEqual { name: 'descCU2', value: 'd' }
+              expect(ats[4]).toEqual { name: 'descS', value: 'S' }
+              expect(ats[5]).toEqual { name: 'multiEnum', value: [{ key: 'x', label: 'X' }] }
+              expect(ats[6]).toEqual { name: 'multiSamelEnum', value: [{ key: 'cc', label: { en: 'CC', 'de': 'Cc' } }] }
+              ats = p.variants[0].attributes
+              expect(ats[0]).toEqual { name: 'descN', value: 'b' }
+              expect(ats[1]).toEqual { name: 'descU', value: 'c' }
+              expect(ats[2]).toEqual { name: 'descCU1', value: 'd' }
+              expect(ats[3]).toEqual { name: 'descCU2', value: 'e' }
+              expect(ats[4]).toEqual { name: 'descS', value: 'S' }
+              expect(ats[5]).toEqual { name: 'multiEnum', value: [{ key: 'x', label: 'X' }, { key: 'y', label: 'Y' }, { key: 'z', label: 'Z' }] }
+              expect(ats[6]).toEqual { name: 'multiSamelEnum', value: [{ key: 'cc', label: { en: 'CC', 'de': 'Cc' } }] }
               done()
 
 
@@ -382,7 +398,6 @@ describe 'Import', ->
         ,,,2,USD 70000,/example.com/bar.png
         """
       @import.import csv, (res) =>
-        console.log 1, res
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
         csv =
@@ -393,11 +408,9 @@ describe 'Import', ->
           """
         im = new Import Config
         im.import csv, (res) =>
-          console.log 2, res
           expect(res.status).toBe true
           expect(res.message).toBe '[row 2] Product update not necessary.'
           @rest.GET "/products?where=productType(id%3D%22#{@productType.id}%22)", (error, response, body) ->
-            console.log "BODY %j", body
             expect(_.size body.results).toBe 1
             p = body.results[0].masterData.staged
             expect(p.name.en).toBe 'y'
