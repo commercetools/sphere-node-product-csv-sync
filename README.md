@@ -82,6 +82,7 @@ node lib/run import --help
     -l, --language [lang]           Default language to using during import (for slug generation, category linking etc.)
     --continueOnProblems            When a product does not validate on the server side (400er response), ignore it and continue with the next products
     --suppressMissingHeaderWarning  Do not show which headers are missing per produt type.
+    --allowRemovalOfVariants        If given variants will be removed if there is no corresponding row in the CSV. Otherwise they are not touched.
     --publish                       When given, all changes will be published immediately
 ```
 

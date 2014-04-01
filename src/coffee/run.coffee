@@ -82,6 +82,7 @@ module.exports = class
       .option '-l, --language [lang]', 'Default language to using during import (for slug generation, category linking etc.)', 'en'
       .option '--continueOnProblems', 'When a product does not validate on the server side (400er response), ignore it and continue with the next products'
       .option '--suppressMissingHeaderWarning', 'Do not show which headers are missing per produt type.'
+      .option '--allowRemovalOfVariants', 'If given variants will be removed if there is no corresponding row in the CSV. Otherwise they are not touched.'
       .option '--publish', 'When given, all changes will be published immediately'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>'
       .action (opts) ->
@@ -107,6 +108,7 @@ module.exports = class
         importer.publishProducts = opts.publish
         importer.continueOnProblems = opts.continueOnProblems
         importer.validator.suppressMissingHeaderWarning = opts.suppressMissingHeaderWarning
+        importer.allowRemovalOfVariants = opts.allowRemovalOfVariants
 
         fs.readFile opts.csv, 'utf8', (err, content) ->
           if err

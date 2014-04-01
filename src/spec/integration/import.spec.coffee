@@ -5,10 +5,15 @@ Config = require '../config'
 
 jasmine.getEnv().defaultTimeoutInterval = 30000
 
+createImporter = ->
+  im = new Import Config
+  im.allowRemovalOfVariants = true
+  im
+
 describe 'Import', ->
   beforeEach (done) ->
-    @import = new Import Config
-    @rest = @import.validator.rest
+    @importer = createImporter()
+    @rest = @importer.validator.rest
 
     values = [
       { key: 'x', label: 'X' }
@@ -88,7 +93,7 @@ describe 'Import', ->
         productType,name,variantId,slug
         #{@productType.id},myProduct,1,slug
         """
-      @import.import csv, (res) ->
+      @importer.import csv, (res) ->
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
         done()
@@ -99,7 +104,7 @@ describe 'Import', ->
         productType,name,variantId,slug,prices
         #{@productType.id},myProduct,1,slug,EUR 899;CH-EUR 999;CH-USD 77777700 #retailerA
         """
-      @import.import csv, (res) ->
+      @importer.import csv, (res) ->
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
         done()
@@ -110,10 +115,10 @@ describe 'Import', ->
         productType,name,variantId,slug
         #{@productType.id},myProduct1,1,slug
         """
-      @import.import csv, (res) ->
+      @importer.import csv, (res) ->
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
-        im = new Import Config
+        im = createImporter()
         im.import csv, (res) ->
           expect(res.status).toBe true
           expect(res.message).toBe '[row 2] Product update not necessary.'
@@ -125,10 +130,10 @@ describe 'Import', ->
         productType,name,variantId,slug
         #{@productType.id},myProductX,1,sluguniqe
         """
-      @import.import csv, (res) =>
+      @importer.import csv, (res) =>
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
-        im = new Import Config
+        im = createImporter()
         csv =
           """
           productType,name,variantId,slug
@@ -147,10 +152,10 @@ describe 'Import', ->
         ,,2,slug,free,text2,foo,baz,same
         ,,3,slug,,text3,boo,baz,sameDifferentWhichWillBeIgnoredAsItIsDefined
         """
-      @import.import csv, (res) =>
+      @importer.import csv, (res) =>
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
-        im = new Import Config
+        im = createImporter()
         im.import csv, (res) =>
           expect(res.status).toBe true
           expect(res.message).toBe '[row 2] Product update not necessary.'
@@ -161,7 +166,7 @@ describe 'Import', ->
             ,,2,slug,free,text2,foo,baz,STILL_SAME
             ,,3,slug,CHANGED,text3,boo,baz,STILL_SAME
             """
-          im = new Import Config
+          im = createImporter()
           im.import csv, (res) ->
             expect(res.status).toBe true
             expect(res.message).toBe '[row 2] Product updated.'
@@ -176,13 +181,13 @@ describe 'Import', ->
         #{@productType.id},myProduct2,1,slug2
         #{@productType.id},myProduct3,1,slug3
         """
-      @import.import csv, (res) ->
+      @importer.import csv, (res) ->
         expect(res.status).toBe true
         expect(_.size res.message).toBe 3
         expect(res.message['[row 2] New product created.']).toBe 1
         expect(res.message['[row 4] New product created.']).toBe 1
         expect(res.message['[row 5] New product created.']).toBe 1
-        im = new Import Config
+        im = createImporter()
         im.import csv, (res) ->
           expect(res.status).toBe true
           expect(_.size res.message).toBe 3
@@ -198,10 +203,10 @@ describe 'Import', ->
         #{@productType.id},myProduct1,1,slug1,y;x,a,b
         ,,2,slug2,x;z,b,a
         """
-      @import.import csv, (res) =>
+      @importer.import csv, (res) =>
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
-        im = new Import Config
+        im = createImporter()
         im.import csv, (res) =>
           expect(res.status).toBe true
           expect(res.message).toBe '[row 2] Product update not necessary.'
@@ -211,7 +216,7 @@ describe 'Import', ->
             #{@productType.id},myProduct1,1,slug1,y;x;z,a,b
             ,,2,slug2,z,b,a
             """
-          im = new Import Config
+          im = createImporter()
           im.import csv, (res) ->
             expect(res.status).toBe true
             expect(res.message).toBe '[row 2] Product updated.'
@@ -223,10 +228,10 @@ describe 'Import', ->
         productType,name,variantId,slug,sku,multiSamelEnum,descU,descCU1
         #{@productType.id},myProduct1,1,slug1,sku1,aa;bb;cc,a,b
         """
-      @import.import csv, (res) =>
+      @importer.import csv, (res) =>
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
-        im = new Import Config
+        im = createImporter()
         im.import csv, (res) =>
           expect(res.status).toBe true
           expect(res.message).toBe '[row 2] Product update not necessary.'
@@ -247,7 +252,7 @@ describe 'Import', ->
             ,,12,slug12,,sku12,l,l
             ,,13,slug13,,sku13,m,m
             """
-          im = new Import Config
+          im = createImporter()
           im.import csv, (res) ->
             expect(res.status).toBe true
             expect(res.message).toBe '[row 2] Product updated.'
@@ -260,7 +265,7 @@ describe 'Import', ->
         #{@productType.id},myProduct-1,1,slug-1,a,b,SAMESAME
         ,,2,slug-2,b,a,
         """
-      @import.import csv, (res) =>
+      @importer.import csv, (res) =>
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
         csv =
@@ -268,7 +273,7 @@ describe 'Import', ->
           productType,name,variantId,slug,descU,descCU1,descS
           #{@productType.id},myProduct-1,1,slug-1,a,b,SAMESAME_BUTDIFFERENT
           """
-        im = new Import Config
+        im = createImporter()
         im.import csv, (res) =>
           expect(res.status).toBe true
           expect(res.message).toBe '[row 2] Product updated.'
@@ -284,7 +289,7 @@ describe 'Import', ->
         productType,name,variantId,slug,descU,descCU1,descS
         #{@productType.id},myProduct-1,1,slug-1,a,b,SAMESAME
         """
-      @import.import csv, (res) =>
+      @importer.import csv, (res) =>
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
         csv =
@@ -293,7 +298,7 @@ describe 'Import', ->
           #{@productType.id},myProduct-1,1,slug-1,a,b,SAMESAME_BUTDIFFERENT
           ,,2,slug-2,b,a,WE_WILL_IGNORE_THIS
           """
-        im = new Import Config
+        im = createImporter()
         im.import csv, (res) ->
           expect(res.status).toBe true
           expect(res.message).toBe '[row 2] Product updated.'
@@ -305,7 +310,7 @@ describe 'Import', ->
         productType,name.en,description.en,slug.en,variantId
         #{@productType.id},myProductX,foo bar,my-product-x,1
         """
-      @import.import csv, (res) =>
+      @importer.import csv, (res) =>
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
         csv =
@@ -313,7 +318,7 @@ describe 'Import', ->
           productType,slug.en,variantId
           #{@productType.id},my-product-x,1
           """
-        im = new Import Config
+        im = createImporter()
         im.import csv, (res) =>
           expect(res.status).toBe true
           expect(res.message).toBe '[row 2] Product update not necessary.'
@@ -322,7 +327,7 @@ describe 'Import', ->
             productType,slug,name,variantId,sku
             #{@productType.id},my-product-x,XYZ,1,foo
             """
-          im = new Import Config
+          im = createImporter()
           im.import csv, (res) =>
             expect(res.status).toBe true
             expect(res.message).toBe '[row 2] Product updated.'
@@ -342,7 +347,7 @@ describe 'Import', ->
         #{@productType.id},x,my-slug,1,a,b,c,d,S,x,aa;bb,foo
         ,,,2,b,c,d,e,S,x;y;z,,bar
         """
-      @import.import csv, (res) =>
+      @importer.import csv, (res) =>
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
         csv =
@@ -351,7 +356,7 @@ describe 'Import', ->
           #{@productType.id},1,foo
           ,2,bar
           """
-        im = new Import Config
+        im = createImporter()
         im.import csv, (res) =>
           expect(res.status).toBe true
           expect(res.message).toBe '[row 2] Product update not necessary.'
@@ -361,7 +366,7 @@ describe 'Import', ->
           #{@productType.id},x,my-slug,1,cc,baz
           ,,,2
           """
-          im = new Import Config
+          im = createImporter()
           im.import csv, (res) =>
             expect(res.status).toBe true
             expect(res.message).toBe '[row 2] Product updated.'
@@ -397,7 +402,7 @@ describe 'Import', ->
         #{@productType.id},y,my-slug,1,EUR 999,//example.com/foo.jpg
         ,,,2,USD 70000,/example.com/bar.png
         """
-      @import.import csv, (res) =>
+      @importer.import csv, (res) =>
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
         csv =
@@ -406,7 +411,7 @@ describe 'Import', ->
           #{@productType.id},my-slug,1
           ,,2
           """
-        im = new Import Config
+        im = createImporter()
         im.import csv, (res) =>
           expect(res.status).toBe true
           expect(res.message).toBe '[row 2] Product update not necessary.'

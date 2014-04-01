@@ -16,7 +16,7 @@ class Import extends CommonUpdater
     @productService = new Products()
     @publishProducts = false
     @continueOnProblems = false
-    @removeVariants = true
+    @allowRemovalOfVariants = false
 
   import: (fileContent, callback) ->
     @validator.parse fileContent, (data, count) =>
@@ -147,7 +147,7 @@ class Import extends CommonUpdater
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
         when 'setSKU' then header.has(CONS.HEADER_SKU)
         when 'addVariant' then true
-        when 'removeVariant' then @removeVariants
+        when 'removeVariant' then @allowRemovalOfVariants
         else throw Error "The action '#{action.action}' is not supported. Please contact the SPHERE.IO team!"
 
     #console.log "FILTERED %j", filtered.get()
