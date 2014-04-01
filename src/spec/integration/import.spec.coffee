@@ -217,7 +217,7 @@ describe 'Import', ->
             expect(res.message).toBe '[row 2] Product updated.'
             done()
 
-    it 'should handle set of SameForAll enums', (done) ->
+    it 'should handle set of SameForAll enums with new variants', (done) ->
       csv =
         """
         productType,name,variantId,slug,sku,multiSamelEnum,descU,descCU1
@@ -253,7 +253,7 @@ describe 'Import', ->
             expect(res.message).toBe '[row 2] Product updated.'
             done()
 
-    it 'should addVariant include SameForAll attribute change', (done) ->
+    it 'should execute SameForAll attribute change before addVariant', (done) ->
       csv =
         """
         productType,name,variantId,slug,descU,descCU1,descS
