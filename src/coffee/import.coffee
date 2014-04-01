@@ -75,13 +75,14 @@ class Import extends CommonUpdater
     @slug2index = {}
     for product, index in existingProducts
       @id2index[product.id] = index
-      slug = product.slug[CONS.DEFAULT_LANGUAGE]
-      @slug2index[slug] = index if slug
+      if product.slug? and product.slug[CONS.DEFAULT_LANGUAGE]?
+        @slug2index[slug] = product.slug[CONS.DEFAULT_LANGUAGE]
+
       mSku = @getSku(product.masterVariant)
-      @sku2index[mSku] = index if mSku
+      @sku2index[mSku] = index if mSku?
       for variant in product.variants
         vSku = @getSku(variant)
-        @sku2index[vSku] = index if vSku
+        @sku2index[vSku] = index if vSku?
 
     #console.log "Matched #{_.size @id2index} product(s) by id."
     #console.log "Matched #{_.size @sku2index} product(s) by sku."
@@ -91,11 +92,11 @@ class Import extends CommonUpdater
     variant.sku
 
   match: (product) ->
-    index = @id2index[product.id] if product.id
-    unless index
-      index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku
-      unless index
-        index = @slug2index[product.slug[CONS.DEFAULT_LANGUAGE] ] if product.slug[CONS.DEFAULT_LANGUAGE]
+    index = @id2index[product.id] if product.id?
+    unless index?
+      index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku?
+      unless index?
+        index = @slug2index[product.slug[CONS.DEFAULT_LANGUAGE] ] if product.slug? and product.slug[CONS.DEFAULT_LANGUAGE]?
     return @existingProducts[index] if index > -1
 
   createOrUpdate: (products, types, callback) =>
@@ -150,7 +151,7 @@ class Import extends CommonUpdater
 
     filtered.update (error, response, body) =>
       @tickProgress()
-      if error
+      if error?
         deferred.reject "[row #{rowIndex}] Error on updating product: " + error
       else
         if response.statusCode is 200
@@ -178,7 +179,7 @@ class Import extends CommonUpdater
     deferred = Q.defer()
     @rest.POST '/products', JSON.stringify(product), (error, response, body) =>
       @tickProgress()
-      if error
+      if error?
         deferred.reject "[row #{rowIndex}] Error on creating new product: " + error
       else
         if response.statusCode is 201
@@ -212,7 +213,7 @@ class Import extends CommonUpdater
         action: action
       ]
     @rest.POST "/products/#{product.id}", JSON.stringify(data), (error, response, body) ->
-      if error
+      if error?
         deferred.reject "[row #{rowIndex}] Error on #{action}ing product: " + error
       else
         if response.statusCode is 200
@@ -232,7 +233,7 @@ class Import extends CommonUpdater
   deleteProduct: (product, rowIndex) ->
     deferred = Q.defer()
     @rest.DELETE "/products/#{product.id}?version=#{product.version}", (error, response, body) ->
-      if error
+      if error?
         deferred.reject "[row #{rowIndex}] Error on deleting product: " + error
       else
         if response.statusCode is 200

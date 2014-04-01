@@ -347,9 +347,9 @@ describe 'Import', ->
         expect(res.message).toBe '[row 2] New product created.'
         csv =
           """
-          productType,name,slug,variantId
-          #{@productType.id},x,my-slug,1
-          ,,,2
+          productType,variantId,sku
+          #{@productType.id},1,foo
+          ,2,bar
           """
         im = new Import Config
         im.import csv, (res) =>
@@ -402,9 +402,9 @@ describe 'Import', ->
         expect(res.message).toBe '[row 2] New product created.'
         csv =
           """
-          productType,name,slug,variantId
-          #{@productType.id},y,my-slug,1
-          ,,,2
+          productType,slug,variantId
+          #{@productType.id},my-slug,1
+          ,,2
           """
         im = new Import Config
         im.import csv, (res) =>

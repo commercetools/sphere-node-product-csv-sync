@@ -47,7 +47,8 @@ class Mapping
 
     unless product.slug
       product.slug = {}
-      product.slug[CONS.DEFAULT_LANGUAGE] = @ensureValidSlug(_s.slugify product.name[CONS.DEFAULT_LANGUAGE], rowIndex)
+      if product.name? and product.name[CONS.DEFAULT_LANGUAGE]?
+        product.slug[CONS.DEFAULT_LANGUAGE] = @ensureValidSlug(_s.slugify product.name[CONS.DEFAULT_LANGUAGE], rowIndex)
 
     product
 
