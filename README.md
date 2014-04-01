@@ -77,11 +77,12 @@ node lib/run import --help
 
   Options:
 
-    -h, --help             output usage information
-    -c, --csv <file>       CSV file containing products to import
-    -l, --language [lang]  Default language to using during import
-    --continueOnProblems   When a product does not validate on the server side (400er response), ignore it and continue with the next products
-    --publish              When given, all changes will be published immediately
+    -h, --help                      output usage information
+    -c, --csv <file>                CSV file containing products to import
+    -l, --language [lang]           Default language to using during import (for slug generation, category linking etc.)
+    --continueOnProblems            When a product does not validate on the server side (400er response), ignore it and continue with the next products
+    --suppressMissingHeaderWarning  Do not show which headers are missing per produt type.
+    --publish                       When given, all changes will be published immediately
 ```
 
 ### CSV Format
