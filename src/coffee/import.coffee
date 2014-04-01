@@ -38,9 +38,11 @@ class Import extends CommonUpdater
           @initMatcher existingProducts
           @createOrUpdate products, @validator.types, callback
         .fail (msg) =>
+          #console.log "ERR1", msg
           @returnResult false, msg, callback
         .done()
       .fail (msg) =>
+        #console.log "ERR2", msg
         @returnResult false, msg, callback
 
   changeState: (publish = true, remove = false, filterFunction, callback) ->
@@ -75,8 +77,9 @@ class Import extends CommonUpdater
     @slug2index = {}
     for product, index in existingProducts
       @id2index[product.id] = index
-      if product.slug? and product.slug[CONS.DEFAULT_LANGUAGE]?
-        @slug2index[slug] = product.slug[CONS.DEFAULT_LANGUAGE]
+      if product.slug?
+        slug = product.slug[CONS.DEFAULT_LANGUAGE]
+        @slug2index[slug] = index if slug?
 
       mSku = @getSku(product.masterVariant)
       @sku2index[mSku] = index if mSku?
@@ -93,10 +96,10 @@ class Import extends CommonUpdater
 
   match: (product) ->
     index = @id2index[product.id] if product.id?
-    unless index?
+    unless index
       index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku?
-      unless index?
-        index = @slug2index[product.slug[CONS.DEFAULT_LANGUAGE] ] if product.slug? and product.slug[CONS.DEFAULT_LANGUAGE]?
+      unless index
+        index = @slug2index[product.slug[CONS.DEFAULT_LANGUAGE]] if product.slug? and product.slug[CONS.DEFAULT_LANGUAGE]?
     return @existingProducts[index] if index > -1
 
   createOrUpdate: (products, types, callback) =>
@@ -106,7 +109,7 @@ class Import extends CommonUpdater
     posts = []
     for entry in products
       existingProduct = @match(entry.product)
-      if existingProduct
+      if existingProduct?
         posts.push @update(entry.product, existingProduct, types, entry.header, entry.rowIndex)
       else
         posts.push @create(entry.product, entry.rowIndex)
