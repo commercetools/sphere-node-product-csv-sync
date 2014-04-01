@@ -129,7 +129,7 @@ class Import extends CommonUpdater
     config.push { type: 'prices', group: 'black' } unless header.has(CONS.HEADER_PRICES)
     config.push { type: 'images', group: 'black' } unless header.has(CONS.HEADER_IMAGES)
 
-    diff = @sync.buildActions(product, existingProduct, allSameValueAttributes)
+    diff = @sync.config(config).buildActions(product, existingProduct, allSameValueAttributes)
 
     #console.log "DIFF %j", diff.get()
     filtered = diff.filterActions (action) =>

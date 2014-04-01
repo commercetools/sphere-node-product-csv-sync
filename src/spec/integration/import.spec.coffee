@@ -344,3 +344,37 @@ describe 'Import', ->
               p = body.results[0].masterData.staged
               expect(p.name.en).toBe 'x'
               done()
+
+
+    it 'should do a partial update of prices and images', (done) ->
+      csv =
+        """
+        productType,name,slug,variantId,prices,images
+        #{@productType.id},y,my-slug,1,EUR 999,//example.com/foo.jpg
+        ,,,2,USD 70000,/example.com/bar.png
+        """
+      @import.import csv, (res) =>
+        console.log 1, res
+        expect(res.status).toBe true
+        expect(res.message).toBe '[row 2] New product created.'
+        csv =
+          """
+          productType,name,slug,variantId
+          #{@productType.id},y,my-slug,1
+          ,,,2
+          """
+        im = new Import Config
+        im.import csv, (res) =>
+          console.log 2, res
+          expect(res.status).toBe true
+          expect(res.message).toBe '[row 2] Product update not necessary.'
+          @rest.GET "/products?where=productType(id%3D%22#{@productType.id}%22)", (error, response, body) ->
+            console.log "BODY %j", body
+            expect(_.size body.results).toBe 1
+            p = body.results[0].masterData.staged
+            expect(p.name.en).toBe 'y'
+            expect(p.masterVariant.prices[0].value).toEqual { centAmount: 999, currencyCode: 'EUR' }
+            expect(p.variants[0].prices[0].value).toEqual { centAmount: 70000, currencyCode: 'USD' }
+            expect(p.masterVariant.images[0].url).toBe '//example.com/foo.jpg'
+            expect(p.variants[0].images[0].url).toBe '/example.com/bar.png'
+            done()
