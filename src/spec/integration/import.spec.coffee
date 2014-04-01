@@ -310,8 +310,8 @@ describe 'Import', ->
         expect(res.message).toBe '[row 2] New product created.'
         csv =
           """
-          productType,slug.en,variantId,sku
-          #{@productType.id},my-product-x,1,foo
+          productType,slug.en,variantId
+          #{@productType.id},my-product-x,1
           """
         im = new Import Config
         im.import csv, (res) =>
@@ -319,8 +319,8 @@ describe 'Import', ->
           expect(res.message).toBe '[row 2] Product update not necessary.'
           csv =
             """
-            productType,slug,name,variantId
-            #{@productType.id},my-product-x,XYZ,1
+            productType,slug,name,variantId,sku
+            #{@productType.id},my-product-x,XYZ,1,foo
             """
           im = new Import Config
           im.import csv, (res) =>
@@ -332,14 +332,15 @@ describe 'Import', ->
               expect(p.name.en).toBe 'XYZ'
               expect(p.description.en).toBe 'foo bar'
               expect(p.slug.en).toBe 'my-product-x'
+              expect(p.masterVariant.sku).toBe 'foo'
               done()
 
     it 'should do a partial update of custom attributes', (done) ->
       csv =
         """
-        productType,name,slug,variantId,descN,descU,descCU1,descCU2,descS,multiEnum,multiSamelEnum
-        #{@productType.id},x,my-slug,1,a,b,c,d,S,x,aa;bb
-        ,,,2,b,c,d,e,S,x;y;z,
+        productType,name,slug,variantId,descN,descU,descCU1,descCU2,descS,multiEnum,multiSamelEnum,sku
+        #{@productType.id},x,my-slug,1,a,b,c,d,S,x,aa;bb,foo
+        ,,,2,b,c,d,e,S,x;y;z,,bar
         """
       @import.import csv, (res) =>
         expect(res.status).toBe true
@@ -356,8 +357,8 @@ describe 'Import', ->
           expect(res.message).toBe '[row 2] Product update not necessary.'
           csv =
           """
-          productType,name,slug,variantId,multiSamelEnum
-          #{@productType.id},x,my-slug,1,cc
+          productType,name,slug,variantId,multiSamelEnum,sku
+          #{@productType.id},x,my-slug,1,cc,baz
           ,,,2
           """
           im = new Import Config
@@ -368,6 +369,8 @@ describe 'Import', ->
               expect(_.size body.results).toBe 1
               p = body.results[0].masterData.staged
               expect(p.name.en).toBe 'x'
+              expect(p.masterVariant.sku).toBe 'baz'
+              expect(p.variants[0].sku).toBeUndefined()
               done()
 
 

@@ -141,6 +141,7 @@ class Import extends CommonUpdater
         when 'setDescription' then header.has(CONS.HEADER_DESCRIPTION) or header.hasLanguage(CONS.HEADER_DESCRIPTION)
         when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
+        when 'setSKU' then header.has(CONS.HEADER_SKU)
         when 'addVariant' then true
         when 'removeVariant' then @removeVariants
         else throw Error "The action '#{action.action}' is not supported. Please contact the SPHERE.IO team!"
