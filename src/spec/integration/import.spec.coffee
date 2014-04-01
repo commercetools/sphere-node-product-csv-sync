@@ -281,7 +281,6 @@ describe 'Import', ->
         #{@productType.id},myProductX,foo bar,my-product-x,1
         """
       @import.import csv, (res) =>
-        console.log 1, res
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
         csv =
@@ -291,7 +290,6 @@ describe 'Import', ->
           """
         im = new Import Config
         im.import csv, (res) =>
-          console.log 2, res
           expect(res.status).toBe true
           expect(res.message).toBe '[row 2] Product update not necessary.'
           csv =
@@ -301,11 +299,9 @@ describe 'Import', ->
             """
           im = new Import Config
           im.import csv, (res) =>
-            console.log 3, res
             expect(res.status).toBe true
             expect(res.message).toBe '[row 2] Product updated.'
             @rest.GET '/products', (error, response, body) ->
-              console.log "BOOOODY", body
               expect(_.size body.results).toBe 1
               p = body.results[0].masterData.staged
               expect(p.name.en).toBe 'XYZ'
@@ -321,7 +317,6 @@ describe 'Import', ->
         ,,,2,b,c,d,e,S,x;y;z,
         """
       @import.import csv, (res) =>
-        console.log "RES %j", res
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
         csv =
@@ -345,7 +340,6 @@ describe 'Import', ->
             expect(res.status).toBe true
             expect(res.message).toBe '[row 2] Product updated.'
             @rest.GET "/products?where=productType(id%3D%22#{@productType.id}%22)", (error, response, body) ->
-              console.log "BOOOODY", body
               expect(_.size body.results).toBe 1
               p = body.results[0].masterData.staged
               expect(p.name.en).toBe 'x'
