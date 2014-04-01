@@ -29,6 +29,7 @@ class Validator
     @rest = new Rest options if options.config
     @rawProducts = []
     @errors = []
+    @suppressHeaderWarnings = false
 
   parse: (csvString, callback) ->
     Csv().from.string(csvString)
@@ -61,6 +62,8 @@ class Validator
       @categories.buildMaps categories
       @taxes.buildMaps taxes
       @channels.buildMaps channels
+
+      @valProductTypes @productTypes
       @valProducts @rawProducts
 
       if _.size(@errors) is 0
@@ -89,6 +92,15 @@ class Validator
         product.variants.push row
       else
         @errors.push "[row #{rowIndex}] Could not be identified as product or variant!"
+
+  valProductTypes: (productTypes) ->
+    return if @suppressHeaderWarnings
+    _.each productTypes, (pt) =>
+      attributes = @header.missingHeaderForProductType pt
+      unless _.isEmpty(attributes)
+        console.warn "For the product type '#{pt.name}' the following attributes don't have a matching header:"
+        _.each attributes, (attr) ->
+          console.warn "  #{attr.name}: type '#{attr.type.name} #{if attr.type.name is 'set' then 'of ' + attr.type.elementType.name  else ''}' - constraint '#{attr.attributeConstraint}' - #{if attr.isRequired then 'isRequired' else 'optional'}"
 
   valProducts: (products) ->
     _.each products, (product) =>
