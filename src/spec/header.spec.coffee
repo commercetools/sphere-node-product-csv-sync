@@ -98,3 +98,26 @@ describe 'Header', ->
         expect(langH2i['a1']['de']).toBe 1
         expect(langH2i['a1']['it']).toBe 3
         done()
+
+  describe '#missingHeaderForProductType', ->
+    it 'should give list of attributes that are not covered by headers', ->
+      csv =
+        """
+        foo,a1.de,bar,a1.it
+        """
+      productType =
+        id: 'whatAtype'
+        attributes: [
+          { name: 'foo', type: { name: 'text' } }
+          { name: 'bar', type: { name: 'enum' } }
+          { name: 'a1', type: { name: 'ltext' } }
+          { name: 'a2', type: { name: 'set' } }
+        ]
+      @validator.parse csv, =>
+        header = @validator.header
+        header.toIndex()
+        header.toLanguageIndex()
+        missingHeaders = header.missingHeaderForProductType(productType)
+        console.log "MISSING %j", missingHeaders
+        expect(_.size missingHeaders).toBe 1
+        expect(missingHeaders[0]).toEqual { name: 'a2', type: { name: 'set' } }

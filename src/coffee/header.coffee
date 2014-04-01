@@ -74,4 +74,8 @@ class Header
       @productTypeId2HeaderIndex[productType.id] = langH2i
     langH2i
 
+  missingHeaderForProductType: (productType) ->
+    _.filter productType.attributes, (attribute) =>
+      not @has(attribute.name) and not @productTypeAttributeToIndex(productType, attribute)
+
 module.exports = Header
