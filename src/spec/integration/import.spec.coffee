@@ -283,6 +283,32 @@ describe 'Import', ->
             expect(_.size p.variants).toBe 0
             done()
 
+    it 'should not removeVariant if allowRemovalOfVariants is off', (done) ->
+      csv =
+        """
+        productType,name,variantId,slug,descU,descCU1
+        #{@productType.id},myProduct-1,1,slug-1,a,b
+        ,,2,slug-2,b,a,
+        """
+      @importer.import csv, (res) =>
+        expect(res.status).toBe true
+        expect(res.message).toBe '[row 2] New product created.'
+        csv =
+          """
+          productType,name,variantId,slug,descU,descCU1
+          #{@productType.id},myProduct-1,1,slug-1,a,b
+          """
+        im = createImporter()
+        im.allowRemovalOfVariants = false
+        im.import csv, (res) =>
+          expect(res.status).toBe true
+          expect(res.message).toBe '[row 2] Product update not necessary.'
+          @rest.GET "/products?where=productType(id%3D%22#{@productType.id}%22)", (error, response, body) ->
+            expect(_.size body.results).toBe 1
+            p = body.results[0].masterData.staged
+            expect(_.size p.variants).toBe 1
+            done()
+
     it 'should execute SameForAll attribute change before addVariant', (done) ->
       csv =
         """
