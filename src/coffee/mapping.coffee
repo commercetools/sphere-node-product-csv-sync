@@ -24,6 +24,7 @@ class Mapping
     data =
       product: product
       rowIndex: raw.startRow
+      header: @header
 
   mapBaseProduct: (rawMaster, productType, rowIndex) ->
     product =

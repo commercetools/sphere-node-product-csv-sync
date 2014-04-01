@@ -105,7 +105,7 @@ class Import extends CommonUpdater
     for entry in products
       existingProduct = @match(entry.product)
       if existingProduct
-        posts.push @update(entry.product, existingProduct, types, entry.rowIndex)
+        posts.push @update(entry.product, existingProduct, types, entry.header, entry.rowIndex)
       else
         posts.push @create(entry.product, entry.rowIndex)
     @processInBatches posts, callback
@@ -121,12 +121,29 @@ class Import extends CommonUpdater
     .fail (msg) =>
       @returnResult false, msg, callback
 
-  update: (product, existingProduct, types, rowIndex) ->
+  update: (product, existingProduct, types, header, rowIndex) ->
     deferred = Q.defer()
     allSameValueAttributes = types.id2SameForAllAttributes[product.productType.id]
+    config = []
+    config.push { type: 'prices', group: 'black' } unless header.has(CONS.HEADER_PRICES)
+    config.push { type: 'images', group: 'black' } unless header.has(CONS.HEADER_IMAGES)
+
     diff = @sync.buildActions(product, existingProduct, allSameValueAttributes)
-    # console.log "ACTIONS %j", diff.get()
-    diff.update (error, response, body) =>
+
+    #console.log "DIFF %j", diff.get()
+    filtered = diff.filterActions (action) ->
+      #console.log "ACTION", action
+      switch action.action
+        when 'setAttribute', 'setAttributeInAllVariants' then header.has(action.name) or header.hasLanguage(action.name)
+        when 'changeName' then header.has(CONS.HEADER_NAME) or header.hasLanguage(CONS.HEADER_NAME)
+        when 'changeSlug' then header.has(CONS.HEADER_SLUG) or header.hasLanguage(CONS.HEADER_SLUG)
+        when 'setDescription' then header.has(CONS.HEADER_DESCRIPTION) or header.hasLanguage(CONS.HEADER_DESCRIPTION)
+        when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
+        when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
+
+    #console.log "FILTERED %j", filtered.get()
+
+    filtered.update (error, response, body) =>
       @tickProgress()
       if error
         deferred.reject "[row #{rowIndex}] Error on updating product: " + error

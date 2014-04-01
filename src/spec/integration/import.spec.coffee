@@ -273,3 +273,80 @@ describe 'Import', ->
           expect(res.status).toBe true
           expect(res.message).toBe '[row 2] Product updated.'
           done()
+
+    it 'should do a partial update of product base attributes', (done) ->
+      csv =
+        """
+        productType,name.en,description.en,slug.en,variantId
+        #{@productType.id},myProductX,foo bar,my-product-x,1
+        """
+      @import.import csv, (res) =>
+        console.log 1, res
+        expect(res.status).toBe true
+        expect(res.message).toBe '[row 2] New product created.'
+        csv =
+          """
+          productType,slug.en,variantId,sku
+          #{@productType.id},my-product-x,1,foo
+          """
+        im = new Import Config
+        im.import csv, (res) =>
+          console.log 2, res
+          expect(res.status).toBe true
+          expect(res.message).toBe '[row 2] Product update not necessary.'
+          csv =
+            """
+            productType,slug,name,variantId
+            #{@productType.id},my-product-x,XYZ,1
+            """
+          im = new Import Config
+          im.import csv, (res) =>
+            console.log 3, res
+            expect(res.status).toBe true
+            expect(res.message).toBe '[row 2] Product updated.'
+            @rest.GET '/products', (error, response, body) ->
+              console.log "BOOOODY", body
+              expect(_.size body.results).toBe 1
+              p = body.results[0].masterData.staged
+              expect(p.name.en).toBe 'XYZ'
+              expect(p.description.en).toBe 'foo bar'
+              expect(p.slug.en).toBe 'my-product-x'
+              done()
+
+    it 'should do a partial update of custom attributes', (done) ->
+      csv =
+        """
+        productType,name,slug,variantId,descN,descU,descCU1,descCU2,descS,multiEnum,multiSamelEnum
+        #{@productType.id},x,my-slug,1,a,b,c,d,S,x,aa;bb
+        ,,,2,b,c,d,e,S,x;y;z,
+        """
+      @import.import csv, (res) =>
+        console.log "RES %j", res
+        expect(res.status).toBe true
+        expect(res.message).toBe '[row 2] New product created.'
+        csv =
+          """
+          productType,name,slug,variantId
+          #{@productType.id},x,my-slug,1
+          ,,,2
+          """
+        im = new Import Config
+        im.import csv, (res) =>
+          expect(res.status).toBe true
+          expect(res.message).toBe '[row 2] Product update not necessary.'
+          csv =
+          """
+          productType,name,slug,variantId,multiSamelEnum
+          #{@productType.id},x,my-slug,1,cc
+          ,,,2
+          """
+          im = new Import Config
+          im.import csv, (res) =>
+            expect(res.status).toBe true
+            expect(res.message).toBe '[row 2] Product updated.'
+            @rest.GET "/products?where=productType(id%3D%22#{@productType.id}%22)", (error, response, body) ->
+              console.log "BOOOODY", body
+              expect(_.size body.results).toBe 1
+              p = body.results[0].masterData.staged
+              expect(p.name.en).toBe 'x'
+              done()
