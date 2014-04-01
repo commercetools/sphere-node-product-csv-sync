@@ -29,7 +29,7 @@ class Validator
     @rest = new Rest options if options.config
     @rawProducts = []
     @errors = []
-    @suppressHeaderWarnings = false
+    @suppressMissingHeaderWarning = false
 
   parse: (csvString, callback) ->
     Csv().from.string(csvString)
@@ -94,7 +94,7 @@ class Validator
         @errors.push "[row #{rowIndex}] Could not be identified as product or variant!"
 
   valProductTypes: (productTypes) ->
-    return if @suppressHeaderWarnings
+    return if @suppressMissingHeaderWarning
     _.each productTypes, (pt) =>
       attributes = @header.missingHeaderForProductType pt
       unless _.isEmpty(attributes)
