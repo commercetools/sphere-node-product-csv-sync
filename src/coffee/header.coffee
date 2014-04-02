@@ -75,6 +75,7 @@ class Header
     langH2i
 
   missingHeaderForProductType: (productType) ->
+    @toIndex()
     _.filter productType.attributes, (attribute) =>
       not @has(attribute.name) and not @productTypeAttributeToIndex(productType, attribute)
 
