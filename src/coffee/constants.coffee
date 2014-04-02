@@ -2,20 +2,29 @@ constants =
   # This isn't a constants - TODO move it to proper location
   DEFAULT_LANGUAGE: 'en'
 
-  HEADER_ID: 'id'
   HEADER_PRODUCT_TYPE: 'productType'
+  HEADER_ID: 'id'
+  HEADER_VARIANT_ID: 'variantId'
+
   HEADER_NAME: 'name'
   HEADER_DESCRIPTION: 'description'
-  HEADER_VARIANT_ID: 'variantId'
   HEADER_SLUG: 'slug'
-  HEADER_SKU: 'sku'
-  HEADER_PRICES: 'prices'
+
+  HEADER_META_TITLE: 'metaTitle'
+  HEADER_META_DESCRIPTION: 'metaDescription'
+  HEADER_META_KEYWORDS: 'metaKeywords'
+
   HEADER_TAX: 'tax'
   HEADER_CATEGORIES: 'categories'
+
+  HEADER_SKU: 'sku'
+  HEADER_PRICES: 'prices'
   HEADER_IMAGES: 'images'
   HEADER_IMAGE_LABELS: 'imageLabels'
   HEADER_IMAGE_DIMENSIONS: 'imageDimensions'
-  HEADER_PUBLISH: 'publish'
+
+  # HEADER_PUBLISH: '_publish'
+  # HEADER_PUBLISH: '_hasStagedChanges'
 
   DELIM_HEADER_LANGUAGE: '.'
   DELIM_MULTI_VALUE: ';'
@@ -47,9 +56,9 @@ exports.BASE_LOCALIZED_HEADERS = [
   constants.HEADER_NAME,
   constants.HEADER_DESCRIPTION
   constants.HEADER_SLUG,
-  'metaTitle',
-  'metaDescription',
-  'metaKeywords'
+  constants.HEADER_META_TITLE,
+  constants.HEADER_META_DESCRIPTION,
+  constants.HEADER_META_KEYWORDS
 ]
 
 exports.SPECIAL_HEADERS = [
