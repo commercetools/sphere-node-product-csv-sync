@@ -239,6 +239,7 @@ node lib/run state --help
     -h, --help                             output usage information
     --changeTo <publish,unpublish,delete>  publish unpublished products / unpublish published products / delete unpublished products
     --csv <file>                           processes products defined in a CSV file by either "sku" or "id". Otherwise all products are processed.
+    --continueOnProblems                   When a there is a problem on changing a product's state (400er response), ignore it and continue with the next products
 ```
 
 #### CSV format
