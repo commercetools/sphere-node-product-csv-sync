@@ -128,6 +128,7 @@ module.exports = class
       .option '--changeTo <publish,unpublish,delete>', 'publish unpublished products / unpublish published products / delete unpublished products'
       .option '--csv <file>', 'processes products defined in a CSV file by either "sku" or "id". Otherwise all products are processed.'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo <state>'
+      .option '--continueOnProblems', "When a there is a problem on changing a product's state (400er response), ignore it and continue with the next products"
       .action (opts) =>
 
         options =
@@ -157,6 +158,7 @@ module.exports = class
         run = =>
           @_getFilterFunction(opts).then (filterFunction) ->
             importer = new Importer options
+            importer.continueOnProblems = opts.continueOnProblems
             importer.changeState publish, remove, filterFunction, (result) ->
               if result.status
                 console.log result.message
