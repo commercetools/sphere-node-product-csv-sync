@@ -87,10 +87,6 @@ class Import extends CommonUpdater
         vSku = @getSku(variant)
         @sku2index[vSku] = index if vSku?
 
-    #console.log "Matched #{_.size @id2index} product(s) by id."
-    #console.log "Matched #{_.size @sku2index} product(s) by sku."
-    #console.log "Matched #{_.size @slug2index} product(s) by slug."
-
   getSku: (variant) ->
     variant.sku
 
@@ -130,6 +126,7 @@ class Import extends CommonUpdater
     deferred = Q.defer()
     allSameValueAttributes = types.id2SameForAllAttributes[product.productType.id]
     config = []
+    # TODO: add all groups!
     config.push { type: 'prices', group: 'black' } unless header.has(CONS.HEADER_PRICES)
     config.push { type: 'images', group: 'black' } unless header.has(CONS.HEADER_IMAGES)
 
@@ -143,11 +140,16 @@ class Import extends CommonUpdater
         when 'changeName' then header.has(CONS.HEADER_NAME) or header.hasLanguage(CONS.HEADER_NAME)
         when 'changeSlug' then header.has(CONS.HEADER_SLUG) or header.hasLanguage(CONS.HEADER_SLUG)
         when 'setDescription' then header.has(CONS.HEADER_DESCRIPTION) or header.hasLanguage(CONS.HEADER_DESCRIPTION)
+#        when 'setMetaAttributes' then
+#            'metaTitle'
+#            'metaDescription'
+#            'metaKeywords'
         when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
         when 'setSKU' then header.has(CONS.HEADER_SKU)
         when 'addVariant' then true
         when 'removeVariant' then @allowRemovalOfVariants
+        # Add meta attribute actions
         else throw Error "The action '#{action.action}' is not supported. Please contact the SPHERE.IO team!"
 
     #console.log "FILTERED %j", filtered.get()
@@ -208,28 +210,30 @@ class Import extends CommonUpdater
     action = if publish then 'publish' else 'unpublish'
     unless @publishProducts
       deferred.resolve "Do not #{action}."
-      return deferred.promise
-    data =
-      id: product.id
-      version: product.version
-      actions: [
-        action: action
-      ]
-    @rest.POST "/products/#{product.id}", JSON.stringify(data), (error, response, body) ->
-      if error?
-        deferred.reject "[row #{rowIndex}] Error on #{action}ing product: " + error
-      else
-        if response.statusCode is 200
-          deferred.resolve "[row #{rowIndex}] Product #{action}ed."
-        else if response.statusCode is 400
-          if @continueOnProblems
-            deferred.resolve "[row #{rowIndex}] Product is already #{action}ed."
+    else if publish and product.published and not product.hasStagedChanges
+      deferred.resolve "Product is already published"
+    else
+      data =
+        id: product.id
+        version: product.version
+        actions: [
+          action: action
+        ]
+      @rest.POST "/products/#{product.id}", JSON.stringify(data), (error, response, body) ->
+        if error?
+          deferred.reject "[row #{rowIndex}] Error on #{action}ing product: " + error
+        else
+          if response.statusCode is 200
+            deferred.resolve "[row #{rowIndex}] Product #{action}ed."
+          else if response.statusCode is 400
+            if @continueOnProblems
+              deferred.resolve "[row #{rowIndex}] Product is already #{action}ed."
+            else
+              humanReadable = JSON.stringify body, null, ' '
+              deferred.reject "[row #{rowIndex}] Problem on #{action}ing product:\n" + humanReadable
           else
             humanReadable = JSON.stringify body, null, ' '
-            deferred.reject "[row #{rowIndex}] Problem on #{action}ing product:\n" + humanReadable
-        else
-          humanReadable = JSON.stringify body, null, ' '
-          deferred.reject "[row #{rowIndex}] Problem on #{action}ing product (code #{response.statusCode}): " + humanReadable
+            deferred.reject "[row #{rowIndex}] Problem on #{action}ing product (code #{response.statusCode}): " + humanReadable
 
     deferred.promise
 
@@ -245,7 +249,6 @@ class Import extends CommonUpdater
           humanReadable = JSON.stringify body, null, ' '
           deferred.reject "[row #{rowIndex}] Problem on deleting product (code #{response.statusCode}): " + humanReadable
     deferred.promise
-
 
 
 module.exports = Import

@@ -87,6 +87,39 @@ describe 'State', ->
           expect(res.message['[row 0] Product unpublished.']).toBe 2
           done()
 
+  it 'should only published products with hasStagedChanges', (done) ->
+    csv =
+      """
+      productType,name.en,slug.en,variantId,sku,myStateAttrib
+      #{@productType.name},myProduct1,my-slug1,1,sku1,foo
+      #{@productType.name},myProduct2,my-slug2,1,sku2,bar
+      """
+    @import.import csv, (res) =>
+      console.log 'state', res
+      expect(res.status).toBe true
+      expect(_.size res.message).toBe 2
+      expect(res.message['[row 2] New product created.']).toBe 1
+      expect(res.message['[row 3] New product created.']).toBe 1
+      performProduct = -> true
+      @import.changeState true, false, performProduct, (res) =>
+        console.log 'publish', res
+        expect(res.status).toBe true
+        expect(res.message['[row 0] Product published.']).toBe 2
+        csv =
+          """
+          productType,name.en,slug.en,variantId,sku,myStateAttrib
+          #{@productType.name},myProduct1,my-slug1,1,sku1,foo
+          #{@productType.name},myProduct2,my-slug2,1,sku2,baz
+          """
+        im = new Import Config
+        im.import csv, (res) =>
+          @import.changeState true, false, performProduct, (res) ->
+            console.log 'publish', res
+            expect(res.status).toBe true
+            expect(res.message['[row 0] Product published.']).toBe 1
+            done()
+
+
   it 'should delete unplublished products', (done) ->
     csv =
       """
