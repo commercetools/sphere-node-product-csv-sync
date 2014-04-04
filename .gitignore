@@ -5,3 +5,4 @@ lib
 test
 config.js
 *.log
+tmp
