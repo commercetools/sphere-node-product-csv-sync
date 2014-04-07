@@ -379,8 +379,8 @@ describe 'Import', ->
         csv =
           """
           productType,variantId,sku
-          #{@productType.id},1,foo
-          ,2,bar
+          #{@productType.id},1,myPersonalSKU1
+          ,2,myPersonalSKU2
           """
         im = createImporter()
         im.import csv, (res) =>
@@ -389,7 +389,7 @@ describe 'Import', ->
           csv =
           """
           productType,name,slug,variantId,multiSamelEnum,sku
-          #{@productType.id},x,my-slug,1,cc,baz
+          #{@productType.id},x,my-slug,1,cc,myPersonalSKU3
           ,,,2
           """
           im = createImporter()
@@ -400,7 +400,7 @@ describe 'Import', ->
               expect(_.size body.results).toBe 1
               p = body.results[0].masterData.staged
               expect(p.name.en).toBe 'x'
-              expect(p.masterVariant.sku).toBe 'baz'
+              expect(p.masterVariant.sku).toBe 'myPersonalSKU3'
               expect(p.variants[0].sku).toBeUndefined()
               ats = p.masterVariant.attributes
               expect(ats[0]).toEqual { name: 'descN', value: 'a' }
