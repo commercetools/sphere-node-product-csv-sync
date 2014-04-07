@@ -55,7 +55,6 @@ class ExportMapping
 
     if @header.has(CONS.HEADER_CATEGORIES)
       row[@header.toIndex CONS.HEADER_CATEGORIES] = _.reduce(product.categories or [], (memo, category, index) =>
-        console.log "CAT %j", category, @categoryService.id2fqName
         memo += CONS.DELIM_MULTI_VALUE unless index is 0
         memo + @categoryService.id2fqName[category.id]
       , '')
