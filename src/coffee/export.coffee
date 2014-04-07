@@ -30,6 +30,7 @@ class Export extends CommonUpdater
   _initMapping: (header) ->
     options =
       channelService: @channelService
+      categoryService: @categoryService
       typesService: @typesService
       customerGroupService: @customerGroupService
       taxService: @taxService

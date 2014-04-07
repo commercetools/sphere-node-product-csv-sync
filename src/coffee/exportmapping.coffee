@@ -54,9 +54,9 @@ class ExportMapping
         row[@header.toIndex CONS.HEADER_TAX] = @taxService.id2name[product.taxCategory.id]
 
     if @header.has(CONS.HEADER_CATEGORIES)
-      row[header.toIndex CONS.HEADER_CATEGORIES] = _.reduce(product.categories or [], (category, memo) ->
+      row[@header.toIndex CONS.HEADER_CATEGORIES] = _.reduce(product.categories or [], (category, memo) =>
         memo = "#{memo};" unless _.isEmpty memo
-        "#{memo}#{@categoryService.id2fqName(category.id)}"
+        "#{memo}#{@categoryService.id2fqName[category.id]}"
       , '')
 
     for attribName, h2i of @header.toLanguageIndex()
