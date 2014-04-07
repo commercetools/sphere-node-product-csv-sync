@@ -179,7 +179,8 @@ module.exports = class
             default: 'no'
 
           prompt.get property, (err, result) ->
-            if result.ask
+            console.log 'ask', result
+            if _.isString(result.ask) and result.ask.match(/y(es){0,1}/i)
               run()
             else
               console.log 'Cancelled.'
