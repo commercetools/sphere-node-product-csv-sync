@@ -48,18 +48,20 @@ class Export extends CommonUpdater
       exportMapping = @_initMapping(header)
       data = [
         @typesService.getAll @rest
+        @categoryService.getAll @rest
         @channelService.getAll @rest
         @customerGroupService.getAll @rest
         @taxService.getAll @rest
         @productService.getAllExistingProducts @rest, @queryString
       ]
-      Q.all(data).then ([productTypes, channels, customerGroups, taxes, products]) =>
+      Q.all(data).then ([productTypes, categories, channels, customerGroups, taxes, products]) =>
         console.log "Number of product types: #{_.size productTypes}."
         if _.size(products) is 0
           @returnResult true, 'No products found.', callback
           return
         console.log "Number of products: #{_.size products}."
         @typesService.buildMaps productTypes
+        @categoryService.buildMaps categories
         @channelService.buildMaps channels
         @customerGroupService.buildMaps customerGroups
         @taxService.buildMaps taxes

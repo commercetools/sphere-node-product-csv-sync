@@ -54,9 +54,10 @@ class ExportMapping
         row[@header.toIndex CONS.HEADER_TAX] = @taxService.id2name[product.taxCategory.id]
 
     if @header.has(CONS.HEADER_CATEGORIES)
-      row[@header.toIndex CONS.HEADER_CATEGORIES] = _.reduce(product.categories or [], (category, memo) =>
-        memo = "#{memo};" unless _.isEmpty memo
-        "#{memo}#{@categoryService.id2fqName[category.id]}"
+      row[@header.toIndex CONS.HEADER_CATEGORIES] = _.reduce(product.categories or [], (memo, category, index) =>
+        console.log "CAT %j", category, @categoryService.id2fqName
+        memo += CONS.DELIM_MULTI_VALUE unless index is 0
+        memo + @categoryService.id2fqName[category.id]
       , '')
 
     for attribName, h2i of @header.toLanguageIndex()
@@ -118,7 +119,7 @@ class ExportMapping
     switch attributeTypeDef.name
       when CONS.ATTRIBUTE_TYPE_SET then @_mapSetAttribute(attribute, attributeTypeDef)
       when CONS.ATTRIBUTE_TYPE_ENUM, CONS.ATTRIBUTE_TYPE_LENUM then attribute.value.key
-      when CONS.ATTRIBUTE_TYPE_MONEY then @_mapMoney attribute
+      when CONS.ATTRIBUTE_TYPE_MONEY then @_mapMoney attribute.value
       else attribute.value
 
   _mapLocalizedAttribute: (attribute, productType, row) ->
@@ -133,11 +134,15 @@ class ExportMapping
   _mapSetAttribute: (attribute, attributeTypeDef) ->
     switch attributeTypeDef.elementType.name
       when CONS.ATTRIBUTE_TYPE_ENUM, CONS.ATTRIBUTE_TYPE_LENUM
-        _.reduce(attribute.value, (acc, val, index) ->
-          acc += CONS.DELIM_MULTI_VALUE unless index is 0
-          acc + val.key
+        _.reduce(attribute.value, (memo, val, index) ->
+          memo += CONS.DELIM_MULTI_VALUE unless index is 0
+          memo + val.key
         , '')
-      # TODO: check other elementTypes
+      when CONS.ATTRIBUTE_TYPE_MONEY
+        _.reduce(attribute.value, (memo, val, index) ->
+          memo += CONS.DELIM_MULTI_VALUE unless index is 0
+          memo + _mapMoney val
+        , '')
       else
         attribute.value.join CONS.DELIM_MULTI_VALUE
 
