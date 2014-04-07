@@ -2,6 +2,7 @@ _ = require 'underscore'
 fs = require 'fs'
 Csv = require 'csv'
 Types = require '../lib/types'
+Categories = require '../lib/categories'
 Channels = require '../lib/channels'
 CustomerGroups = require '../lib/customergroups'
 Header = require '../lib/header'
@@ -19,6 +20,7 @@ class Export extends CommonUpdater
     super(options)
     @queryString = options.queryString
     @typesService = new Types()
+    @categoryService = new Categories()
     @channelService = new Channels()
     @customerGroupService = new CustomerGroups()
     @productService = new Products()

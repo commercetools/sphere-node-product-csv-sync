@@ -6,6 +6,7 @@ class ExportMapping
 
   constructor: (options = {}) ->
     @typesService = options.typesService
+    @categoryService = options.categoryService
     @channelService = options.channelService
     @customerGroupService = options.customerGroupService
     @taxService = options.taxService
@@ -49,8 +50,11 @@ class ExportMapping
       if _.has @taxService.id2name, product.taxCategory.id
         row[@header.toIndex CONS.HEADER_TAX] = @taxService.id2name[product.taxCategory.id]
 
-    # TODO
-    # - categories
+    if @header.has(CONS.HEADER_CATEGORIES)
+      row[header.toIndex CONS.HEADER_CATEGORIES] = _.reduce(product.categories or [], (category, memo) ->
+        memo = "#{memo};" unless _.isEmpty memo
+        "#{memo}#{@categoryService.id2fqName(category.id)}"
+      , '')
 
     for attribName, h2i of @header.toLanguageIndex()
       for lang, index of h2i

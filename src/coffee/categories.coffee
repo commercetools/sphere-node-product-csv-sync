@@ -8,6 +8,7 @@ class Categories
     @id2index = {}
     @name2id = {}
     @fqName2id = {}
+    @id2fqName = {}
     @duplicateNames = []
 
   getAll: (rest) ->
@@ -40,7 +41,10 @@ class Categories
           cat = categories[@id2index[anchestor.id]]
           name = cat.name[CONS.DEFAULT_LANGUAGE]
           fqName = "#{fqName}#{name}#{CONS.DELIM_CATEGORY_CHILD}"
-      @fqName2id["#{fqName}#{category.name[CONS.DEFAULT_LANGUAGE]}"] = category.id
+      fqName = "#{fqName}#{category.name[CONS.DEFAULT_LANGUAGE]}"
+      @fqName2id[fqName] = category.id
+      @id2fqName[category.id] = fqName
+
 
 
 module.exports = Categories
