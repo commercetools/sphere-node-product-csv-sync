@@ -145,17 +145,12 @@ class Import extends CommonUpdater
         when 'changeName' then header.has(CONS.HEADER_NAME) or header.hasLanguage(CONS.HEADER_NAME)
         when 'changeSlug' then header.has(CONS.HEADER_SLUG) or header.hasLanguage(CONS.HEADER_SLUG)
         when 'setDescription' then header.has(CONS.HEADER_DESCRIPTION) or header.hasLanguage(CONS.HEADER_DESCRIPTION)
-        when 'setMetaAttributes' then true
-# TODO: Find out which attribute actually changed, which header is present and then modify action.
-#   'metaTitle'
-#   'metaDescription'
-#   'metaKeywords'
+        when 'setMetaAttributes' then true # TODO: Find out which attribute actually changed, which header is present and then modify action.
         when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
         when 'setSKU' then header.has(CONS.HEADER_SKU)
-        when 'addVariant', 'addPrice', 'removePrice', 'addExternalImage', 'removeImage' then true
+        when 'addVariant', 'addPrice', 'removePrice', 'changePrice', 'addExternalImage', 'removeImage' then true
         when 'removeVariant' then @allowRemovalOfVariants
-        # Add meta attribute actions
         else throw Error "The action '#{action.action}' is not supported. Please contact the SPHERE.IO team!"
 
     #console.log "FILTERED %j", filtered.get()
