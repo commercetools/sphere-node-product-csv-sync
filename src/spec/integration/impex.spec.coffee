@@ -13,8 +13,9 @@ describe 'Impex', ->
     @export = new Export Config
     @rest = @import.validator.rest
 
+    unique = new Date().getTime()
     @productType =
-      name: 'myType'
+      name: "myImpexType#{unique}"
       description: 'foobar'
       attributes: [
         { name: 'myAttrib', label: { name: 'myAttrib' }, type: { name: 'ltext'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
@@ -103,4 +104,33 @@ describe 'Impex', ->
           expect(content).toMatch header
           expect(content).toMatch p1
           expect(content).toMatch p2
+          done()
+
+  it 'should import and reexport SEO attributes', (done) ->
+    header = 'productType,variantId,name.en,description.en,slug.en,metaTitle.en,metaDescription.en,metaKeywords.en,myAttrib.en'
+    p1 =
+      """
+      #{@productType.name},1,seoName,seoDescription,seoSlug,seoMetaTitle,seoMetaDescription,seoMetaKeywords,foo
+      ,2,,,,,,,bar
+      """
+    csv =
+      """
+      #{header}
+      #{p1}
+      """
+    @import.publishProducts = true
+    @import.import csv, (res) =>
+      console.log "import", res
+      expect(res.status).toBe true
+      expect(res.message).toBe '[row 2] New product created.'
+      file = '/tmp/impex.csv'
+      @export.queryString = ''
+      @export.export header, file, (res) ->
+        console.log "export", res
+        expect(res.status).toBe true
+        expect(res.message).toBe 'Export done.'
+        fs.readFile file, encoding: 'utf8', (err, content) ->
+          console.log "export file content", content
+          expect(content).toMatch header
+          expect(content).toMatch p1
           done()
