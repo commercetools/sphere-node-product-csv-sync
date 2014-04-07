@@ -450,3 +450,30 @@ describe 'Import', ->
             expect(p.masterVariant.images[0].url).toBe '//example.com/foo.jpg'
             expect(p.variants[0].images[0].url).toBe '/example.com/bar.png'
             done()
+
+    it 'should do a partial update of SEO attribute', (done) ->
+      csv =
+        """
+        productType,variantId,name,metaTitle,metaDescription,metaKeywords
+        #{@productType.id},1,mySeoProdcut,a,b,c
+        """
+      @importer.import csv, (res) =>
+        expect(res.status).toBe true
+        expect(res.message).toBe '[row 2] New product created.'
+        csv =
+          """
+          productType,variantId,name,metaTitle,metaKeywords
+          #{@productType.id},1,mySeoProdcut,,changed
+          """
+        im = createImporter()
+        im.import csv, (res) =>
+          expect(res.status).toBe true
+          expect(res.message).toBe '[row 2] Product updated.'
+          @rest.GET "/products?where=productType(id%3D%22#{@productType.id}%22)", (error, response, body) ->
+            expect(_.size body.results).toBe 1
+            p = body.results[0].masterData.staged
+            expect(p.name.en).toBe 'mySeoProdcut'
+            expect(p.metaTitle.en).toBe 'a' # I would actually expect ''
+            expect(p.metaDescription.en).toBe 'b'
+            expect(p.metaKeywords.en).toBe 'changed'
+            done()
