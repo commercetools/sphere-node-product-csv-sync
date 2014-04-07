@@ -125,8 +125,13 @@ class Import extends CommonUpdater
   update: (product, existingProduct, types, header, rowIndex) ->
     deferred = Q.defer()
     allSameValueAttributes = types.id2SameForAllAttributes[product.productType.id]
-    config = []
-    # TODO: add all groups!
+    config = [
+      { type: 'base', group: 'white' }
+      { type: 'references', group: 'white' }
+      { type: 'attributes', group: 'white' }
+      { type: 'variants', group: 'white' }
+      { type: 'metaAttributes', group: 'white' }
+    ]
     config.push { type: 'prices', group: 'black' } unless header.has(CONS.HEADER_PRICES)
     config.push { type: 'images', group: 'black' } unless header.has(CONS.HEADER_IMAGES)
 
