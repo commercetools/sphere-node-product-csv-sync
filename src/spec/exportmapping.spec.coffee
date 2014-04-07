@@ -215,7 +215,10 @@ describe 'ExportMapping', ->
     
     it 'should do nothing if there are no attributes', ->
       template = @exportMapping.createTemplate @productType
-      expect(template).toEqual CONS.ALL_HEADERS
+      expect(_.intersection template, CONS.BASE_HEADERS).toEqual CONS.BASE_HEADERS
+      expect(_.intersection template, CONS.SPECIAL_HEADERS).toEqual CONS.SPECIAL_HEADERS
+      _.each CONS.BASE_LOCALIZED_HEADERS, (h) ->
+        expect(_.contains template, "#{h}.en").toBe true
 
     it 'should get attribute name for all kind of types', ->
       @productType.attributes.push { name: 'a-enum', type: { name: 'enum' } }
@@ -227,9 +230,18 @@ describe 'ExportMapping', ->
       @productType.attributes.push { name: 'a-time', type: { name: 'time' } }
       @productType.attributes.push { name: 'a-datetime', type: { name: 'datetime' } }
       template = @exportMapping.createTemplate @productType
-      expect(template).toEqual CONS.ALL_HEADERS.concat([ 'a-enum', 'a-lenum', 'a-text', 'a-number', 'a-money', 'a-date', 'a-time', 'a-datetime' ])
+
+      expectedHeaders = [ 'a-enum', 'a-lenum', 'a-text', 'a-number', 'a-money', 'a-date', 'a-time', 'a-datetime' ]
+      _.map expectedHeaders, (h) ->
+        expect(_.contains template, h).toBe true
 
     it 'should add headers for all languages', ->
       @productType.attributes.push { name: 'multilang', type: { name: 'ltext' } }
       template = @exportMapping.createTemplate @productType, [ 'de', 'en', 'it' ]
-      expect(template).toEqual CONS.ALL_HEADERS.concat([ 'multilang.de', 'multilang.en', 'multilang.it' ])
+      _.each CONS.BASE_LOCALIZED_HEADERS, (h) ->
+        expect(_.contains template, "#{h}.de").toBe true
+        expect(_.contains template, "#{h}.en").toBe true
+        expect(_.contains template, "#{h}.it").toBe true
+      expect(_.contains template, "multilang.de").toBe true
+      expect(_.contains template, "multilang.en").toBe true
+      expect(_.contains template, "multilang.it").toBe true

@@ -25,7 +25,10 @@ class ExportMapping
     rows
 
   createTemplate: (productType, languages = [CONS.DEFAULT_LANGUAGE]) ->
-    header = CONS.ALL_HEADERS
+    header = CONS.BASE_HEADERS.concat CONS.SPECIAL_HEADERS
+    _.each CONS.BASE_LOCALIZED_HEADERS, (locBaseAttrib) ->
+      header = header.concat _.map languages, (lang) ->
+        "#{locBaseAttrib}#{CONS.DELIM_HEADER_LANGUAGE}#{lang}"
     _.each productType.attributes, (attribute) =>
       switch attribute.type.name
         when CONS.ATTRIBUTE_TYPE_SET then header = header.concat @_mapAttributeTypeDef attribute.type.elementType, attribute, languages
