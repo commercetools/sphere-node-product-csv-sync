@@ -71,7 +71,7 @@ module.exports = class
       .option '-p, --projectKey <key>', 'your SPHERE.IO project-key'
       .option '-i, --clientId <id>', 'your OAuth client id for the SPHERE.IO API'
       .option '-s, --clientSecret <secret>', 'your OAuth client secret for the SPHERE.IO API'
-      .option '--timeout [millis]', 'Set timeout for requests', parseInt, 300000
+      .option '--timeout [millis]', 'Set timeout for requests (default is 300000)', parseInt, 300000
       .option '--verbose', 'give more feedback during action'
       .option '--debug', 'give as many feedback as possible'
 
@@ -79,7 +79,7 @@ module.exports = class
       .command 'import'
       .description 'Import your products from CSV into your SPHERE.IO project.'
       .option '-c, --csv <file>', 'CSV file containing products to import'
-      .option '-l, --language [lang]', 'Default language to using during import (for slug generation, category linking etc.)', 'en'
+      .option '-l, --language [lang]', 'Default language to using during import (for slug generation, category linking etc. - default is en)', 'en'
       .option '--continueOnProblems', 'When a product does not validate on the server side (400er response), ignore it and continue with the next products'
       .option '--suppressMissingHeaderWarning', 'Do not show which headers are missing per produt type.'
       .option '--allowRemovalOfVariants', 'If given variants will be removed if there is no corresponding row in the CSV. Otherwise they are not touched.'
@@ -195,7 +195,7 @@ module.exports = class
       .option '-o, --out <file>', 'Path to the file the exporter will write the resulting CSV in'
       .option '-j, --json <file>', 'Path to the JSON file the exporter will write the resulting products'
       .option '-q, --queryString', 'Query string to specify the sub-set of products to export. Please note that the query must be URL encoded!', 'staged=true'
-      .option '-l, --language [lang]', 'Language used on export for category names', 'en'
+      .option '-l, --language [lang]', 'Language used on export for category names (default is en)', 'en'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) ->
         CONS.DEFAULT_LANGUAGE = opts.language
@@ -240,7 +240,7 @@ module.exports = class
       .command 'template'
       .description 'Create a template for a product type of your SPHERE.IO project.'
       .option '-o, --out <file>', 'Path to the file the exporter will write the resulting CSV in'
-      .option '-l, --languages [lang,lang]', 'List of languages to use for template', @_list, ['en']
+      .option '-l, --languages [lang,lang]', 'List of languages to use for template (default is [en])', @_list, ['en']
       .option '--all', 'Generates one template for all product types - if not given you will be ask which product type to use'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --out <file>'
       .action (opts) ->
