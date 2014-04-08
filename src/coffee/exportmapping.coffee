@@ -25,7 +25,7 @@ class ExportMapping
     rows
 
   createTemplate: (productType, languages = [CONS.DEFAULT_LANGUAGE]) ->
-    header = CONS.BASE_HEADERS.concat CONS.SPECIAL_HEADERS
+    header = [ CONS.HEADER_PUBLISHED, CONS.HEADER_HAS_STAGED_CHANGES ].concat(CONS.BASE_HEADERS.concat(CONS.SPECIAL_HEADERS))
     _.each CONS.BASE_LOCALIZED_HEADERS, (locBaseAttrib) ->
       header = header.concat _.map languages, (lang) ->
         "#{locBaseAttrib}#{CONS.DELIM_HEADER_LANGUAGE}#{lang}"
@@ -42,6 +42,12 @@ class ExportMapping
 
   _mapBaseProduct: (product, productType) ->
     row = @_mapVariant product.masterVariant, productType
+
+    if @header.has(CONS.HEADER_PUBLISHED)
+      row[@header.toIndex CONS.HEADER_PUBLISHED] = "#{product.published}"
+
+    if @header.has(CONS.HEADER_HAS_STAGED_CHANGES)
+      row[@header.toIndex CONS.HEADER_HAS_STAGED_CHANGES] = "#{product.hasStagedChanges}"
 
     if @header.has(CONS.HEADER_ID)
       row[@header.toIndex CONS.HEADER_ID] = product.id

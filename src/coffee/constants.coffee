@@ -23,8 +23,8 @@ constants =
   HEADER_IMAGE_LABELS: 'imageLabels'
   HEADER_IMAGE_DIMENSIONS: 'imageDimensions'
 
-  # HEADER_PUBLISH: '_publish'
-  # HEADER_PUBLISH: '_hasStagedChanges'
+  HEADER_PUBLISHED: '_published'
+  HEADER_HAS_STAGED_CHANGES: '_hasStagedChanges'
 
   DELIM_HEADER_LANGUAGE: '.'
   DELIM_MULTI_VALUE: ';'

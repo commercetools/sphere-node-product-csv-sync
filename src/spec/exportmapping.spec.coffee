@@ -215,6 +215,7 @@ describe 'ExportMapping', ->
     
     it 'should do nothing if there are no attributes', ->
       template = @exportMapping.createTemplate @productType
+      expect(_.intersection template, [ CONS.HEADER_PUBLISHED, CONS.HEADER_HAS_STAGED_CHANGES ]).toEqual [ CONS.HEADER_PUBLISHED, CONS.HEADER_HAS_STAGED_CHANGES ]
       expect(_.intersection template, CONS.BASE_HEADERS).toEqual CONS.BASE_HEADERS
       expect(_.intersection template, CONS.SPECIAL_HEADERS).toEqual CONS.SPECIAL_HEADERS
       _.each CONS.BASE_LOCALIZED_HEADERS, (h) ->
