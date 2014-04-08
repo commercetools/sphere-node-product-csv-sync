@@ -17,6 +17,7 @@ class Import extends CommonUpdater
     @publishProducts = false
     @continueOnProblems = false
     @allowRemovalOfVariants = false
+    @syncSeoAttributes = true
 
   import: (fileContent, callback) ->
     @validator.parse fileContent, (data, count) =>
@@ -132,8 +133,14 @@ class Import extends CommonUpdater
       { type: 'variants', group: 'white' }
       { type: 'metaAttributes', group: 'white' }
     ]
-    config.push { type: 'prices', group: 'black' } unless header.has(CONS.HEADER_PRICES)
-    config.push { type: 'images', group: 'black' } unless header.has(CONS.HEADER_IMAGES)
+    if header.has(CONS.HEADER_PRICES)
+      config.push { type: 'prices', group: 'white' }
+    else
+      config.push { type: 'prices', group: 'black' }
+    if header.has(CONS.HEADER_IMAGES)
+      config.push { type: 'images', group: 'white' }
+    else
+      config.push { type: 'images', group: 'black' }
 
     diff = @sync.config(config).buildActions(product, existingProduct, allSameValueAttributes)
 
@@ -145,7 +152,7 @@ class Import extends CommonUpdater
         when 'changeName' then header.has(CONS.HEADER_NAME) or header.hasLanguage(CONS.HEADER_NAME)
         when 'changeSlug' then header.has(CONS.HEADER_SLUG) or header.hasLanguage(CONS.HEADER_SLUG)
         when 'setDescription' then header.has(CONS.HEADER_DESCRIPTION) or header.hasLanguage(CONS.HEADER_DESCRIPTION)
-        when 'setMetaAttributes' then true # TODO: Find out which attribute actually changed, which header is present and then modify action.
+        when 'setMetaAttributes' then @syncSeoAttributes
         when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
         when 'setSKU' then header.has(CONS.HEADER_SKU)
