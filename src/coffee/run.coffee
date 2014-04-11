@@ -183,7 +183,6 @@ module.exports = class
             default: 'no'
 
           prompt.get property, (err, result) ->
-            console.log 'ask', result
             if _.isString(result.ask) and result.ask.match(/y(es){0,1}/i)
               run()
             else
