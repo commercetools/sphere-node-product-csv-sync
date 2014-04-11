@@ -80,12 +80,13 @@ module.exports = class
       .description 'Import your products from CSV into your SPHERE.IO project.'
       .option '-c, --csv <file>', 'CSV file containing products to import'
       .option '-l, --language [lang]', 'Default language to using during import (for slug generation, category linking etc. - default is en)', 'en'
+      .option '--customAttributesForCreationOnly', 'List of attributes to ignore on updating products, but used when creating products.'
       .option '--continueOnProblems', 'When a product does not validate on the server side (400er response), ignore it and continue with the next products'
       .option '--suppressMissingHeaderWarning', 'Do not show which headers are missing per produt type.'
       .option '--allowRemovalOfVariants', 'If given variants will be removed if there is no corresponding row in the CSV. Otherwise they are not touched.'
       .option '--ignoreSeoAttributes', 'If true all meta* attrbutes are kept untouched.'
-      .option '--dryRun', 'Will list all action that would be triggered, but will not POST them to SPHERE.IO'
       .option '--publish', 'When given, all changes will be published immediately'
+      .option '--dryRun', 'Will list all action that would be triggered, but will not POST them to SPHERE.IO'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>'
       .action (opts) ->
         CONS.DEFAULT_LANGUAGE = opts.language
@@ -107,11 +108,12 @@ module.exports = class
           options.logConfig.levelStream = 'debug'
 
         importer = new Importer options
-        importer.publishProducts = opts.publish
+        importer.blackListedCustomAttributesForUpdate = opts.customAttributesForCreationOnly or []
         importer.continueOnProblems = opts.continueOnProblems
         importer.validator.suppressMissingHeaderWarning = opts.suppressMissingHeaderWarning
         importer.allowRemovalOfVariants = opts.allowRemovalOfVariants
         importer.syncSeoAttributes = false if opts.ignoreSeoAttributes
+        importer.publishProducts = opts.publish
         importer.dryRun = true if opts.dryRun
 
         fs.readFile opts.csv, 'utf8', (err, content) ->

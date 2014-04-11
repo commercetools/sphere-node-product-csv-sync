@@ -19,6 +19,7 @@ class Import extends CommonUpdater
     @allowRemovalOfVariants = false
     @syncSeoAttributes = true
     @dryRun = false
+    @blackListedCustomAttributesForUpdate = []
 
   import: (fileContent, callback) ->
     @validator.parse fileContent, (data, count) =>
@@ -49,8 +50,6 @@ class Import extends CommonUpdater
 
   changeState: (publish = true, remove = false, filterFunction, callback) ->
     @publishProducts = true
-    action = if publish then 'publish' else 'unpublish'
-    action = 'delete' if remove
     @productService.getAllExistingProducts(@rest, "staged=#{publish}").then (existingProducts) =>
 
       console.log "Found #{_.size existingProducts} product(s) ..."
@@ -66,7 +65,9 @@ class Import extends CommonUpdater
           else
             @publishProduct(product, 0, publish)
 
-        console.log "#{action}ing #{_.size posts} product(s) ..."
+        action = if publish then 'Publishing' else 'Unpublishing'
+        action = 'Deleting' if remove
+        console.log "#{action} #{_.size posts} product(s) ..."
         @processInBatches posts, callback
     .fail (msg) =>
       @returnResult false, msg, callback
@@ -125,6 +126,12 @@ class Import extends CommonUpdater
     .fail (msg) =>
       @returnResult false, msg, callback
 
+  _isBlackListedForUpdate: (attributeName) ->
+    if _.isEmpty @blackListedCustomAttributesForUpdate
+      false
+    else
+      _.contains @blackListedCustomAttributesForUpdate, attributeName
+
   update: (product, existingProduct, types, header, rowIndex) ->
     deferred = Q.defer()
     allSameValueAttributes = types.id2SameForAllAttributes[product.productType.id]
@@ -150,7 +157,7 @@ class Import extends CommonUpdater
     filtered = diff.filterActions (action) =>
       # console.log "ACTION", action if @dryRun
       switch action.action
-        when 'setAttribute', 'setAttributeInAllVariants' then header.has(action.name) or header.hasLanguage(action.name)
+        when 'setAttribute', 'setAttributeInAllVariants' then (header.has(action.name) or header.hasLanguage(action.name)) and not @_isBlackListedForUpdate(action.name)
         when 'changeName' then header.has(CONS.HEADER_NAME) or header.hasLanguage(CONS.HEADER_NAME)
         when 'changeSlug' then header.has(CONS.HEADER_SLUG) or header.hasLanguage(CONS.HEADER_SLUG)
         when 'setDescription' then header.has(CONS.HEADER_DESCRIPTION) or header.hasLanguage(CONS.HEADER_DESCRIPTION)
