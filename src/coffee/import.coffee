@@ -18,6 +18,7 @@ class Import extends CommonUpdater
     @continueOnProblems = false
     @allowRemovalOfVariants = false
     @syncSeoAttributes = true
+    @dryRun = false
 
   import: (fileContent, callback) ->
     @validator.parse fileContent, (data, count) =>
@@ -110,6 +111,7 @@ class Import extends CommonUpdater
         posts.push @update(entry.product, existingProduct, types, entry.header, entry.rowIndex)
       else
         posts.push @create(entry.product, entry.rowIndex)
+
     @processInBatches posts, callback
 
   processInBatches: (posts, callback, numberOfParallelRequest = 50, acc = []) =>
@@ -146,7 +148,7 @@ class Import extends CommonUpdater
 
     #console.log "DIFF %j", diff.get()
     filtered = diff.filterActions (action) =>
-      #console.log "ACTION", action
+      # console.log "ACTION", action if @dryRun
       switch action.action
         when 'setAttribute', 'setAttributeInAllVariants' then header.has(action.name) or header.hasLanguage(action.name)
         when 'changeName' then header.has(CONS.HEADER_NAME) or header.hasLanguage(CONS.HEADER_NAME)
@@ -160,56 +162,64 @@ class Import extends CommonUpdater
         when 'removeVariant' then @allowRemovalOfVariants
         else throw Error "The action '#{action.action}' is not supported. Please contact the SPHERE.IO team!"
 
-    #console.log "FILTERED %j", filtered.get()
-
-    filtered.update (error, response, body) =>
-      @tickProgress()
-      if error?
-        deferred.reject "[row #{rowIndex}] Error on updating product: " + error
+    if @dryRun
+      updates = filtered.get()
+      if updates?
+        deferred.resolve "[row #{rowIndex}] DRY-RUN - updates for #{existingProduct.id}: #{JSON.stringify filtered.get()}"
       else
-        if response.statusCode is 200
-          @publishProduct(body, rowIndex).then (msg) ->
-            deferred.resolve "[row #{rowIndex}] Product updated."
-          .fail (msg) ->
-            deferred.reject msg
-        else if response.statusCode is 304
-          deferred.resolve "[row #{rowIndex}] Product update not necessary."
-        else if response.statusCode is 400
-          humanReadable = JSON.stringify body, null, ' '
-          msg = "[row #{rowIndex}] Problem on updating product:\n" + humanReadable
-          if @continueOnProblems
-            deferred.resolve msg
-          else
-            deferred.reject msg
-
+        deferred.resolve "[row #{rowIndex}] DRY-RUN - nothing to update."
+    else
+      filtered.update (error, response, body) =>
+        @tickProgress()
+        if error?
+          deferred.reject "[row #{rowIndex}] Error on updating product: " + error
         else
-          humanReadable = JSON.stringify body, null, ' '
-          deferred.reject "[row #{rowIndex}] Error on updating product: " + humanReadable
+          if response.statusCode is 200
+            @publishProduct(body, rowIndex).then (msg) ->
+              deferred.resolve "[row #{rowIndex}] Product updated."
+            .fail (msg) ->
+              deferred.reject msg
+          else if response.statusCode is 304
+            deferred.resolve "[row #{rowIndex}] Product update not necessary."
+          else if response.statusCode is 400
+            humanReadable = JSON.stringify body, null, ' '
+            msg = "[row #{rowIndex}] Problem on updating product:\n" + humanReadable
+            if @continueOnProblems
+              deferred.resolve msg
+            else
+              deferred.reject msg
+
+          else
+            humanReadable = JSON.stringify body, null, ' '
+            deferred.reject "[row #{rowIndex}] Error on updating product: " + humanReadable
 
     deferred.promise
 
   create: (product, rowIndex) ->
     deferred = Q.defer()
-    @rest.POST '/products', JSON.stringify(product), (error, response, body) =>
-      @tickProgress()
-      if error?
-        deferred.reject "[row #{rowIndex}] Error on creating new product: " + error
-      else
-        if response.statusCode is 201
-          @publishProduct(body, rowIndex).then (msg) ->
-            deferred.resolve "[row #{rowIndex}] New product created."
-          .fail (msg) ->
-            deferred.reject msg
-        else if response.statusCode is 400
-          humanReadable = JSON.stringify body, null, ' '
-          msg = "[row #{rowIndex}] Problem on creating new product:\n" + humanReadable
-          if @continueOnProblems
-            deferred.resolve msg
-          else
-            deferred.reject msg
+    if @dryRun
+      deferred.resolve "[row #{rowIndex}] DRY-RUN - create new product."
+    else
+      @rest.POST '/products', JSON.stringify(product), (error, response, body) =>
+        @tickProgress()
+        if error?
+          deferred.reject "[row #{rowIndex}] Error on creating new product: " + error
         else
-          humanReadable = JSON.stringify body, null, ' '
-          deferred.reject "[row #{rowIndex}] Error on creating new product: " + humanReadable
+          if response.statusCode is 201
+            @publishProduct(body, rowIndex).then (msg) ->
+              deferred.resolve "[row #{rowIndex}] New product created."
+            .fail (msg) ->
+              deferred.reject msg
+          else if response.statusCode is 400
+            humanReadable = JSON.stringify body, null, ' '
+            msg = "[row #{rowIndex}] Problem on creating new product:\n" + humanReadable
+            if @continueOnProblems
+              deferred.resolve msg
+            else
+              deferred.reject msg
+          else
+            humanReadable = JSON.stringify body, null, ' '
+            deferred.reject "[row #{rowIndex}] Error on creating new product: " + humanReadable
 
     deferred.promise
 
