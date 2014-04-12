@@ -370,8 +370,8 @@ describe 'Import', ->
       csv =
         """
         productType,name,slug,variantId,descN,descU,descCU1,descCU2,descS,multiEnum,multiSamelEnum,sku
-        #{@productType.id},x,my-slug,1,a,b,c,d,S,x,aa;bb,foo
-        ,,,2,b,c,d,e,S,x;y;z,,bar
+        #{@productType.id},x,my-slug,1,a,b,c,d,S,x,aa;bb,myPersonalSKU1
+        ,,,2,b,c,d,e,S,x;y;z,,myPersonalSKU2
         """
       @importer.import csv, (res) =>
         expect(res.status).toBe true
@@ -419,7 +419,6 @@ describe 'Import', ->
               expect(ats[5]).toEqual { name: 'multiEnum', value: [{ key: 'x', label: 'X' }, { key: 'y', label: 'Y' }, { key: 'z', label: 'Z' }] }
               expect(ats[6]).toEqual { name: 'multiSamelEnum', value: [{ key: 'cc', label: { en: 'CC', 'de': 'Cc' } }] }
               done()
-
 
     it 'should do a partial update of prices and images', (done) ->
       csv =
