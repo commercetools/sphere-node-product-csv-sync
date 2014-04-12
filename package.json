@@ -43,7 +43,7 @@
     "coveralls": "~2.10.0",
     "grunt": "~0.4.4",
     "grunt-bump": "~0.0.13",
-    "grunt-coffeelint": "~0.0.10",
+    "grunt-coffeelint": "0.0.8",
     "grunt-contrib-clean": "~0.5.0",
     "grunt-contrib-coffee": "~0.10.1",
     "grunt-contrib-concat": "~0.4.0",
