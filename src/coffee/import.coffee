@@ -155,7 +155,7 @@ class Import extends CommonUpdater
 
     #console.log "DIFF %j", diff.get()
     filtered = diff.filterActions (action) =>
-      # console.log "ACTION", action if @dryRun
+      #console.log "ACTION", action
       switch action.action
         when 'setAttribute', 'setAttributeInAllVariants' then (header.has(action.name) or header.hasLanguage(action.name)) and not @_isBlackListedForUpdate(action.name)
         when 'changeName' then header.has(CONS.HEADER_NAME) or header.hasLanguage(CONS.HEADER_NAME)
