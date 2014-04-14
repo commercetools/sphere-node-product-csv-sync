@@ -1,9 +1,9 @@
-_ = require('underscore')._
 fs = require 'fs'
-Export = require '../lib/export'
-Import = require '../lib/import'
 Q = require 'q'
-Config = require '../config'
+_ = require 'underscore'
+Export = require '../../lib/export'
+Import = require '../../lib/import'
+Config = require '../../config'
 
 jasmine.getEnv().defaultTimeoutInterval = 30000
 

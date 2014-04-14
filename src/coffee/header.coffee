@@ -16,7 +16,7 @@ class Header
         errors.push "Can't find necessary base header '#{missingHeader}'!"
 
     errors
-  
+
   # "x,y,z"
   # toIndex:
   #   x: 0

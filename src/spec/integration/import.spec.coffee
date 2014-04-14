@@ -1,7 +1,7 @@
-_ = require('underscore')._
-Import = require '../lib/import'
 Q = require 'q'
-Config = require '../config'
+_ = require 'underscore'
+Import = require '../../lib/import'
+Config = require '../../config'
 
 jasmine.getEnv().defaultTimeoutInterval = 30000
 
@@ -453,16 +453,16 @@ describe 'Import', ->
     it 'should do a partial update of SEO attribute', (done) ->
       csv =
         """
-        productType,variantId,name,metaTitle,metaDescription,metaKeywords
-        #{@productType.id},1,mySeoProdcut,a,b,c
+        productType,variantId,sku,name,metaTitle,metaDescription,metaKeywords
+        #{@productType.id},1,a111,mySeoProdcut,a,b,c
         """
       @importer.import csv, (res) =>
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
         csv =
           """
-          productType,variantId,name,metaTitle,metaKeywords
-          #{@productType.id},1,mySeoProdcut,,changed
+          productType,variantId,sku,name,metaTitle,metaKeywords
+          #{@productType.id},1,a111,mySeoProdcut,,changed
           """
         im = createImporter()
         im.import csv, (res) =>
