@@ -93,11 +93,12 @@ class Import extends CommonUpdater
   getSku: (variant) ->
     variant.sku
 
-  match: (product) ->
+  match: (entry) ->
+    product = entry.product
     index = @id2index[product.id] if product.id?
     unless index
       index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku?
-      unless index
+      if not index and (entry.header.has(CONS.HEADER_SLUG) or entry.header.hasLanguage(CONS.HEADER_SLUG))
         index = @slug2index[product.slug[CONS.DEFAULT_LANGUAGE]] if product.slug? and product.slug[CONS.DEFAULT_LANGUAGE]?
     return @existingProducts[index] if index > -1
 
@@ -107,7 +108,7 @@ class Import extends CommonUpdater
     @initProgressBar 'Importing product(s)', _.size(products)
     posts = []
     for entry in products
-      existingProduct = @match(entry.product)
+      existingProduct = @match(entry)
       if existingProduct?
         posts.push @update(entry.product, existingProduct, types, entry.header, entry.rowIndex)
       else
