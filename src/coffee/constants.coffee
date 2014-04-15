@@ -6,6 +6,9 @@ constants =
   HEADER_ID: 'id'
   HEADER_VARIANT_ID: 'variantId'
 
+  HEADER_CREATED_AT: 'createdAt'
+  HEADER_LAST_MODIFIED_AT: 'lastModifiedAt'
+
   HEADER_NAME: 'name'
   HEADER_DESCRIPTION: 'description'
   HEADER_SLUG: 'slug'
@@ -49,7 +52,9 @@ for name,value of constants
 
 exports.BASE_HEADERS = [
   constants.HEADER_PRODUCT_TYPE,
-  constants.HEADER_VARIANT_ID
+  constants.HEADER_VARIANT_ID,
+  constants.HEADER_CREATED_AT,
+  constants.HEADER_LAST_MODIFIED_AT
 ]
 
 exports.BASE_LOCALIZED_HEADERS = [
