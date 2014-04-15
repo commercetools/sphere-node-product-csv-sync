@@ -245,7 +245,7 @@ class Import extends CommonUpdater
         actions: [
           action: action
         ]
-      @rest.POST "/products/#{product.id}", JSON.stringify(data), (error, response, body) ->
+      @rest.POST "/products/#{product.id}", JSON.stringify(data), (error, response, body) =>
         if error?
           deferred.reject "[row #{rowIndex}] Error on #{action}ing product: " + error
         else
