@@ -8,6 +8,12 @@
     "name": "Hajo Eichler",
     "email": "hajo.eichler@commercetools.de"
   },
+  "maintainers": [
+    {
+      "name": "Nicola Molinari",
+      "email": "nicola.molinari@commercetools.de"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/sphereio/sphere-node-product-csv-sync.git"
@@ -22,7 +28,7 @@
     }
   ],
   "bin": {
-    "product-csv-sync": "./lib/run.js"
+    "product-csv-sync": "bin/product-csv-sync"
   },
   "main": "main.js",
   "engines": {
