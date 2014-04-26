@@ -21,6 +21,9 @@
       "url": "https://github.com/sphereio/sphere-node-product-csv-sync/blob/master/LICENSE-MIT"
     }
   ],
+  "bin": {
+    "product-csv-sync": "./lib/run.js"
+  },
   "main": "main.js",
   "engines": {
     "node": ">= 0.8.0"
