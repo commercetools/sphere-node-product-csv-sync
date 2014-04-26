@@ -1,8 +1,8 @@
-.DS_Store
 node_modules
-build
+*.log
 lib
 test
-config.js
-*.log
 tmp
+config.js
+.coveralls.yml
+coverage

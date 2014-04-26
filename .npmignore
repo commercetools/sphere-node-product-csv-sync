@@ -1,0 +1,12 @@
+node_modules
+*.log
+src
+test
+tmp
+config.js
+coverage
+.travis.yml
+.coveralls.yml
+create_config.sh
+*.coffee
+release-as-zip.sh
