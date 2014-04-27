@@ -65,7 +65,6 @@ module.exports = (grunt) ->
         files: ["src/**/*.coffee"]
         tasks: ["test"]
 
-
     shell:
       options:
         stdout: true
@@ -77,6 +76,22 @@ module.exports = (grunt) ->
         command: "istanbul cover jasmine-node --captureExceptions test && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
       run:
         command: "node lib/run.js stock.xml"
+      publish:
+        command: 'npm publish'
+
+    bump:
+      options:
+        files: ['package.json']
+        updateConfigs: ['pkg']
+        commit: true
+        commitMessage: 'Bump version to %VERSION%'
+        commitFiles: ['-a']
+        createTag: true
+        tagName: 'v%VERSION%'
+        tagMessage: 'Version %VERSION%'
+        push: true
+        pushTo: 'origin'
+        gitDescribeOptions: '--tags --always --abbrev=1 --dirty=-d'
 
   # load plugins that provide the tasks defined in the config
   grunt.loadNpmTasks "grunt-coffeelint"
@@ -85,8 +100,12 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks "grunt-contrib-concat"
   grunt.loadNpmTasks "grunt-contrib-watch"
   grunt.loadNpmTasks "grunt-shell"
+  grunt.loadNpmTasks 'grunt-bump'
 
   # register tasks
   grunt.registerTask "build", ["clean", "coffeelint", "coffee", "concat"]
   grunt.registerTask "coverage", ["build", "shell:coverage"]
   grunt.registerTask "test", ["build", "shell:jasmine"]
+  grunt.registerTask 'release', 'Release a new version, push it and publish it', (target) ->
+    target = 'patch' unless target
+    grunt.task.run "bump-only:#{target}", 'test', 'bump-commit', 'shell:publish'
