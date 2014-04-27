@@ -10,3 +10,4 @@ coverage
 create_config.sh
 *.coffee
 release-as-zip.sh
+package
