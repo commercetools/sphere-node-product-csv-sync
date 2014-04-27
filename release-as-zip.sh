@@ -15,10 +15,10 @@ npm version patch
 git branch ${BRANCH_NAME}
 git checkout ${BRANCH_NAME}
 
-npm install
+npm install &>/dev/null
 grunt build
 rm -rf node_modules
-npm install --production
+npm install --production &>/dev/null
 git add -f lib/
 git add -f node_modules/
 git commit -m "Update generated code and runtime dependencies."
@@ -29,7 +29,7 @@ git checkout master
 VERSION=$(cat package.json | jq --raw-output .version)
 git push origin "v${VERSION}"
 npm version patch
-npm install
+npm install &>/dev/null
 
 if [ -e tmp ]; then
     rm -rf tmp
