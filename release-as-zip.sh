@@ -13,6 +13,7 @@ cleanup() {
   echo "Cleaning up"
   rm -rf package
   rm "${PKG_NAME}"-*
+  rm -rf tmp
   set -e
 }
 
@@ -30,14 +31,11 @@ echo "Packaging locally"
 npm pack
 tar -xzf "${PKG_NAME}-${VERSION}.tgz"
 
-# re-install deps (only for production - no devDeps)
-echo "Re-installing only production deps"
-rm -rf node_modules
-npm install --production &>/dev/null
-cp -R node_modules package/node_modules
-
-# push everything inside package to 'latest' branch
 cd package
+# install production deps (no devDeps)
+echo "Installing only production deps"
+npm install --production &>/dev/null
+# push everything inside package to 'latest' branch
 git init
 git remote add origin git@github.com:sphereio/sphere-node-product-csv-sync.git
 git add -A &>/dev/null
@@ -45,20 +43,17 @@ git commit -m "Release packaged version ${VERSION} to ${LATEST_BRANCH_NAME} bran
 echo "About to push to ${LATEST_BRANCH_NAME} branch"
 git push --force origin master:${LATEST_BRANCH_NAME}
 
-# cleanup package folder
-cd ..
-cleanup
-
 # test that zipped package works
 echo "About to download and test released package"
-if [ -e tmp ]; then
-  rm -rf tmp
-fi
-mkdir tmp
+cd ..
+mkdir -p tmp
 cd tmp
 curl -L https://github.com/sphereio/sphere-node-product-csv-sync/archive/latest.zip -o latest.zip
 unzip -q latest.zip
 cd sphere-node-product-csv-sync-latest/
 node lib/run
+
+# cleanup package / tmp folder
+cleanup
 
 echo "Congratulations, the latest package has been successfully released"
