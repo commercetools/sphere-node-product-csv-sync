@@ -13,7 +13,7 @@ _ = require('underscore')._
 
 module.exports = class
 
-  @_list: (val) -> val.split ','
+  @_list: (val) -> _.map val.split(','), (v) -> v.trim()
 
   @_getFilterFunction: (opts) ->
     deferred = Q.defer()
@@ -80,7 +80,7 @@ module.exports = class
       .description 'Import your products from CSV into your SPHERE.IO project.'
       .option '-c, --csv <file>', 'CSV file containing products to import'
       .option '-l, --language [lang]', 'Default language to using during import (for slug generation, category linking etc. - default is en)', 'en'
-      .option '--customAttributesForCreationOnly', 'List of attributes to ignore on updating products, but used when creating products.'
+      .option '--customAttributesForCreationOnly <items>', 'List of comma-separated attributes to use when creating products (ignore when updating)', @_list
       .option '--continueOnProblems', 'When a product does not validate on the server side (400er response), ignore it and continue with the next products'
       .option '--suppressMissingHeaderWarning', 'Do not show which headers are missing per produt type.'
       .option '--allowRemovalOfVariants', 'If given variants will be removed if there is no corresponding row in the CSV. Otherwise they are not touched.'
