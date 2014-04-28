@@ -153,17 +153,43 @@ describe 'ExportMapping', ->
 
   describe '#mapBaseProduct', ->
     it 'should map productType (name) and product id', ->
-      @exportMapping.header = new Header([CONS.HEADER_PRODUCT_TYPE,CONS.HEADER_ID])
+      @exportMapping.header = new Header(
+        [CONS.HEADER_PRODUCT_TYPE,
+        CONS.HEADER_ID])
       @exportMapping.header.toIndex()
+
       product =
         id: '123'
         masterVariant:
           attributes: []
+
       type =
         name: 'myType'
         id: 'typeId123'
       row = @exportMapping._mapBaseProduct(product, type)
       expect(row).toEqual [ 'myType', '123' ]
+
+    it 'should map createdAt and lastModifiedAt', ->
+      @exportMapping.header = new Header(
+        [CONS.HEADER_CREATED_AT,
+        CONS.HEADER_LAST_MODIFIED_AT])
+      @exportMapping.header.toIndex()
+
+      createdAt = new Date()
+      lastModifiedAt = new Date()
+
+      product =
+        createdAt: createdAt
+        lastModifiedAt: lastModifiedAt
+        masterVariant:
+          attributes: []
+
+      type =
+        name: 'myType'
+        id: 'typeId123'
+      row = @exportMapping._mapBaseProduct(product, type)
+      expect(row).toEqual [ createdAt, lastModifiedAt ]
+
 
     it 'should map tax category name', ->
       @exportMapping.header = new Header([CONS.HEADER_TAX])
@@ -212,7 +238,7 @@ describe 'ExportMapping', ->
     beforeEach ->
       @productType =
         attributes: []
-    
+
     it 'should do nothing if there are no attributes', ->
       template = @exportMapping.createTemplate @productType
       expect(_.intersection template, [ CONS.HEADER_PUBLISHED, CONS.HEADER_HAS_STAGED_CHANGES ]).toEqual [ CONS.HEADER_PUBLISHED, CONS.HEADER_HAS_STAGED_CHANGES ]

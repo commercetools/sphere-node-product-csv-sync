@@ -65,6 +65,12 @@ class ExportMapping
         memo + @categoryService.id2fqName[category.id]
       , '')
 
+    if @header.has(CONS.HEADER_CREATED_AT)
+      row[@header.toIndex CONS.HEADER_CREATED_AT] = product.createdAt
+
+    if @header.has(CONS.HEADER_LAST_MODIFIED_AT)
+      row[@header.toIndex CONS.HEADER_LAST_MODIFIED_AT] = product.lastModifiedAt
+
     for attribName, h2i of @header.toLanguageIndex()
       for lang, index of h2i
         if product[attribName]

@@ -25,6 +25,8 @@ constants =
 
   HEADER_PUBLISHED: '_published'
   HEADER_HAS_STAGED_CHANGES: '_hasStagedChanges'
+  HEADER_CREATED_AT: '_createdAt'
+  HEADER_LAST_MODIFIED_AT: '_lastModifiedAt'
 
   DELIM_HEADER_LANGUAGE: '.'
   DELIM_MULTI_VALUE: ';'
