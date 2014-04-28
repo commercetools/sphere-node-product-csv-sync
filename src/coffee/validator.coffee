@@ -9,7 +9,6 @@ Taxes = require '../lib/taxes'
 Channels = require '../lib/channels'
 Mapping = require '../lib/mapping'
 Header = require '../lib/header'
-Rest = require('sphere-node-connect').Rest
 Q = require 'q'
 
 class Validator

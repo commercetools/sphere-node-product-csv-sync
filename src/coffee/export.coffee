@@ -9,12 +9,10 @@ Header = require '../lib/header'
 Products = require '../lib/products'
 Taxes = require '../lib/taxes'
 ExportMapping = require '../lib/exportmapping'
-Rest = require('sphere-node-connect').Rest
-CommonUpdater = require('sphere-node-sync').CommonUpdater
 Q = require 'q'
 prompt = require 'prompt'
 
-class Export extends CommonUpdater
+class Export
 
   constructor: (options = {}) ->
     super(options)

@@ -3,10 +3,9 @@ CONS = require '../lib/constants'
 Validator = require '../lib/validator'
 Products = require '../lib/products'
 ProductSync = require('sphere-node-sync').ProductSync
-CommonUpdater = require('sphere-node-sync').CommonUpdater
 Q = require 'q'
 
-class Import extends CommonUpdater
+class Import
 
   constructor: (options = {}) ->
     super(options)
