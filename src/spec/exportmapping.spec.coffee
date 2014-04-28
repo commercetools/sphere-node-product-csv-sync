@@ -155,8 +155,23 @@ describe 'ExportMapping', ->
     it 'should map productType (name) and product id', ->
       @exportMapping.header = new Header(
         [CONS.HEADER_PRODUCT_TYPE,
-        CONS.HEADER_ID,
-        CONS.HEADER_CREATED_AT,
+        CONS.HEADER_ID])
+      @exportMapping.header.toIndex()
+
+      product =
+        id: '123'
+        masterVariant:
+          attributes: []
+
+      type =
+        name: 'myType'
+        id: 'typeId123'
+      row = @exportMapping._mapBaseProduct(product, type)
+      expect(row).toEqual [ 'myType', '123' ]
+
+    it 'should map createdAt and lastModifiedAt', ->
+      @exportMapping.header = new Header(
+        [CONS.HEADER_CREATED_AT,
         CONS.HEADER_LAST_MODIFIED_AT])
       @exportMapping.header.toIndex()
 
@@ -164,17 +179,17 @@ describe 'ExportMapping', ->
       lastModifiedAt = new Date()
 
       product =
-        id: '123'
-        masterVariant:
-          attributes: []
         createdAt: createdAt
         lastModifiedAt: lastModifiedAt
+        masterVariant:
+          attributes: []
 
       type =
         name: 'myType'
         id: 'typeId123'
       row = @exportMapping._mapBaseProduct(product, type)
-      expect(row).toEqual [ 'myType', '123', createdAt, lastModifiedAt ]
+      expect(row).toEqual [ createdAt, lastModifiedAt ]
+
 
     it 'should map tax category name', ->
       @exportMapping.header = new Header([CONS.HEADER_TAX])

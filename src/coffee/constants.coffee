@@ -6,9 +6,6 @@ constants =
   HEADER_ID: 'id'
   HEADER_VARIANT_ID: 'variantId'
 
-  HEADER_CREATED_AT: 'createdAt'
-  HEADER_LAST_MODIFIED_AT: 'lastModifiedAt'
-
   HEADER_NAME: 'name'
   HEADER_DESCRIPTION: 'description'
   HEADER_SLUG: 'slug'
@@ -28,6 +25,8 @@ constants =
 
   HEADER_PUBLISHED: '_published'
   HEADER_HAS_STAGED_CHANGES: '_hasStagedChanges'
+  HEADER_CREATED_AT: '_createdAt'
+  HEADER_LAST_MODIFIED_AT: '_lastModifiedAt'
 
   DELIM_HEADER_LANGUAGE: '.'
   DELIM_MULTI_VALUE: ';'
@@ -52,9 +51,7 @@ for name,value of constants
 
 exports.BASE_HEADERS = [
   constants.HEADER_PRODUCT_TYPE,
-  constants.HEADER_VARIANT_ID,
-  constants.HEADER_CREATED_AT,
-  constants.HEADER_LAST_MODIFIED_AT
+  constants.HEADER_VARIANT_ID
 ]
 
 exports.BASE_LOCALIZED_HEADERS = [
