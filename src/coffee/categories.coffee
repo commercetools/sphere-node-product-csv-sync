@@ -11,19 +11,8 @@ class Categories
     @id2fqName = {}
     @duplicateNames = []
 
-  getAll: (rest) ->
-    deferred = Q.defer()
-    rest.GET "/categories?limit=0", (error, response, body) ->
-      if error
-        deferred.reject 'Error on getting categories: ' + error
-      else if response.statusCode isnt 200
-        deferred.reject "Problem on getting categories:\n" +
-          "status #{response.statusCode})\n" +
-          "body " + response.body
-      else
-        categories = body.results
-        deferred.resolve categories
-    deferred.promise
+  getAll: (client) ->
+    client.categories.all().fetch()
 
   buildMaps: (categories) ->
     for category, index in categories
@@ -44,7 +33,5 @@ class Categories
       fqName = "#{fqName}#{category.name[CONS.DEFAULT_LANGUAGE]}"
       @fqName2id[fqName] = category.id
       @id2fqName[category.id] = fqName
-
-
 
 module.exports = Categories

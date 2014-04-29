@@ -1,14 +1,12 @@
 _ = require 'underscore'
 CONS = require '../lib/constants'
 Validator = require '../lib/validator'
-Products = require '../lib/products'
 ProductSync = require('sphere-node-sync').ProductSync
 Q = require 'q'
 
 class Import
 
   constructor: (options = {}) ->
-    super(options)
     @validator = new Validator options
     @sync = new ProductSync options
     @rest = @validator.rest
@@ -40,11 +38,9 @@ class Import
           @initMatcher existingProducts
           @createOrUpdate products, @validator.types, callback
         .fail (msg) =>
-          #console.log "ERR1", msg
           @returnResult false, msg, callback
         .done()
       .fail (msg) =>
-        #console.log "ERR2", msg
         @returnResult false, msg, callback
 
   changeState: (publish = true, remove = false, filterFunction, callback) ->

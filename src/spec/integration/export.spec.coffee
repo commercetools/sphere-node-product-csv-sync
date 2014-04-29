@@ -1,6 +1,7 @@
 fs = require 'fs'
 Q = require 'q'
 _ = require 'underscore'
+_.mixin require('sphere-node-utils')._u
 Export = require '../../lib/export'
 Config = require '../../config'
 
@@ -9,7 +10,7 @@ jasmine.getEnv().defaultTimeoutInterval = 30000
 describe 'Export', ->
   beforeEach (done) ->
     @export = new Export Config
-    @rest = @export.rest
+    @client = @export.client
 
     values = [
       { key: 'x', label: 'X' }
@@ -38,72 +39,72 @@ describe 'Export', ->
       slug:
         en: 'foo'
 
-    deleteProduct = (product) =>
-      deferred = Q.defer()
-      data =
-        id: product.id
-        version: product.version
-        actions: [
-          action: 'unpublish'
-        ]
-      @rest.POST "/products/#{product.id}", JSON.stringify(data), (error, response, body) =>
-        if response.statusCode is 200
-          product.version = body.version
-        @rest.DELETE "/products/#{product.id}?version=#{product.version}", (error, response, body) ->
-          deferred.resolve response.statusCode
-      deferred.promise
-
-    deleteProductType = (productType) =>
-      deferred = Q.defer()
-      @rest.DELETE "/product-types/#{productType.id}?version=#{productType.version}", (error, response, body) ->
-        deferred.resolve response.statusCode
-      deferred.promise
-
-    @rest.GET '/products', (error, response, body) =>
-      expect(response.statusCode).toBe 200
-      productDeletes = []
-      typesDeletes = []
-      for product in body.results
-        productDeletes.push deleteProduct(product)
-      @rest.GET '/product-types?limit=0', (error, response, body) =>
-        expect(response.statusCode).toBe 200
-        for productType in body.results
-          typesDeletes.push deleteProductType(productType)
-        Q.all(productDeletes).then (statusCodes) =>
-          Q.all(typesDeletes).then (statusCodes) =>
-            @rest.POST '/product-types', JSON.stringify(@productType), (error, response, body) =>
-              expect(response.statusCode).toBe 201
-              @productType = body
-              @product.productType.id = @productType.id
-              @rest.POST '/products', JSON.stringify(@product), (error, response, body) ->
-                expect(response.statusCode).toBe 201
-                done()
-          .fail (msg) ->
-            expect(true).toBe false
-        .fail (msg) ->
-          expect(true).toBe false
+    @client.products.all().fetch()
+    .then (result) =>
+      deletions = _.map result.body.results, (product) =>
+        deferred = Q.defer()
+        data =
+          id: product.id
+          version: product.version
+          actions: [
+            action: 'unpublish'
+          ]
+        @client._rest.POST "/products/#{product.id}", data, (error, response, body) =>
+          console.log "res", response.statusCode
+          if response.statusCode is 200
+            product.version = body.version
+          @client.products.byId(product.id).delete(product.version)
+          .then (result) ->
+            console.log "Del %j", result
+            deferred.resolve true
+          .fail (err) ->
+            deferred.reject err
+        deferred.promise
+      Q.all(deletions)
+    .then =>
+      @client.productTypes.all().fetch()
+    .then (result) =>
+      deletions = _.map result.body.results, (productType) =>
+        @client.productTypes.byId(productType.id).delete(productType.version)
+      Q.all(deletions)
+    .then =>
+      @client.productTypes.create(@productType)
+    .then (result) =>
+      @product.productType.id = result.body.id
+      @client.products.create(@product)
+    .then (result) ->
+      done()
+    .fail (err) ->
+      done(_.prettify err)
+    .done()
 
   it 'should inform about a bad header in the template', (done) ->
     template =
       '''
       productType,name,name
       '''
-    @export.export template, null, (res) ->
-      expect(res.status).toBe false
-      expect(res.message['There are duplicate header entries!']).toBe 1
-      expect(res.message["Can't find necessary base header 'variantId'!"]).toBe 1
+    @export.export(template, null)
+    .then (result) ->
+      done 'Export should fail!'
+    .fail (err) ->
+      expect(_.size err).toBe 2
+      expect(err[0]).toBe 'There are duplicate header entries!'
+      expect(err[1]).toBe "Can't find necessary base header 'variantId'!"
       done()
+    .done()
 
   it 'should inform that there are no products', (done) ->
-    @export.queryString = 'staged=false'
     template =
       '''
       productType,name,variantId
       '''
-    @export.export template, '/tmp/foo.csv', (res) ->
-      expect(res.status).toBe true
-      expect(res.message).toBe 'No products found.'
+    @export.export(template, '/tmp/foo.csv', false)
+    .then (result) ->
+      expect(result).toBe 'No products found.'
       done()
+    .fail (err) ->
+      done(_.prettify err)
+    .done()
 
   it 'should export based on minimum template', (done) ->
     template =
@@ -116,9 +117,12 @@ describe 'Export', ->
       productType,name,variantId
       myExportType,,1
       """
-    @export.export template, file, (res) ->
-      expect(res.status).toBe true
-      expect(res.message).toBe 'Export done.'
+    @export.export(template, file)
+    .then (result) ->
+      expect(result).toBe 'Export done.'
       fs.readFile file, encoding: 'utf8', (err, content) ->
         expect(content).toBe expectedCSV
         done()
+    .fail (err) ->
+      done(_.prettify err)
+    .done()

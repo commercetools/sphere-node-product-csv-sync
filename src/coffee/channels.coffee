@@ -7,19 +7,8 @@ class Channels
     @key2id = {}
     @id2key = {}
 
-  getAll: (rest) ->
-    deferred = Q.defer()
-    rest.GET "/channels?limit=0", (error, response, body) ->
-      if error
-        deferred.reject 'Error on getting channels: ' + error
-      else if response.statusCode isnt 200
-        deferred.reject "Problem on getting channels:\n" +
-          "status #{response.statusCode})\n" +
-          "body " + response.body
-      else
-        channels = body.results
-        deferred.resolve channels
-    deferred.promise
+  getAll: (client) ->
+    client.channels.all().fetch()
 
   buildMaps: (channels) ->
     for channel in channels

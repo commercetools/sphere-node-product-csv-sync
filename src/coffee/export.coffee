@@ -6,24 +6,22 @@ Categories = require '../lib/categories'
 Channels = require '../lib/channels'
 CustomerGroups = require '../lib/customergroups'
 Header = require '../lib/header'
-Products = require '../lib/products'
 Taxes = require '../lib/taxes'
 ExportMapping = require '../lib/exportmapping'
 Q = require 'q'
 prompt = require 'prompt'
+SphereClient = require 'sphere-node-client'
 
 class Export
 
   constructor: (options = {}) ->
-    super(options)
     @queryString = options.queryString
     @typesService = new Types()
     @categoryService = new Categories()
     @channelService = new Channels()
     @customerGroupService = new CustomerGroups()
-    @productService = new Products()
     @taxService = new Taxes()
-    @rest = new Rest options if options.config
+    @client = new SphereClient options
 
   _initMapping: (header) ->
     options =
@@ -35,46 +33,50 @@ class Export
       header: header
     new ExportMapping(options)
 
-  export: (templateContent, outputFile, callback) ->
+  export: (templateContent, outputFile, staged = true) ->
+    deferred = Q.defer()
     @_parse(templateContent).then (header) =>
       errors = header.validate()
       unless _.size(errors) is 0
-        @returnResult false, errors, callback
-        return
-      header.toIndex()
-      header.toLanguageIndex()
-      exportMapping = @_initMapping(header)
-      data = [
-        @typesService.getAll @rest
-        @categoryService.getAll @rest
-        @channelService.getAll @rest
-        @customerGroupService.getAll @rest
-        @taxService.getAll @rest
-        @productService.getAllExistingProducts @rest, @queryString
-      ]
-      Q.all(data).then ([productTypes, categories, channels, customerGroups, taxes, products]) =>
-        console.log "Number of product types: #{_.size productTypes}."
-        if _.size(products) is 0
-          @returnResult true, 'No products found.', callback
-          return
-        console.log "Number of products: #{_.size products}."
-        @typesService.buildMaps productTypes
-        @categoryService.buildMaps categories
-        @channelService.buildMaps channels
-        @customerGroupService.buildMaps customerGroups
-        @taxService.buildMaps taxes
-        for productType in productTypes
-          header._productTypeLanguageIndexes(productType)
-        csv = [ header.rawHeader ]
-        for product in products
-          csv = csv.concat exportMapping.mapProduct(product, productTypes)
-        @_saveCSV(outputFile, csv).then =>
-          @returnResult true, 'Export done.', callback
-    .fail (msg) =>
-      @returnResult false, msg, callback
+        deferred.reject errors
+      else
+        header.toIndex()
+        header.toLanguageIndex()
+        exportMapping = @_initMapping(header)
+        data = [
+          @typesService.getAll @client
+          @categoryService.getAll @client
+          @channelService.getAll @client
+          @customerGroupService.getAll @client
+          @taxService.getAll @client
+          @client.productProjections.staged(staged).all().fetch()
+        ]
+        Q.all(data).then ([productTypes, categories, channels, customerGroups, taxes, products]) =>
+          console.log "Number of product types: #{productTypes.body.total}."
+          if products.body.total is 0
+            deferred.resolve 'No products found.'
+          else
+            console.log "Number of products: #{products.body.total}."
+            @typesService.buildMaps productTypes.body.results
+            @categoryService.buildMaps categories.body.results
+            @channelService.buildMaps channels.body.results
+            @customerGroupService.buildMaps customerGroups.body.results
+            @taxService.buildMaps taxes.body.results
+            for productType in productTypes.body.results
+              header._productTypeLanguageIndexes(productType)
+            csv = [ header.rawHeader ]
+            for product in products.body.results
+              csv = csv.concat exportMapping.mapProduct(product, productTypes.body.results)
+            @_saveCSV(outputFile, csv).then ->
+              deferred.resolve 'Export done.'
+    .fail (err) ->
+      deferred.reject err
+    .done()
+
+    deferred.promise
 
   exportAsJson: (outputFile, callback) ->
-    @productService.getAllExistingProducts @rest, @queryString
+    @productService.getAllExistingProducts @client, @queryString
     .then (products) =>
       if _.size(products) is 0
         @returnResult true, 'No products found.', callback
@@ -86,7 +88,7 @@ class Export
       @returnResult false, msg, callback
 
   createTemplate: (languages, outputFile, allProductTypes = false, callback) ->
-    @typesService.getAll(@rest).then (productTypes) =>
+    @typesService.getAll(@client).then (productTypes) =>
       if _.size(productTypes) is 0
         @returnResult false, 'Can not find any product type.', callback
         return
