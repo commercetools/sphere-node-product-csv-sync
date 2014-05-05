@@ -100,12 +100,17 @@ module.exports = class
           show_progress: true
           user_agent: "#{package_json.name} - Import - #{package_json.version}"
           logConfig:
-            levelStream: 'warn'
-            levelFile: 'warn'
+            streams: [
+              {level: 'warn', stream: process.stdout}
+            ]
         if program.verbose
-          options.logConfig.levelStream = 'info'
+          options.logConfig.streams = [
+            {level: 'info', stream: process.stdout}
+          ]
         if program.debug
-          options.logConfig.levelStream = 'debug'
+          options.logConfig.streams = [
+            {level: 'debug', stream: process.stdout}
+          ]
 
         importer = new Importer options
         importer.blackListedCustomAttributesForUpdate = opts.customAttributesForCreationOnly or []
