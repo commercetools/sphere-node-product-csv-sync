@@ -4,6 +4,7 @@ _ = require 'underscore'
 _.mixin require('sphere-node-utils')._u
 Export = require '../../lib/export'
 Config = require '../../config'
+TestHelpers = require './testhelpers'
 
 jasmine.getEnv().defaultTimeoutInterval = 30000
 
@@ -39,44 +40,7 @@ describe 'Export', ->
       slug:
         en: 'foo'
 
-    @client.products.all().fetch()
-    .then (result) =>
-      deletions = _.map result.body.results, (product) =>
-        deferred = Q.defer()
-        data =
-          id: product.id
-          version: product.version
-          actions: [
-            action: 'unpublish'
-          ]
-        @client._rest.POST "/products/#{product.id}", data, (error, response, body) =>
-          console.log "res", response.statusCode
-          if response.statusCode is 200
-            product.version = body.version
-          @client.products.byId(product.id).delete(product.version)
-          .then (result) ->
-            console.log "Del %j", result
-            deferred.resolve true
-          .fail (err) ->
-            deferred.reject err
-        deferred.promise
-      Q.all(deletions)
-    .then =>
-      @client.productTypes.all().fetch()
-    .then (result) =>
-      deletions = _.map result.body.results, (productType) =>
-        @client.productTypes.byId(productType.id).delete(productType.version)
-      Q.all(deletions)
-    .then =>
-      @client.productTypes.create(@productType)
-    .then (result) =>
-      @product.productType.id = result.body.id
-      @client.products.create(@product)
-    .then (result) ->
-      done()
-    .fail (err) ->
-      done(_.prettify err)
-    .done()
+    TestHelpers.setup @client, @productType, @product, done
 
   it 'should inform about a bad header in the template', (done) ->
     template =
