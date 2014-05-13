@@ -3,19 +3,19 @@ _ = require 'underscore'
 
 exports.setup = (client, productType, product, done) ->
   client.products.sort('id').where('masterData(published = "true")').process (payload) ->
-    Q.all _.map payload.body.results, (product) ->
+    Q.all _.map payload.body.results, (existingProduct) ->
       data =
-        id: product.id
-        version: product.version
+        id: existingProduct.id
+        version: existingProduct.version
         actions: [
           action: 'unpublish'
         ]
-      client.products.byId(product.id).update(data)
+      client.products.byId(existingProduct.id).update(data)
   .then ->
     client.products.all().fetch()
   .then (result) ->
-    Q.all _.map result.body.results, (product) ->
-      client.products.byId(product.id).delete(product.version)
+    Q.all _.map result.body.results, (existingProduct) ->
+      client.products.byId(existingProduct.id).delete(existingProduct.version)
   .then ->
     client.productTypes.all().fetch()
   .then (result) ->
@@ -25,10 +25,12 @@ exports.setup = (client, productType, product, done) ->
   .then ->
     client.productTypes.create(productType)
   .then (result) ->
-    product.productType.id = result.body.id
-    client.products.create(product)
-  .then (result) ->
-    done()
+    if product?
+      product.productType.id = result.body.id
+      client.products.create(product).then (result) ->
+        done()
+    else
+      done()
   .fail (err) ->
     done(_.prettify err)
   .done()
