@@ -3,6 +3,7 @@ CONS = require '../lib/constants'
 Validator = require '../lib/validator'
 ProductSync = require('sphere-node-sync').ProductSync
 Q = require 'q'
+SphereClient = require 'sphere-node-client'
 
 class Import
 
@@ -10,12 +11,12 @@ class Import
     @validator = new Validator options
     @sync = new ProductSync options
     @rest = @validator.rest
-    @productService = new Products()
     @publishProducts = false
     @continueOnProblems = false
     @allowRemovalOfVariants = false
     @syncSeoAttributes = true
     @dryRun = false
+    @client = new SphereClient options
     @blackListedCustomAttributesForUpdate = []
 
   import: (fileContent, callback) ->
@@ -33,7 +34,8 @@ class Import
           @returnResult false, @validator.map.errors, callback
           return
         console.log "Mapping done. Fetching existing product(s) ..."
-        @productService.getAllExistingProducts(@rest).then (existingProducts) =>
+        @client.productsProjections.all().fetch().then (result) =>
+          existingProducts = result.body.results
           console.log "Comparing against #{_.size existingProducts} existing product(s) ..."
           @initMatcher existingProducts
           @createOrUpdate products, @validator.types, callback
@@ -45,7 +47,8 @@ class Import
 
   changeState: (publish = true, remove = false, filterFunction, callback) ->
     @publishProducts = true
-    @productService.getAllExistingProducts(@rest, "staged=#{publish}").then (existingProducts) =>
+    @client.productsProjections.staged().all().fetch().then (result) =>
+      existingProducts = result.body.results
 
       console.log "Found #{_.size existingProducts} product(s) ..."
       filteredProducts = _.filter existingProducts, filterFunction
