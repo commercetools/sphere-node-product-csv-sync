@@ -53,7 +53,7 @@ describe 'Import', ->
       @importer.import csv, (res) ->
         expect(res.status).toBe true
         expect(res.message).toBe '[row 2] New product created.'
-      done()
+        done()
 
   xdescribe '#import', ->
     it 'should import a product with prices', (done) ->
@@ -82,7 +82,7 @@ describe 'Import', ->
           expect(res.message).toBe '[row 2] Product update not necessary.'
           done()
 
-    it 'should update 2nd import run', (done) ->
+    it 'should update changes on 2nd import run', (done) ->
       csv =
         """
         productType,name,variantId,slug
