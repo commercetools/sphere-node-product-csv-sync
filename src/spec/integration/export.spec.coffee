@@ -40,7 +40,12 @@ describe 'Export', ->
       slug:
         en: 'foo'
 
-    TestHelpers.setup @client, @productType, @product, done
+    TestHelpers.setup(@client, @productType, @product).then (result) ->
+      done()
+    .fail (err) ->
+      done(_.prettify err)
+    .done()
+
 
   it 'should inform about a bad header in the template', (done) ->
     template =
