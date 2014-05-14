@@ -1,7 +1,12 @@
 Q = require 'q'
 _ = require 'underscore'
 
-exports.setup = (client, productType, product, done) ->
+###
+ * You may omit the product in this case it resolves the created product type.
+ * Otherwise the created product is resolved.
+###
+exports.setup = (client, productType, product) ->
+  deferred = Q.defer()
   client.products.sort('id').where('masterData(published = "true")').process (payload) ->
     Q.all _.map payload.body.results, (existingProduct) ->
       data =
@@ -28,9 +33,11 @@ exports.setup = (client, productType, product, done) ->
     if product?
       product.productType.id = result.body.id
       client.products.create(product).then (result) ->
-        done()
+        deferred.resolve result.body
     else
-      done()
+      deferred.resolve result.body
   .fail (err) ->
-    done(_.prettify err)
+    deferred.reject err
   .done()
+
+  deferred.promise

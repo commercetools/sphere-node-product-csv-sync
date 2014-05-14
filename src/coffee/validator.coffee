@@ -57,7 +57,7 @@ class Validator
     ]
     Q.all(gets).then ([productTypes, customerGroups, categories, taxes, channels]) =>
       @productTypes = productTypes.body.results
-      @types.buildMaps productTypes
+      @types.buildMaps productTypes.body.results
       @customerGroups.buildMaps customerGroups.body.results
       @categories.buildMaps categories.body.results
       @taxes.buildMaps taxes.body.results

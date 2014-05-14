@@ -19,35 +19,38 @@ class Import
     @client = new SphereClient options
     @blackListedCustomAttributesForUpdate = []
 
-  import: (fileContent, callback) ->
+  import: (fileContent) ->
+    deferred = Q.defer()
     @validator.parse fileContent, (data, count) =>
       console.log "CSV file with #{count} row(s) loaded."
       @validator.validate(data).then (rawProducts) =>
         if _.size(@validator.errors) isnt 0
-          @returnResult false, @validator.map.errors, callback
-          return
-        products = []
-        console.log "Mapping #{_.size rawProducts} product(s) ..."
-        for rawProduct in @validator.rawProducts
-          products.push @validator.map.mapProduct(rawProduct)
-        if _.size(@validator.map.errors) isnt 0
-          @returnResult false, @validator.map.errors, callback
-          return
-        console.log "Mapping done. Fetching existing product(s) ..."
-        @client.productsProjections.all().fetch().then (result) =>
-          existingProducts = result.body.results
-          console.log "Comparing against #{_.size existingProducts} existing product(s) ..."
-          @initMatcher existingProducts
-          @createOrUpdate products, @validator.types, callback
-        .fail (msg) =>
-          @returnResult false, msg, callback
-        .done()
+          deferred.reject @validator.errors
+        else
+          products = []
+          console.log "Mapping #{_.size rawProducts} product(s) ..."
+          for rawProduct in @validator.rawProducts
+            products.push @validator.map.mapProduct(rawProduct)
+          if _.size(@validator.map.errors) isnt 0
+            deferred.reject @validator.map.errors
+          else
+            console.log "Mapping done. Fetching existing product(s) ..."
+            @client.productProjections.staged().all().fetch().then (result) =>
+              existingProducts = result.body.results
+              console.log "Comparing against #{_.size existingProducts} existing product(s) ..."
+              @initMatcher existingProducts
+              @createOrUpdate(products, @validator.types).then (info) =>
+                deferred.resolve info
       .fail (msg) =>
-        @returnResult false, msg, callback
+        deferred.reject msg
+      .done()
+
+    deferred.promise
+
 
   changeState: (publish = true, remove = false, filterFunction, callback) ->
     @publishProducts = true
-    @client.productsProjections.staged().all().fetch().then (result) =>
+    @client.productProjections.staged().all().fetch().then (result) =>
       existingProducts = result.body.results
 
       console.log "Found #{_.size existingProducts} product(s) ..."
@@ -87,6 +90,9 @@ class Import
       for variant in product.variants
         vSku = @getSku(variant)
         @sku2index[vSku] = index if vSku?
+    #console.log "id2index", @id2index
+    #console.log "sku2index", @sku2index
+    #console.log "slug2index", @slug2index
 
   getSku: (variant) ->
     variant.sku
@@ -100,30 +106,20 @@ class Import
         index = @slug2index[product.slug[CONS.DEFAULT_LANGUAGE]] if product.slug? and product.slug[CONS.DEFAULT_LANGUAGE]?
     return @existingProducts[index] if index > -1
 
-  createOrUpdate: (products, types, callback) =>
+  createOrUpdate: (products, types) =>
     if _.size(products) is 0
-      return @returnResult true, 'Nothing to do.', callback
-    @initProgressBar 'Importing product(s)', _.size(products)
-    posts = []
-    for entry in products
-      existingProduct = @match(entry)
-      if existingProduct?
-        posts.push @update(entry.product, existingProduct, types, entry.header, entry.rowIndex)
-      else
-        posts.push @create(entry.product, entry.rowIndex)
+      Q.reject 'Nothing to do.'
+    else
+      # @initProgressBar 'Importing product(s)', _.size(products)
+      posts = []
+      for entry in products
+        existingProduct = @match(entry)
+        if existingProduct?
+          posts.push @update(entry.product, existingProduct, types, entry.header, entry.rowIndex)
+        else
+          posts.push @create(entry.product, entry.rowIndex)
 
-    @processInBatches posts, callback
-
-  processInBatches: (posts, callback, numberOfParallelRequest = 50, acc = []) =>
-    current = _.take posts, numberOfParallelRequest
-    Q.all(current).then (msg) =>
-      messages = acc.concat(msg)
-      if _.size(current) < numberOfParallelRequest
-        @returnResult true, messages, callback
-      else
-        @processInBatches _.tail(posts, numberOfParallelRequest), callback, numberOfParallelRequest, messages
-    .fail (msg) =>
-      @returnResult false, msg, callback
+      Q.all posts
 
   _isBlackListedForUpdate: (attributeName) ->
     if _.isEmpty @blackListedCustomAttributesForUpdate
@@ -175,29 +171,20 @@ class Import
       else
         deferred.resolve "[row #{rowIndex}] DRY-RUN - nothing to update."
     else
-      filtered.update (error, response, body) =>
-        @tickProgress()
-        if error?
-          deferred.reject "[row #{rowIndex}] Error on updating product: " + error
+      filtered.update()
+      .then (result) =>
+        if result.statusCode is 304
+          deferred.resolve "[row #{rowIndex}] Product update not necessary."
         else
-          if response.statusCode is 200
-            @publishProduct(body, rowIndex).then (msg) ->
-              deferred.resolve "[row #{rowIndex}] Product updated."
-            .fail (msg) ->
-              deferred.reject msg
-          else if response.statusCode is 304
-            deferred.resolve "[row #{rowIndex}] Product update not necessary."
-          else if response.statusCode is 400
-            humanReadable = JSON.stringify body, null, ' '
-            msg = "[row #{rowIndex}] Problem on updating product:\n" + humanReadable
-            if @continueOnProblems
-              deferred.resolve msg
-            else
-              deferred.reject msg
-
-          else
-            humanReadable = JSON.stringify body, null, ' '
-            deferred.reject "[row #{rowIndex}] Error on updating product: " + humanReadable
+          @publishProduct(result, rowIndex).then ->
+            deferred.resolve "[row #{rowIndex}] Product updated."
+      .fail (err) ->
+        msg = "[row #{rowIndex}] Problem on updating product:\n#{_.prettify err}"
+        if @continueOnProblems
+          deferred.resolve "#{msg} - ignored"
+        else
+          deferred.reject msg
+      .done()
 
     deferred.promise
 
@@ -206,26 +193,19 @@ class Import
     if @dryRun
       deferred.resolve "[row #{rowIndex}] DRY-RUN - create new product."
     else
-      @rest.POST '/products', JSON.stringify(product), (error, response, body) =>
-        @tickProgress()
-        if error?
-          deferred.reject "[row #{rowIndex}] Error on creating new product: " + error
-        else
-          if response.statusCode is 201
-            @publishProduct(body, rowIndex).then (msg) ->
-              deferred.resolve "[row #{rowIndex}] New product created."
-            .fail (msg) ->
-              deferred.reject msg
-          else if response.statusCode is 400
-            humanReadable = JSON.stringify body, null, ' '
-            msg = "[row #{rowIndex}] Problem on creating new product:\n" + humanReadable
-            if @continueOnProblems
-              deferred.resolve msg
-            else
-              deferred.reject msg
+      @client.products.create(product)
+      .then (result) ->
+        deferred.resolve "[row #{rowIndex}] New product created."
+      .fail (err) ->
+        if err.statusCode is 400
+          msg = "[row #{rowIndex}] Problem on creating new product:\n#{_.prettify err}"
+          if @continueOnProblems
+            deferred.resolve "#{msg} - ignored!"
           else
-            humanReadable = JSON.stringify body, null, ' '
-            deferred.reject "[row #{rowIndex}] Error on creating new product: " + humanReadable
+            deferred.reject msg
+        else
+          deferred.reject "[row #{rowIndex}] Error on creating new product:\n#{_.prettify err}"
+      .done()
 
     deferred.promise
 

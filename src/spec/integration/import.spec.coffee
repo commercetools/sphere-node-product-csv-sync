@@ -41,7 +41,13 @@ describe 'Import', ->
         { name: 'multiSamelEnum', label: { de: 'multiSamelEnum' }, type: { name: 'set', elementType: { name: 'lenum', values: lvalues } }, attributeConstraint: 'SameForAll', isRequired: false, isSearchable: false }
       ]
 
-    TestHelpers.setup @client, @productType, undefined, done
+    TestHelpers.setup(@client, @productType).then (result) =>
+      @productType = result
+      done()
+    .fail (err) ->
+      done(_.prettify err)
+    .done()
+
 
   describe '#import', ->
     it 'should import a simple product', (done) ->
@@ -50,22 +56,27 @@ describe 'Import', ->
         productType,name,variantId,slug
         #{@productType.id},myProduct,1,slug
         """
-      @importer.import csv, (res) ->
-        expect(res.status).toBe true
-        expect(res.message).toBe '[row 2] New product created.'
+      @importer.import(csv).then (result) ->
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
         done()
+      .fail (err) ->
+        done (_.prettify err)
+      .done()
 
-  xdescribe '#import', ->
     it 'should import a product with prices', (done) ->
       csv =
         """
         productType,name,variantId,slug,prices
         #{@productType.id},myProduct,1,slug,EUR 899;CH-EUR 999;CH-USD 77777700 #retailerA
         """
-      @importer.import csv, (res) ->
-        expect(res.status).toBe true
-        expect(res.message).toBe '[row 2] New product created.'
+      @importer.import(csv).then (result) ->
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
         done()
+      .fail (err) ->
+        done (_.prettify err)
+      .done()
 
     it 'should do nothing on 2nd import run', (done) ->
       csv =
@@ -73,14 +84,19 @@ describe 'Import', ->
         productType,name,variantId,slug
         #{@productType.id},myProduct1,1,slug
         """
-      @importer.import csv, (res) ->
-        expect(res.status).toBe true
-        expect(res.message).toBe '[row 2] New product created.'
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
         im = createImporter()
-        im.import csv, (res) ->
-          expect(res.status).toBe true
-          expect(res.message).toBe '[row 2] Product update not necessary.'
-          done()
+        im.import(csv)
+      .then (result) ->
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product update not necessary.'
+        done()
+      .fail (err) ->
+        done (_.prettify err)
+      .done()
 
     it 'should update changes on 2nd import run', (done) ->
       csv =
@@ -88,20 +104,26 @@ describe 'Import', ->
         productType,name,variantId,slug
         #{@productType.id},myProductX,1,sluguniqe
         """
-      @importer.import csv, (res) =>
-        expect(res.status).toBe true
-        expect(res.message).toBe '[row 2] New product created.'
-        im = createImporter()
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
           productType,name,variantId,slug
           #{@productType.id},CHANGED,1,sluguniqe
           """
-        im.import csv, (res) ->
-          expect(res.status).toBe true
-          expect(res.message).toBe '[row 2] Product updated.'
-          done()
+        im = createImporter()
+        im.import(csv)
+      .then (result) ->
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        done()
+      .fail (err) ->
+        done (_.prettify err)
+      .done()
 
+  xdescribe '#import', ->
     it 'should handle all kind of attributes and constraints', (done) ->
       csv =
         """
