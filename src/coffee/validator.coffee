@@ -118,7 +118,7 @@ class Validator
       index = @types.id2index[ptInfo]
       rawMaster[@header.toIndex CONS.HEADER_PRODUCT_TYPE] = @productTypes[index]
     else
-      @errors.push "[row #{raw.startRow}] Can't find product type for '#{ptInfo}"
+      @errors.push "[row #{raw.startRow}] Can't find product type for '#{ptInfo}'"
 
   isVariant: (row) ->
     variantId = row[@header.toIndex(CONS.HEADER_VARIANT_ID)]
