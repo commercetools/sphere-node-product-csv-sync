@@ -7,8 +7,10 @@ node_js:
 before_script:
 - npm install -g grunt-cli
 - ./create_config.sh
+- gem install cucumber aruba
 script:
 - npm test
+- cucumber
 - node lib/run import --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --csv data/minimum-header.csv
 notifications:
   hipchat:
