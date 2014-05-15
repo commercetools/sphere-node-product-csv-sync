@@ -166,7 +166,6 @@ describe 'Import', ->
         #{@productType.id},myProduct2,1,slug2
         #{@productType.id},myProduct3,1,slug3
         """
-
       @importer.import(csv)
       .then (result) ->
         expect(_.size result).toBe 3
@@ -259,8 +258,6 @@ describe 'Import', ->
         done (_.prettify err)
       .done()
 
-
-  xdescribe '#import', ->
     it 'should remove a variant and change an SameForAll attribute at the same time', (done) ->
       csv =
         """
@@ -268,23 +265,29 @@ describe 'Import', ->
         #{@productType.id},myProduct-1,1,slug-1,a,b,SAMESAME
         ,,2,slug-2,b,a,
         """
-      @importer.import csv, (res) =>
-        expect(res.status).toBe true
-        expect(res.message).toBe '[row 2] New product created.'
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
           productType,name,variantId,slug,descU,descCU1,descS
           #{@productType.id},myProduct-1,1,slug-1,a,b,SAMESAME_BUTDIFFERENT
           """
         im = createImporter()
-        im.import csv, (res) =>
-          expect(res.status).toBe true
-          expect(res.message).toBe '[row 2] Product updated.'
-          @rest.GET "/products?where=productType(id%3D%22#{@productType.id}%22)", (error, response, body) ->
-            expect(_.size body.results).toBe 1
-            p = body.results[0].masterData.staged
-            expect(_.size p.variants).toBe 0
-            done()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0].masterData.staged
+        expect(_.size p.variants).toBe 0
+        done()
+      .fail (err) ->
+        done (_.prettify err)
+      .done()
 
     it 'should not removeVariant if allowRemovalOfVariants is off', (done) ->
       csv =
@@ -293,9 +296,10 @@ describe 'Import', ->
         #{@productType.id},myProduct-1,1,slug-1,a,b
         ,,2,slug-2,b,a,
         """
-      @importer.import csv, (res) =>
-        expect(res.status).toBe true
-        expect(res.message).toBe '[row 2] New product created.'
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
           productType,name,variantId,slug,descU,descCU1
@@ -303,14 +307,19 @@ describe 'Import', ->
           """
         im = createImporter()
         im.allowRemovalOfVariants = false
-        im.import csv, (res) =>
-          expect(res.status).toBe true
-          expect(res.message).toBe '[row 2] Product update not necessary.'
-          @rest.GET "/products?where=productType(id%3D%22#{@productType.id}%22)", (error, response, body) ->
-            expect(_.size body.results).toBe 1
-            p = body.results[0].masterData.staged
-            expect(_.size p.variants).toBe 1
-            done()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product update not necessary.'
+        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0].masterData.staged
+        expect(_.size p.variants).toBe 1
+        done()
+      .fail (err) ->
+        done (_.prettify err)
+      .done()
 
     it 'should execute SameForAll attribute change before addVariant', (done) ->
       csv =
@@ -318,9 +327,10 @@ describe 'Import', ->
         productType,name,variantId,slug,descU,descCU1,descS
         #{@productType.id},myProduct-1,1,slug-1,a,b,SAMESAME
         """
-      @importer.import csv, (res) =>
-        expect(res.status).toBe true
-        expect(res.message).toBe '[row 2] New product created.'
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
           productType,name,variantId,slug,descU,descCU1,descS
@@ -328,10 +338,14 @@ describe 'Import', ->
           ,,2,slug-2,b,a,WE_WILL_IGNORE_THIS
           """
         im = createImporter()
-        im.import csv, (res) ->
-          expect(res.status).toBe true
-          expect(res.message).toBe '[row 2] Product updated.'
-          done()
+        im.import(csv)
+      .then (result) ->
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        done()
+      .fail (err) ->
+        done (_.prettify err)
+      .done()
 
     it 'should do a partial update of product base attributes', (done) ->
       csv =
@@ -339,35 +353,42 @@ describe 'Import', ->
         productType,name.en,description.en,slug.en,variantId
         #{@productType.id},myProductX,foo bar,my-product-x,1
         """
-      @importer.import csv, (res) =>
-        expect(res.status).toBe true
-        expect(res.message).toBe '[row 2] New product created.'
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
           productType,slug.en,variantId
           #{@productType.id},my-product-x,1
           """
         im = createImporter()
-        im.import csv, (res) =>
-          expect(res.status).toBe true
-          expect(res.message).toBe '[row 2] Product update not necessary.'
-          csv =
-            """
-            productType,slug,name,variantId,sku
-            #{@productType.id},my-product-x,XYZ,1,foo
-            """
-          im = createImporter()
-          im.import csv, (res) =>
-            expect(res.status).toBe true
-            expect(res.message).toBe '[row 2] Product updated.'
-            @rest.GET '/products', (error, response, body) ->
-              expect(_.size body.results).toBe 1
-              p = body.results[0].masterData.staged
-              expect(p.name.en).toBe 'XYZ'
-              expect(p.description.en).toBe 'foo bar'
-              expect(p.slug.en).toBe 'my-product-x'
-              expect(p.masterVariant.sku).toBe 'foo'
-              done()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product update not necessary.'
+        csv =
+          """
+          productType,slug,name,variantId,sku
+          #{@productType.id},my-product-x,XYZ,1,foo
+          """
+        im = createImporter()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0].masterData.staged
+        expect(p.name.en).toBe 'XYZ'
+        expect(p.description.en).toBe 'foo bar'
+        expect(p.slug.en).toBe 'my-product-x'
+        expect(p.masterVariant.sku).toBe 'foo'
+        done()
+      .fail (err) ->
+        done (_.prettify err)
+      .done()
 
     it 'should do a partial update of custom attributes', (done) ->
       csv =
@@ -376,9 +397,10 @@ describe 'Import', ->
         #{@productType.id},x,my-slug,1,a,b,c,d,S,x,aa;bb,myPersonalSKU1
         ,,,2,b,c,d,e,S,x;y;z,,myPersonalSKU2
         """
-      @importer.import csv, (res) =>
-        expect(res.status).toBe true
-        expect(res.message).toBe '[row 2] New product created.'
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
           productType,variantId,sku
@@ -386,42 +408,49 @@ describe 'Import', ->
           ,2,myPersonalSKU2
           """
         im = createImporter()
-        im.import csv, (res) =>
-          expect(res.status).toBe true
-          expect(res.message).toBe '[row 2] Product update not necessary.'
-          csv =
-          """
-          productType,name,slug,variantId,multiSamelEnum,sku
-          #{@productType.id},x,my-slug,1,cc,myPersonalSKU3
-          ,,,2
-          """
-          im = createImporter()
-          im.import csv, (res) =>
-            expect(res.status).toBe true
-            expect(res.message).toBe '[row 2] Product updated.'
-            @rest.GET "/products?where=productType(id%3D%22#{@productType.id}%22)", (error, response, body) ->
-              expect(_.size body.results).toBe 1
-              p = body.results[0].masterData.staged
-              expect(p.name.en).toBe 'x'
-              expect(p.masterVariant.sku).toBe 'myPersonalSKU3'
-              expect(p.variants[0].sku).toBeUndefined()
-              ats = p.masterVariant.attributes
-              expect(ats[0]).toEqual { name: 'descN', value: 'a' }
-              expect(ats[1]).toEqual { name: 'descU', value: 'b' }
-              expect(ats[2]).toEqual { name: 'descCU1', value: 'c' }
-              expect(ats[3]).toEqual { name: 'descCU2', value: 'd' }
-              expect(ats[4]).toEqual { name: 'descS', value: 'S' }
-              expect(ats[5]).toEqual { name: 'multiEnum', value: [{ key: 'x', label: 'X' }] }
-              expect(ats[6]).toEqual { name: 'multiSamelEnum', value: [{ key: 'cc', label: { en: 'CC', 'de': 'Cc' } }] }
-              ats = p.variants[0].attributes
-              expect(ats[0]).toEqual { name: 'descN', value: 'b' }
-              expect(ats[1]).toEqual { name: 'descU', value: 'c' }
-              expect(ats[2]).toEqual { name: 'descCU1', value: 'd' }
-              expect(ats[3]).toEqual { name: 'descCU2', value: 'e' }
-              expect(ats[4]).toEqual { name: 'descS', value: 'S' }
-              expect(ats[5]).toEqual { name: 'multiEnum', value: [{ key: 'x', label: 'X' }, { key: 'y', label: 'Y' }, { key: 'z', label: 'Z' }] }
-              expect(ats[6]).toEqual { name: 'multiSamelEnum', value: [{ key: 'cc', label: { en: 'CC', 'de': 'Cc' } }] }
-              done()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product update not necessary.'
+        csv =
+        """
+        productType,name,slug,variantId,multiSamelEnum,sku
+        #{@productType.id},x,my-slug,1,cc,myPersonalSKU3
+        ,,,2
+        """
+        im = createImporter()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0].masterData.staged
+        expect(_.size p.variants).toBe 1
+        expect(p.name.en).toBe 'x'
+        expect(p.masterVariant.sku).toBe 'myPersonalSKU3'
+        expect(p.variants[0].sku).toBeUndefined()
+        ats = p.masterVariant.attributes
+        expect(ats[0]).toEqual { name: 'descN', value: 'a' }
+        expect(ats[1]).toEqual { name: 'descU', value: 'b' }
+        expect(ats[2]).toEqual { name: 'descCU1', value: 'c' }
+        expect(ats[3]).toEqual { name: 'descCU2', value: 'd' }
+        expect(ats[4]).toEqual { name: 'descS', value: 'S' }
+        expect(ats[5]).toEqual { name: 'multiEnum', value: [{ key: 'x', label: 'X' }] }
+        expect(ats[6]).toEqual { name: 'multiSamelEnum', value: [{ key: 'cc', label: { en: 'CC', 'de': 'Cc' } }] }
+        ats = p.variants[0].attributes
+        expect(ats[0]).toEqual { name: 'descN', value: 'b' }
+        expect(ats[1]).toEqual { name: 'descU', value: 'c' }
+        expect(ats[2]).toEqual { name: 'descCU1', value: 'd' }
+        expect(ats[3]).toEqual { name: 'descCU2', value: 'e' }
+        expect(ats[4]).toEqual { name: 'descS', value: 'S' }
+        expect(ats[5]).toEqual { name: 'multiEnum', value: [{ key: 'x', label: 'X' }, { key: 'y', label: 'Y' }, { key: 'z', label: 'Z' }] }
+        expect(ats[6]).toEqual { name: 'multiSamelEnum', value: [{ key: 'cc', label: { en: 'CC', 'de': 'Cc' } }] }
+        done()
+      .fail (err) ->
+        done (_.prettify err)
+      .done()
 
     it 'should do a partial update of prices and images', (done) ->
       csv =
@@ -430,9 +459,10 @@ describe 'Import', ->
         #{@productType.id},y,my-slug,1,EUR 999,//example.com/foo.jpg
         ,,,2,USD 70000,/example.com/bar.png
         """
-      @importer.import csv, (res) =>
-        expect(res.status).toBe true
-        expect(res.message).toBe '[row 2] New product created.'
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
           productType,slug,variantId
@@ -440,18 +470,23 @@ describe 'Import', ->
           ,,2
           """
         im = createImporter()
-        im.import csv, (res) =>
-          expect(res.status).toBe true
-          expect(res.message).toBe '[row 2] Product update not necessary.'
-          @rest.GET "/products?where=productType(id%3D%22#{@productType.id}%22)", (error, response, body) ->
-            expect(_.size body.results).toBe 1
-            p = body.results[0].masterData.staged
-            expect(p.name.en).toBe 'y'
-            expect(p.masterVariant.prices[0].value).toEqual { centAmount: 999, currencyCode: 'EUR' }
-            expect(p.variants[0].prices[0].value).toEqual { centAmount: 70000, currencyCode: 'USD' }
-            expect(p.masterVariant.images[0].url).toBe '//example.com/foo.jpg'
-            expect(p.variants[0].images[0].url).toBe '/example.com/bar.png'
-            done()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product update not necessary.'
+        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0].masterData.staged
+        expect(p.name.en).toBe 'y'
+        expect(p.masterVariant.prices[0].value).toEqual { centAmount: 999, currencyCode: 'EUR' }
+        expect(p.variants[0].prices[0].value).toEqual { centAmount: 70000, currencyCode: 'USD' }
+        expect(p.masterVariant.images[0].url).toBe '//example.com/foo.jpg'
+        expect(p.variants[0].images[0].url).toBe '/example.com/bar.png'
+        done()
+      .fail (err) ->
+        done (_.prettify err)
+      .done()
 
     it 'should do a partial update of SEO attribute', (done) ->
       csv =
@@ -459,23 +494,29 @@ describe 'Import', ->
         productType,variantId,sku,name,metaTitle,metaDescription,metaKeywords
         #{@productType.id},1,a111,mySeoProdcut,a,b,c
         """
-      @importer.import csv, (res) =>
-        expect(res.status).toBe true
-        expect(res.message).toBe '[row 2] New product created.'
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
           productType,variantId,sku,name,metaTitle,metaKeywords
           #{@productType.id},1,a111,mySeoProdcut,,changed
           """
         im = createImporter()
-        im.import csv, (res) =>
-          expect(res.status).toBe true
-          expect(res.message).toBe '[row 2] Product updated.'
-          @rest.GET "/products?where=productType(id%3D%22#{@productType.id}%22)", (error, response, body) ->
-            expect(_.size body.results).toBe 1
-            p = body.results[0].masterData.staged
-            expect(p.name.en).toBe 'mySeoProdcut'
-            expect(p.metaTitle.en).toBe 'a' # I would actually expect ''
-            expect(p.metaDescription.en).toBe 'b'
-            expect(p.metaKeywords.en).toBe 'changed'
-            done()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0].masterData.staged
+        expect(p.name.en).toBe 'mySeoProdcut'
+        expect(p.metaTitle.en).toBe 'a' # I would actually expect ''
+        expect(p.metaDescription.en).toBe 'b'
+        expect(p.metaKeywords.en).toBe 'changed'
+        done()
+      .fail (err) ->
+        done (_.prettify err)
+      .done()
