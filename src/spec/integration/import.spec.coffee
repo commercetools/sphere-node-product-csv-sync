@@ -85,7 +85,7 @@ describe 'Import', ->
         #{@productType.id},myProduct1,1,slug
         """
       @importer.import(csv)
-      .then (result) =>
+      .then (result) ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
         im = createImporter()
@@ -123,7 +123,6 @@ describe 'Import', ->
         done (_.prettify err)
       .done()
 
-  xdescribe '#import', ->
     it 'should handle all kind of attributes and constraints', (done) ->
       csv =
         """
@@ -132,25 +131,31 @@ describe 'Import', ->
         ,,2,slug,free,text2,foo,baz,same
         ,,3,slug,,text3,boo,baz,sameDifferentWhichWillBeIgnoredAsItIsDefined
         """
-      @importer.import csv, (res) =>
-        expect(res.status).toBe true
-        expect(res.message).toBe '[row 2] New product created.'
+      @importer.import(csv)
+      .then (result) ->
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
         im = createImporter()
-        im.import csv, (res) =>
-          expect(res.status).toBe true
-          expect(res.message).toBe '[row 2] Product update not necessary.'
-          csv =
-            """
-            productType,name,variantId,slug,descN,descU,descCU1,descCU2,descS
-            #{@productType.id},myProduct1,1,slugi,,text4,boo,bar,STILL_SAME
-            ,,2,slug,free,text2,foo,baz,STILL_SAME
-            ,,3,slug,CHANGED,text3,boo,baz,STILL_SAME
-            """
-          im = createImporter()
-          im.import csv, (res) ->
-            expect(res.status).toBe true
-            expect(res.message).toBe '[row 2] Product updated.'
-            done()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product update not necessary.'
+        csv =
+          """
+          productType,name,variantId,slug,descN,descU,descCU1,descCU2,descS
+          #{@productType.id},myProduct1,1,slugi,,text4,boo,bar,STILL_SAME
+          ,,2,slug,free,text2,foo,baz,STILL_SAME
+          ,,3,slug,CHANGED,text3,boo,baz,STILL_SAME
+          """
+        im = createImporter()
+        im.import(csv)
+      .then (result) ->
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        done()
+      .fail (err) ->
+        done (_.prettify err)
+      .done()
 
     it 'should handle multiple products', (done) ->
       csv =
@@ -161,20 +166,24 @@ describe 'Import', ->
         #{@productType.id},myProduct2,1,slug2
         #{@productType.id},myProduct3,1,slug3
         """
-      @importer.import csv, (res) ->
-        expect(res.status).toBe true
-        expect(_.size res.message).toBe 3
-        expect(res.message['[row 2] New product created.']).toBe 1
-        expect(res.message['[row 4] New product created.']).toBe 1
-        expect(res.message['[row 5] New product created.']).toBe 1
+
+      @importer.import(csv)
+      .then (result) ->
+        expect(_.size result).toBe 3
+        expect(result[0]).toBe '[row 2] New product created.'
+        expect(result[1]).toBe '[row 4] New product created.'
+        expect(result[2]).toBe '[row 5] New product created.'
         im = createImporter()
-        im.import csv, (res) ->
-          expect(res.status).toBe true
-          expect(_.size res.message).toBe 3
-          expect(res.message['[row 2] Product update not necessary.']).toBe 1
-          expect(res.message['[row 4] Product update not necessary.']).toBe 1
-          expect(res.message['[row 5] Product update not necessary.']).toBe 1
-          done()
+        im.import(csv)
+      .then (result) ->
+        expect(_.size result).toBe 3
+        expect(result[0]).toBe '[row 2] Product update not necessary.'
+        expect(result[1]).toBe '[row 4] Product update not necessary.'
+        expect(result[2]).toBe '[row 5] Product update not necessary.'
+        done()
+      .fail (err) ->
+        done (_.prettify err)
+      .done()
 
     it 'should handle set of enums', (done) ->
       csv =
@@ -183,24 +192,30 @@ describe 'Import', ->
         #{@productType.id},myProduct1,1,slug1,y;x,a,b
         ,,2,slug2,x;z,b,a
         """
-      @importer.import csv, (res) =>
-        expect(res.status).toBe true
-        expect(res.message).toBe '[row 2] New product created.'
+      @importer.import(csv)
+      .then (result) ->
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
         im = createImporter()
-        im.import csv, (res) =>
-          expect(res.status).toBe true
-          expect(res.message).toBe '[row 2] Product update not necessary.'
-          csv =
-            """
-            productType,name,variantId,slug,multiEnum,descU,descCU1
-            #{@productType.id},myProduct1,1,slug1,y;x;z,a,b
-            ,,2,slug2,z,b,a
-            """
-          im = createImporter()
-          im.import csv, (res) ->
-            expect(res.status).toBe true
-            expect(res.message).toBe '[row 2] Product updated.'
-            done()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product update not necessary.'
+        csv =
+          """
+          productType,name,variantId,slug,multiEnum,descU,descCU1
+          #{@productType.id},myProduct1,1,slug1,y;x;z,a,b
+          ,,2,slug2,z,b,a
+          """
+        im = createImporter()
+        im.import(csv)
+      .then (result) ->
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        done()
+      .fail (err) ->
+        done (_.prettify err)
+      .done()
 
     it 'should handle set of SameForAll enums with new variants', (done) ->
       csv =
@@ -208,37 +223,45 @@ describe 'Import', ->
         productType,name,variantId,slug,sku,multiSamelEnum,descU,descCU1
         #{@productType.id},myProduct1,1,slug1,sku1,aa;bb;cc,a,b
         """
-      @importer.import csv, (res) =>
-        expect(res.status).toBe true
-        expect(res.message).toBe '[row 2] New product created.'
+      @importer.import(csv)
+      .then (result) ->
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
         im = createImporter()
-        im.import csv, (res) =>
-          expect(res.status).toBe true
-          expect(res.message).toBe '[row 2] Product update not necessary.'
-          csv =
-            """
-            productType,name,variantId,slug,sku,multiSamelEnum,descU,descCU1
-            #{@productType.id},myProduct1,1,slug1,sku1,aa;bb;cc,a,b
-            ,,2,slug2,,sku2,b,a
-            ,,3,slug3,,sku3,c,c
-            ,,4,slug4,,sku4,d,d
-            ,,5,slug5,,sku5,e,e
-            ,,6,slug6,,sku6,f,f
-            ,,7,slug7,,sku7,g,g
-            ,,8,slug8,,sku8,h,h
-            ,,9,slug9,,sku9,i,i
-            ,,10,slug10,,sku10,j,j
-            ,,11,slug11,,sku11,k,k
-            ,,12,slug12,,sku12,l,l
-            ,,13,slug13,,sku13,m,m
-            """
-          im = createImporter()
-          im.import csv, (res) ->
-            expect(res.status).toBe true
-            expect(res.message).toBe '[row 2] Product updated.'
-            done()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product update not necessary.'
+        csv =
+          """
+          productType,name,variantId,slug,sku,multiSamelEnum,descU,descCU1
+          #{@productType.id},myProduct1,1,slug1,sku1,aa;bb;cc,a,b
+          ,,2,slug2,,sku2,b,a
+          ,,3,slug3,,sku3,c,c
+          ,,4,slug4,,sku4,d,d
+          ,,5,slug5,,sku5,e,e
+          ,,6,slug6,,sku6,f,f
+          ,,7,slug7,,sku7,g,g
+          ,,8,slug8,,sku8,h,h
+          ,,9,slug9,,sku9,i,i
+          ,,10,slug10,,sku10,j,j
+          ,,11,slug11,,sku11,k,k
+          ,,12,slug12,,sku12,l,l
+          ,,13,slug13,,sku13,m,m
+          """
+        im = createImporter()
+        im.import(csv)
+      .then (result) ->
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        done()
+      .fail (err) ->
+        done (_.prettify err)
+      .done()
 
-    it 'should removeVariant include SameForAll attribute change', (done) ->
+
+  xdescribe '#import', ->
+    it 'should remove a variant and change an SameForAll attribute at the same time', (done) ->
       csv =
         """
         productType,name,variantId,slug,descU,descCU1,descS

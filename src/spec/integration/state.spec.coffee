@@ -7,7 +7,7 @@ Config = require '../../config'
 
 jasmine.getEnv().defaultTimeoutInterval = 30000
 
-describe 'State', ->
+xdescribe 'State', ->
   beforeEach (done) ->
     @import = new Import Config
     @export = new Export Config
