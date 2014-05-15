@@ -39,9 +39,9 @@ class Import
               existingProducts = result.body.results
               console.log "Comparing against #{_.size existingProducts} existing product(s) ..."
               @initMatcher existingProducts
-              @createOrUpdate(products, @validator.types).then (info) =>
+              @createOrUpdate(products, @validator.types).then (info) ->
                 deferred.resolve info
-      .fail (msg) =>
+      .fail (msg) ->
         deferred.reject msg
       .done()
 
