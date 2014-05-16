@@ -7,7 +7,7 @@ fs = require 'fs'
 Q = require 'q'
 program = require 'commander'
 prompt = require 'prompt'
-
+{ProjectCredentialsConfig} = require 'sphere-node-utils'
 Csv = require 'csv'
 _ = require('underscore')._
 
@@ -91,42 +91,50 @@ module.exports = class
       .action (opts) ->
         CONS.DEFAULT_LANGUAGE = opts.language
 
-        options =
-          config:
-            project_key: program.projectKey
-            client_id: program.clientId
-            client_secret: program.clientSecret
-          timeout: program.timeout
-          show_progress: true
-          user_agent: "#{package_json.name} - Import - #{package_json.version}"
-          logConfig:
-            levelStream: 'warn'
-            levelFile: 'warn'
-        if program.verbose
-          options.logConfig.levelStream = 'info'
-        if program.debug
-          options.logConfig.levelStream = 'debug'
+        credentialsConfig = ProjectCredentialsConfig.create()
+        .fail (err) ->
+          console.log e, "Problems on getting client credentials from config files."
+          process.exit 2
+        .then (credentials) ->
+          options =
+            config: credentials.enrichCredentials
+              project_key: program.projectKey
+              client_id: program.clientId
+              client_secret: program.clientSecret
+            timeout: program.timeout
+            show_progress: true
+            user_agent: "#{package_json.name} - Import - #{package_json.version}"
+            logConfig:
+              levelStream: 'warn'
+              levelFile: 'warn'
 
-        importer = new Importer options
-        importer.blackListedCustomAttributesForUpdate = opts.customAttributesForCreationOnly or []
-        importer.continueOnProblems = opts.continueOnProblems
-        importer.validator.suppressMissingHeaderWarning = opts.suppressMissingHeaderWarning
-        importer.allowRemovalOfVariants = opts.allowRemovalOfVariants
-        importer.syncSeoAttributes = false if opts.ignoreSeoAttributes
-        importer.publishProducts = opts.publish
-        importer.dryRun = true if opts.dryRun
+          if program.verbose
+            options.logConfig.levelStream = 'info'
+          if program.debug
+            options.logConfig.levelStream = 'debug'
 
-        fs.readFile opts.csv, 'utf8', (err, content) ->
-          if err
-            console.error "Problems on reading file '#{opts.csv}': " + err
-            process.exit 2
+          importer = new Importer options
+          importer.blackListedCustomAttributesForUpdate = opts.customAttributesForCreationOnly or []
+          importer.continueOnProblems = opts.continueOnProblems
+          importer.validator.suppressMissingHeaderWarning = opts.suppressMissingHeaderWarning
+          importer.allowRemovalOfVariants = opts.allowRemovalOfVariants
+          importer.syncSeoAttributes = false if opts.ignoreSeoAttributes
+          importer.publishProducts = opts.publish
+          importer.dryRun = true if opts.dryRun
 
-          importer.import content, (result) ->
-            if result.status
-              console.log result.message
-              process.exit 0
-            console.error result.message
-            process.exit 1
+          fs.readFile opts.csv, 'utf8', (err, content) ->
+            if err
+              console.error "Problems on reading file '#{opts.csv}': " + err
+              process.exit 2
+            else
+              importer.import(content)
+              .then (result) ->
+                console.log result
+                process.exit 0
+              .fail (err) ->
+                console.error result
+                process.exit 1
+        .done()
 
     program
       .command 'state'
@@ -165,15 +173,14 @@ module.exports = class
           @_getFilterFunction(opts).then (filterFunction) ->
             importer = new Importer options
             importer.continueOnProblems = opts.continueOnProblems
-            importer.changeState publish, remove, filterFunction, (result) ->
-              if result.status
-                console.log result.message
-                process.exit 0
-              console.error result.message
-              process.exit 1
-          .fail (msg) ->
-            console.error msg
-            process.exit 3
+            importer.changeState(publish, remove, filterFunction)
+            .then (result) ->
+              console.log result
+              process.exit 0
+          .fail (err) ->
+            console.error err
+            process.exit 1
+          .done()
 
         if remove
           prompt.start()
@@ -223,23 +230,25 @@ module.exports = class
           options.logConfig = 'debug'
 
         exporter = new Exporter options
-        handleResult = (result) ->
-          if result.status
-            console.log result.message
-            process.exit 0
-          console.error result.message
-          process.exit 1
-
         if opts.json
           # TODO: check that output extension is `.json` ?
           exporter.exportAsJson opts.json, handleResult
+          # TODO: handle exit code!
         else
           fs.readFile opts.template, 'utf8', (err, content) ->
             if err
               console.error "Problems on reading template file '#{opts.template}': " + err
               process.exit 2
+            else
+            exporter.export(content, opts.out)
+            .then (result) ->
+              console.log result
+              process.exit 0
+            .fail (err) ->
+              console.error err
+              process.exit 1
+            .done()
 
-            exporter.export content, opts.out, handleResult
 
     program
       .command 'template'

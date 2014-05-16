@@ -1,4 +1,3 @@
-Q = require 'q'
 _ = require 'underscore'
 Import = require '../../lib/import'
 Config = require '../../config'
@@ -56,12 +55,13 @@ describe 'Import', ->
         productType,name,variantId,slug
         #{@productType.id},myProduct,1,slug
         """
-      @importer.import(csv).then (result) ->
+      @importer.import(csv)
+      .then (result) ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
         done()
       .fail (err) ->
-        done (_.prettify err)
+        done(_.prettify err)
       .done()
 
     it 'should import a product with prices', (done) ->
@@ -70,12 +70,13 @@ describe 'Import', ->
         productType,name,variantId,slug,prices
         #{@productType.id},myProduct,1,slug,EUR 899;CH-EUR 999;CH-USD 77777700 #retailerA
         """
-      @importer.import(csv).then (result) ->
+      @importer.import(csv)
+      .then (result) ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
         done()
       .fail (err) ->
-        done (_.prettify err)
+        done(_.prettify err)
       .done()
 
     it 'should do nothing on 2nd import run', (done) ->
@@ -95,7 +96,7 @@ describe 'Import', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         done()
       .fail (err) ->
-        done (_.prettify err)
+        done(_.prettify err)
       .done()
 
     it 'should update changes on 2nd import run', (done) ->
@@ -120,7 +121,7 @@ describe 'Import', ->
         expect(result[0]).toBe '[row 2] Product updated.'
         done()
       .fail (err) ->
-        done (_.prettify err)
+        done(_.prettify err)
       .done()
 
     it 'should handle all kind of attributes and constraints', (done) ->
@@ -154,7 +155,7 @@ describe 'Import', ->
         expect(result[0]).toBe '[row 2] Product updated.'
         done()
       .fail (err) ->
-        done (_.prettify err)
+        done(_.prettify err)
       .done()
 
     it 'should handle multiple products', (done) ->
@@ -181,7 +182,7 @@ describe 'Import', ->
         expect(result[2]).toBe '[row 5] Product update not necessary.'
         done()
       .fail (err) ->
-        done (_.prettify err)
+        done(_.prettify err)
       .done()
 
     it 'should handle set of enums', (done) ->
@@ -213,7 +214,7 @@ describe 'Import', ->
         expect(result[0]).toBe '[row 2] Product updated.'
         done()
       .fail (err) ->
-        done (_.prettify err)
+        done(_.prettify err)
       .done()
 
     it 'should handle set of SameForAll enums with new variants', (done) ->
@@ -255,7 +256,7 @@ describe 'Import', ->
         expect(result[0]).toBe '[row 2] Product updated.'
         done()
       .fail (err) ->
-        done (_.prettify err)
+        done(_.prettify err)
       .done()
 
     it 'should remove a variant and change an SameForAll attribute at the same time', (done) ->
@@ -286,7 +287,7 @@ describe 'Import', ->
         expect(_.size p.variants).toBe 0
         done()
       .fail (err) ->
-        done (_.prettify err)
+        done(_.prettify err)
       .done()
 
     it 'should not removeVariant if allowRemovalOfVariants is off', (done) ->
@@ -318,7 +319,7 @@ describe 'Import', ->
         expect(_.size p.variants).toBe 1
         done()
       .fail (err) ->
-        done (_.prettify err)
+        done(_.prettify err)
       .done()
 
     it 'should execute SameForAll attribute change before addVariant', (done) ->
@@ -344,7 +345,7 @@ describe 'Import', ->
         expect(result[0]).toBe '[row 2] Product updated.'
         done()
       .fail (err) ->
-        done (_.prettify err)
+        done(_.prettify err)
       .done()
 
     it 'should do a partial update of product base attributes', (done) ->
@@ -387,7 +388,7 @@ describe 'Import', ->
         expect(p.masterVariant.sku).toBe 'foo'
         done()
       .fail (err) ->
-        done (_.prettify err)
+        done(_.prettify err)
       .done()
 
     it 'should do a partial update of custom attributes', (done) ->
@@ -449,7 +450,7 @@ describe 'Import', ->
         expect(ats[6]).toEqual { name: 'multiSamelEnum', value: [{ key: 'cc', label: { en: 'CC', 'de': 'Cc' } }] }
         done()
       .fail (err) ->
-        done (_.prettify err)
+        done(_.prettify err)
       .done()
 
     it 'should do a partial update of prices and images', (done) ->
@@ -485,7 +486,7 @@ describe 'Import', ->
         expect(p.variants[0].images[0].url).toBe '/example.com/bar.png'
         done()
       .fail (err) ->
-        done (_.prettify err)
+        done(_.prettify err)
       .done()
 
     it 'should do a partial update of SEO attribute', (done) ->
@@ -518,5 +519,5 @@ describe 'Import', ->
         expect(p.metaKeywords.en).toBe 'changed'
         done()
       .fail (err) ->
-        done (_.prettify err)
+        done(_.prettify err)
       .done()

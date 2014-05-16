@@ -39,8 +39,7 @@ class Import
               existingProducts = result.body.results
               console.log "Comparing against #{_.size existingProducts} existing product(s) ..."
               @initMatcher existingProducts
-              @createOrUpdate(products, @validator.types).then (info) ->
-                deferred.resolve info
+              @createOrUpdate(products, @validator.types).then (result) -> deferred.resolve result
       .fail (msg) ->
         deferred.reject msg
       .done()
@@ -48,17 +47,19 @@ class Import
     deferred.promise
 
 
-  changeState: (publish = true, remove = false, filterFunction, callback) ->
+  changeState: (publish = true, remove = false, filterFunction) ->
+    deferred = Q.defer()
     @publishProducts = true
-    @client.productProjections.staged().all().fetch().then (result) =>
+    @client.productProjections.staged(remove or publish).all().fetch()
+    .then (result) =>
       existingProducts = result.body.results
 
       console.log "Found #{_.size existingProducts} product(s) ..."
       filteredProducts = _.filter existingProducts, filterFunction
-      console.log "Filtered products #{_.size filteredProducts}"
+      console.log "Filtered #{_.size filteredProducts} product(s)."
 
       if _.size(filteredProducts) is 0
-        @returnResult true, 'Nothing to do', callback
+        deferred.resolve 'Nothing to do.'
       else
         posts = _.map filteredProducts, (product) =>
           if remove
@@ -69,10 +70,13 @@ class Import
         action = if publish then 'Publishing' else 'Unpublishing'
         action = 'Deleting' if remove
         console.log "#{action} #{_.size posts} product(s) ..."
-        @processInBatches posts, callback
-    .fail (msg) =>
-      @returnResult false, msg, callback
+        Q.all(posts).then (result) -> deferred.resolve result
+
+    .fail (msg) ->
+      deferred.reject msg
     .done()
+
+    deferred.promise
 
   initMatcher: (existingProducts) ->
     @existingProducts = existingProducts
@@ -167,7 +171,7 @@ class Import
     if @dryRun
       updates = filtered.get()
       if updates?
-        deferred.resolve "[row #{rowIndex}] DRY-RUN - updates for #{existingProduct.id}: #{JSON.stringify filtered.get()}"
+        deferred.resolve "[row #{rowIndex}] DRY-RUN - updates for #{existingProduct.id}:\n#{_.prettify filtered.get()}"
       else
         deferred.resolve "[row #{rowIndex}] DRY-RUN - nothing to update."
     else
@@ -181,7 +185,7 @@ class Import
       .fail (err) ->
         msg = "[row #{rowIndex}] Problem on updating product:\n#{_.prettify err}"
         if @continueOnProblems
-          deferred.resolve "#{msg} - ignored"
+          deferred.resolve "#{msg} - ignored!"
         else
           deferred.reject msg
       .done()
@@ -215,7 +219,7 @@ class Import
     unless @publishProducts
       deferred.resolve "Do not #{action}."
     else if publish and product.published and not product.hasStagedChanges
-      deferred.resolve "Product is already published"
+      deferred.resolve "[row #{rowIndex}] Product is already published."
     else
       data =
         id: product.id
@@ -223,35 +227,30 @@ class Import
         actions: [
           action: action
         ]
-      @rest.POST "/products/#{product.id}", JSON.stringify(data), (error, response, body) =>
-        if error?
-          deferred.reject "[row #{rowIndex}] Error on #{action}ing product: " + error
-        else
-          if response.statusCode is 200
-            deferred.resolve "[row #{rowIndex}] Product #{action}ed."
-          else if response.statusCode is 400
-            if @continueOnProblems
-              deferred.resolve "[row #{rowIndex}] Product is already #{action}ed."
-            else
-              humanReadable = JSON.stringify body, null, ' '
-              deferred.reject "[row #{rowIndex}] Problem on #{action}ing product:\n" + humanReadable
+      @client.products.byId(product.id).update(data)
+      .then (result) ->
+        deferred.resolve "[row #{rowIndex}] Product #{action}ed."
+      .fail (err) ->
+        if err.statusCode is 400
+          if @continueOnProblems
+            deferred.resolve "[row #{rowIndex}] Product is already #{action}ed."
           else
-            humanReadable = JSON.stringify body, null, ' '
-            deferred.reject "[row #{rowIndex}] Problem on #{action}ing product (code #{response.statusCode}): " + humanReadable
+            deferred.reject "[row #{rowIndex}] Problem on #{action}ing product:\n#{_.prettify err}"
+        else
+          deferred.reject "[row #{rowIndex}] Error on #{action}ing product:\n#{_.prettify err}"
+      .done()
 
     deferred.promise
 
   deleteProduct: (product, rowIndex) ->
     deferred = Q.defer()
-    @rest.DELETE "/products/#{product.id}?version=#{product.version}", (error, response, body) ->
-      if error?
-        deferred.reject "[row #{rowIndex}] Error on deleting product: " + error
-      else
-        if response.statusCode is 200
-          deferred.resolve "[row #{rowIndex}] Product deleted."
-        else
-          humanReadable = JSON.stringify body, null, ' '
-          deferred.reject "[row #{rowIndex}] Problem on deleting product (code #{response.statusCode}): " + humanReadable
+    @client.products.byId(product.id).delete(product.version)
+    .then (result) ->
+      deferred.resolve "[row #{rowIndex}] Product deleted."
+    .fail (err) ->
+      deferred.reject "[row #{rowIndex}] Error on deleting product:\n#{_.prettify err}"
+    .done()
+
     deferred.promise
 
 

@@ -7,11 +7,11 @@ Config = require '../../config'
 
 jasmine.getEnv().defaultTimeoutInterval = 30000
 
-xdescribe 'Impex', ->
+describe 'Impex', ->
   beforeEach (done) ->
     @import = new Import Config
     @export = new Export Config
-    @rest = @import.validator.rest
+    @client = @importer.client
 
     unique = new Date().getTime()
     @productType =
@@ -23,47 +23,13 @@ xdescribe 'Impex', ->
         { name: 'myMultiText', label: { name: 'myMultiText' }, type: { name: 'set', elementType: { name: 'text'} }, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
       ]
 
-    deleteProduct = (product) =>
-      deferred = Q.defer()
-      data =
-        id: product.id
-        version: product.version
-        actions: [
-          action: 'unpublish'
-        ]
-      @rest.POST "/products/#{product.id}", JSON.stringify(data), (error, response, body) =>
-        if response.statusCode is 200
-          product.version = body.version
-        @rest.DELETE "/products/#{product.id}?version=#{product.version}", (error, response, body) ->
-          deferred.resolve response.statusCode
-      deferred.promise
+    TestHelpers.setup(@client, @productType).then (result) =>
+      @productType = result
+      done()
+    .fail (err) ->
+      done(_.prettify err)
+    .done()
 
-    deleteProductType = (productType) =>
-      deferred = Q.defer()
-      @rest.DELETE "/product-types/#{productType.id}?version=#{productType.version}", (error, response, body) ->
-        deferred.resolve response.statusCode
-      deferred.promise
-
-    @rest.GET '/products?staged=false', (error, response, body) =>
-      expect(response.statusCode).toBe 200
-      productDeletes = []
-      typesDeletes = []
-      for product in body.results
-        productDeletes.push deleteProduct(product)
-      @rest.GET '/product-types?limit=0', (error, response, body) =>
-        expect(response.statusCode).toBe 200
-        for productType in body.results
-          typesDeletes.push deleteProductType(productType)
-        Q.all(productDeletes).then (statusCodes) =>
-          Q.all(typesDeletes).then (statusCodes) =>
-            @rest.POST '/product-types', JSON.stringify(@productType), (error, response, body) =>
-              expect(response.statusCode).toBe 201
-              @productType = body
-              done()
-          .fail (msg) ->
-            expect(true).toBe false
-        .fail (msg) ->
-          expect(true).toBe false
 
   it 'should import and re-export a simple product', (done) ->
     header = 'productType,name.en,slug.en,variantId,sku,prices,myAttrib.en,sfa,myMultiText'

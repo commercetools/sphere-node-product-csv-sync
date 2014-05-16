@@ -54,7 +54,7 @@ describe 'Export', ->
       '''
     @export.export(template, null)
     .then (result) ->
-      done 'Export should fail!'
+      done('Export should fail!')
     .fail (err) ->
       expect(_.size err).toBe 2
       expect(err[0]).toBe 'There are duplicate header entries!'
