@@ -44,8 +44,8 @@ class Import
               @createOrUpdate(products, @validator.types)
               .then (result) ->
                 deferred.resolve result
-      .fail (msg) ->
-        deferred.reject msg
+      .fail (err) ->
+        deferred.reject err
       .done()
 
     deferred.promise

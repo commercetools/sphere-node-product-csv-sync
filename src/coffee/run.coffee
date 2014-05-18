@@ -20,7 +20,7 @@ module.exports = class
     if opts.csv
       fs.readFile opts.csv, 'utf8', (err, content) ->
         if err
-          console.error "Problems on reading identity file '#{opts.csv}': " + err
+          console.error "Problems on reading identity file '#{opts.csv}': #{err}"
           process.exit 2
         Csv().from.string(content).to.array (data, count) ->
           identHeader = data[0][0]
@@ -94,7 +94,7 @@ module.exports = class
 
         credentialsConfig = ProjectCredentialsConfig.create()
         .fail (err) ->
-          console.log e, "Problems on getting client credentials from config files."
+          console.error "Problems on getting client credentials from config files: #{err}"
           process.exit 2
         .then (credentials) ->
           options =
@@ -125,7 +125,7 @@ module.exports = class
 
           fs.readFile opts.csv, 'utf8', (err, content) ->
             if err
-              console.error "Problems on reading file '#{opts.csv}': " + err
+              console.error "Problems on reading file '#{opts.csv}': #{err}"
               process.exit 2
             else
               importer.import(content)
@@ -133,8 +133,9 @@ module.exports = class
                 console.log result
                 process.exit 0
               .fail (err) ->
-                console.error result
+                console.error err
                 process.exit 1
+              .done()
         .done()
 
 
@@ -245,7 +246,7 @@ module.exports = class
         else
           fs.readFile opts.template, 'utf8', (err, content) ->
             if err
-              console.error "Problems on reading template file '#{opts.template}': " + err
+              console.error "Problems on reading template file '#{opts.template}': #{err}"
               process.exit 2
             else
             exporter.export(content, opts.out)
@@ -305,7 +306,7 @@ module.exports = class
         variants = new Variants()
         fs.readFile opts.in, 'utf8', (err, content) ->
           if err
-            console.error "Problems on reading template file '#{opts.template}': " + err
+            console.error "Problems on reading template file '#{opts.template}': #{err}"
             process.exit 2
           Csv().from.string(content).to.array (data, count) ->
             header = data[0]

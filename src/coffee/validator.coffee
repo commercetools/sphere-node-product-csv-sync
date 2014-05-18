@@ -64,11 +64,13 @@ class Validator
       @taxes.buildMaps taxes.body.results
       @channels.buildMaps channels.body.results
 
-      @valProductTypes @productTypes
       @valProducts @rawProducts
-
       if _.size(@errors) is 0
-        deferred.resolve @rawProducts
+        @valProductTypes @productTypes
+        if _.size(@errors) is 0
+          deferred.resolve @rawProducts
+        else
+          deferred.reject @errors
       else
         deferred.reject @errors
     .fail (err) ->
