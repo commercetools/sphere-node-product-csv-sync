@@ -75,6 +75,7 @@ module.exports = class
       .option '--verbose', 'give more feedback during action'
       .option '--debug', 'give as many feedback as possible'
 
+
     program
       .command 'import'
       .description 'Import your products from CSV into your SPHERE.IO project.'
@@ -135,6 +136,7 @@ module.exports = class
                 console.error result
                 process.exit 1
         .done()
+
 
     program
       .command 'state'
@@ -200,6 +202,7 @@ module.exports = class
         else
           run()
 
+
     program
       .command 'export'
       .description 'Export your products from your SPHERE.IO project to CSV using.'
@@ -231,9 +234,14 @@ module.exports = class
 
         exporter = new Exporter options
         if opts.json
-          # TODO: check that output extension is `.json` ?
-          exporter.exportAsJson opts.json, handleResult
-          # TODO: handle exit code!
+          exporter.exportAsJson(opts.json)
+          .then (result) ->
+            console.log result
+            process.exit 0
+          .fail (err) ->
+            console.error err
+            process.exit 1
+          .done()
         else
           fs.readFile opts.template, 'utf8', (err, content) ->
             if err
@@ -275,13 +283,17 @@ module.exports = class
           options.logConfig = 'debug'
 
         exporter = new Exporter options
-        exporter.createTemplate opts.languages, opts.out, opts.all, (result) ->
-          if result.status
-            console.log result.message
-            process.exit 0
-          console.error result.message
+        exporter.createTemplate(opts.languages, opts.out, opts.all)
+        .then (result) ->
+          console.log result
+          process.exit 0
+        .fail (err) ->
+          console.error err
           process.exit 1
+        .done()
 
+
+    # TODO: remove
     program
       .command 'groupvariants'
       .description 'Allows you to group products with its variant in order to proceed with SPHERE.IOs CSV product format.'

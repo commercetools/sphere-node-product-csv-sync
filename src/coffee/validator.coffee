@@ -55,7 +55,8 @@ class Validator
       @taxes.getAll @client
       @channels.getAll @client
     ]
-    Q.all(gets).then ([productTypes, customerGroups, categories, taxes, channels]) =>
+    Q.all(gets)
+    .then ([productTypes, customerGroups, categories, taxes, channels]) =>
       @productTypes = productTypes.body.results
       @types.buildMaps productTypes.body.results
       @customerGroups.buildMaps customerGroups.body.results
@@ -70,8 +71,8 @@ class Validator
         deferred.resolve @rawProducts
       else
         deferred.reject @errors
-    .fail (msg) ->
-      deferred.reject msg
+    .fail (err) ->
+      deferred.reject err
 
     deferred.promise
 

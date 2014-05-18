@@ -51,7 +51,8 @@ class Export
           @taxService.getAll @client
           @client.productProjections.staged(staged).all().fetch()
         ]
-        Q.all(data).then ([productTypes, categories, channels, customerGroups, taxes, products]) =>
+        Q.all(data)
+        .then ([productTypes, categories, channels, customerGroups, taxes, products]) =>
           console.log "Number of product types: #{productTypes.body.total}."
           if products.body.total is 0
             deferred.resolve 'No products found.'
@@ -75,54 +76,67 @@ class Export
 
     deferred.promise
 
-  exportAsJson: (outputFile, callback) ->
-    @productService.getAllExistingProducts @client, @queryString
-    .then (products) =>
+  exportAsJson: (outputFile) ->
+    deferred = Q.defer()
+    @client.products.all().fetch()
+    .then (result) =>
+      products = result.body.results
       if _.size(products) is 0
-        @returnResult true, 'No products found.', callback
-        return
-      console.log "Number of products: #{_.size products}."
-      @_saveJSON(outputFile, products).then =>
-        @returnResult true, 'Export done.', callback
-    .fail (msg) =>
-      @returnResult false, msg, callback
-
-  createTemplate: (languages, outputFile, allProductTypes = false, callback) ->
-    @typesService.getAll(@client).then (productTypes) =>
-      if _.size(productTypes) is 0
-        @returnResult false, 'Can not find any product type.', callback
-        return
-      idsAndNames = _.map productTypes, (productType) ->
-        productType.name
-
-      if allProductTypes
-        allHeaders = []
-        _.each productTypes, (productType) ->
-          allHeaders = allHeaders.concat new ExportMapping().createTemplate(productType, languages)
-        csv = _.uniq allHeaders
-        @_saveCSV(outputFile, [csv]).then =>
-          @returnResult true, 'Template for all product types generated.', callback
+        deferred.resolve 'No products found.'
       else
-        _.each idsAndNames, (entry, index) ->
-          console.log '  %d) %s', index, entry
-        prompt.start()
-        property =
-          name: 'number'
-          message: 'Enter the number of the producttype.'
-          validator: /\d+/
-          warning: 'Please enter a valid number'
-        prompt.get property, (err, result) =>
-          productType = productTypes[parseInt(result.number)]
-          if productType
-            console.log "Generating template for product type '#{productType.name}' (id: #{productType.id})."
-            process.stdin.destroy()
-            csv = new ExportMapping().createTemplate(productType, languages)
-            @_saveCSV(outputFile, [csv]).then =>
-              @returnResult true, 'Template generated.', callback
-          else
-            @returnResult false, "Please re-run and select a valid number.", callback
-    .fail (msg) =>
-      @returnResult false, msg, callback
+        console.log "Number of products: #{_.size products}."
+        @_saveJSON(outputFile, products)
+        .then ->
+          deferred.resolve 'Export done.'
+    .fail (err) ->
+      deferred.reject err
+    .done()
+
+    deferred.promise
+
+  createTemplate: (languages, outputFile, allProductTypes = false) ->
+    deferred = Q.defer()
+    @typesService.getAll(@client)
+    .then (result) =>
+      productTypes = result.body.results
+      if _.size(productTypes) is 0
+        deferred.reject 'Can not find any product type.'
+      else
+        idsAndNames = _.map productTypes, (productType) ->
+          productType.name
+
+        if allProductTypes
+          allHeaders = []
+          _.each productTypes, (productType) ->
+            allHeaders = allHeaders.concat new ExportMapping().createTemplate(productType, languages)
+          csv = _.uniq allHeaders
+          @_saveCSV(outputFile, [csv]).then ->
+            deferred.resolve 'Template for all product types generated.'
+        else
+          _.each idsAndNames, (entry, index) ->
+            console.log '  %d) %s', index, entry
+          prompt.start()
+          property =
+            name: 'number'
+            message: 'Enter the number of the producttype.'
+            validator: /\d+/
+            warning: 'Please enter a valid number'
+          prompt.get property, (err, result) =>
+            productType = productTypes[parseInt(result.number)]
+            if productType
+              console.log "Generating template for product type '#{productType.name}' (id: #{productType.id})."
+              process.stdin.destroy()
+              csv = new ExportMapping().createTemplate(productType, languages)
+              @_saveCSV(outputFile, [csv])
+              .then ->
+                deferred.resolve 'Template generated.'
+            else
+              deferred.reject 'Please re-run and select a valid number.'
+    .fail (err) ->
+      deferred.reject err
+    .done()
+
+    deferred.promise
 
   _saveCSV: (file, content) ->
     deferred = Q.defer()

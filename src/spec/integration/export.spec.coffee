@@ -6,7 +6,7 @@ Export = require '../../lib/export'
 Config = require '../../config'
 TestHelpers = require './testhelpers'
 
-jasmine.getEnv().defaultTimeoutInterval = 30000
+jasmine.getEnv().defaultTimeoutInterval = 60000
 
 describe 'Export', ->
   beforeEach (done) ->

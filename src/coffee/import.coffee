@@ -23,7 +23,8 @@ class Import
     deferred = Q.defer()
     @validator.parse fileContent, (data, count) =>
       console.log "CSV file with #{count} row(s) loaded."
-      @validator.validate(data).then (rawProducts) =>
+      @validator.validate(data)
+      .then (rawProducts) =>
         if _.size(@validator.errors) isnt 0
           deferred.reject @validator.errors
         else
@@ -35,11 +36,14 @@ class Import
             deferred.reject @validator.map.errors
           else
             console.log "Mapping done. Fetching existing product(s) ..."
-            @client.productProjections.staged().all().fetch().then (result) =>
+            @client.productProjections.staged().all().fetch()
+            .then (result) =>
               existingProducts = result.body.results
               console.log "Comparing against #{_.size existingProducts} existing product(s) ..."
               @initMatcher existingProducts
-              @createOrUpdate(products, @validator.types).then (result) -> deferred.resolve result
+              @createOrUpdate(products, @validator.types)
+              .then (result) ->
+                deferred.resolve result
       .fail (msg) ->
         deferred.reject msg
       .done()
@@ -70,8 +74,9 @@ class Import
         action = if publish then 'Publishing' else 'Unpublishing'
         action = 'Deleting' if remove
         console.log "#{action} #{_.size posts} product(s) ..."
-        Q.all(posts).then (result) -> deferred.resolve result
-
+        Q.all(posts)
+    .then (result) ->
+      deferred.resolve result
     .fail (msg) ->
       deferred.reject msg
     .done()
@@ -216,10 +221,10 @@ class Import
   publishProduct: (product, rowIndex, publish = true) ->
     deferred = Q.defer()
     action = if publish then 'publish' else 'unpublish'
-    unless @publishProducts
+    if not @publishProducts
       deferred.resolve "Do not #{action}."
     else if publish and product.published and not product.hasStagedChanges
-      deferred.resolve "[row #{rowIndex}] Product is already published."
+      deferred.resolve "[row #{rowIndex}] Product is already published - no staged changes."
     else
       data =
         id: product.id
@@ -245,7 +250,7 @@ class Import
   deleteProduct: (product, rowIndex) ->
     deferred = Q.defer()
     @client.products.byId(product.id).delete(product.version)
-    .then (result) ->
+    .then ->
       deferred.resolve "[row #{rowIndex}] Product deleted."
     .fail (err) ->
       deferred.reject "[row #{rowIndex}] Error on deleting product:\n#{_.prettify err}"

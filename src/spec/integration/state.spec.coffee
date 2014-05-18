@@ -3,7 +3,7 @@ Import = require '../../lib/import'
 Config = require '../../config'
 TestHelpers = require './testhelpers'
 
-jasmine.getEnv().defaultTimeoutInterval = 30000
+jasmine.getEnv().defaultTimeoutInterval = 60000
 
 performAllProducts = -> true
 
@@ -52,7 +52,7 @@ describe 'State', ->
       expect(result[1]).toBe '[row 0] Product unpublished.'
       done()
     .fail (err) ->
-      done (_.prettify err)
+      done(_.prettify err)
     .done()
 
   it 'should only published products with hasStagedChanges', (done) ->
@@ -64,11 +64,13 @@ describe 'State', ->
       """
     @importer.import(csv)
     .then (result) =>
+      console.log 1
       expect(_.size result).toBe 2
       expect(result[0]).toBe '[row 2] New product created.'
       expect(result[1]).toBe '[row 3] New product created.'
       @importer.changeState(true, false, performAllProducts)
     .then (result) =>
+      console.log 2
       expect(_.size result).toBe 2
       expect(result[0]).toBe '[row 0] Product published.'
       expect(result[1]).toBe '[row 0] Product published.'
@@ -81,17 +83,20 @@ describe 'State', ->
       im = new Import Config
       im.import(csv)
     .then (result) =>
+      console.log 3
       expect(_.size result).toBe 2
       expect(result[0]).toBe '[row 2] Product update not necessary.'
       expect(result[1]).toBe '[row 3] Product updated.'
       @importer.changeState(true, false, performAllProducts)
     .then (result) ->
+      console.log 4, result
       expect(_.size result).toBe 2
-      expect(result[0]).toBe '[row 0] Product published.'
-      expect(result[1]).toBe '[row 0] Product is already published.'
+      expect(_.contains(result, '[row 0] Product published.')).toBe true
+      expect(_.contains(result, '[row 0] Product is already published - no staged changes.')).toBe true
       done()
     .fail (err) ->
-      done (_.prettify err)
+      console.log 9
+      done(_.prettify err)
     .done()
 
   it 'should delete unplublished products', (done) ->
@@ -113,5 +118,5 @@ describe 'State', ->
       expect(result[1]).toBe '[row 0] Product deleted.'
       done()
     .fail (err) ->
-      done (_.prettify err)
+      done(_.prettify err)
     .done()

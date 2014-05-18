@@ -1,16 +1,17 @@
 fs = require 'fs'
-Q = require 'q'
 _ = require 'underscore'
 Export = require '../../lib/export'
 Import = require '../../lib/import'
 Config = require '../../config'
+SphereClient = require 'sphere-node-client'
+TestHelpers = require './testhelpers'
 
-jasmine.getEnv().defaultTimeoutInterval = 30000
+jasmine.getEnv().defaultTimeoutInterval = 60000
 
 describe 'Impex', ->
   beforeEach (done) ->
-    @import = new Import Config
-    @export = new Export Config
+    @importer = new Import Config
+    @exporter = new Export Config
     @client = @importer.client
 
     unique = new Date().getTime()
@@ -52,25 +53,26 @@ describe 'Impex', ->
       #{p1}
       #{p2}
       """
-    @import.publishProducts = true
-    @import.import csv, (res) =>
-      console.log "import", res
-      expect(res.status).toBe true
-      expect(_.size res.message).toBe 2
-      expect(res.message['[row 2] New product created.']).toBe 1
-      expect(res.message['[row 4] New product created.']).toBe 1
+    @importer.publishProducts = true
+    @importer.import(csv)
+    .then (result) =>
+      console.log "import", result
+      expect(_.size result).toBe 2
+      expect(result[0]).toBe '[row 2] New product created.'
+      expect(result[1]).toBe '[row 4] New product created.'
       file = '/tmp/impex.csv'
-      @export.queryString = ''
-      @export.export csv, file, (res) ->
-        console.log "export", res
-        expect(res.status).toBe true
-        expect(res.message).toBe 'Export done.'
+      @exporter.export(csv, file).then (result) ->
+        console.log "export", result
+        expect(result).toBe 'Export done.'
         fs.readFile file, encoding: 'utf8', (err, content) ->
           console.log "export file content", content
           expect(content).toMatch header
           expect(content).toMatch p1
           expect(content).toMatch p2
           done()
+    .fail (err) ->
+      done(_.prettify err)
+    .done()
 
   it 'should import and reexport SEO attributes', (done) ->
     header = 'productType,variantId,name.en,description.en,slug.en,metaTitle.en,metaDescription.en,metaKeywords.en,myAttrib.en'
@@ -84,19 +86,21 @@ describe 'Impex', ->
       #{header}
       #{p1}
       """
-    @import.publishProducts = true
-    @import.import csv, (res) =>
-      console.log "import", res
-      expect(res.status).toBe true
-      expect(res.message).toBe '[row 2] New product created.'
+    @importer.publishProducts = true
+    @importer.import(csv)
+    .then (result) =>
+      console.log "import", result
+      expect(_.size result).toBe 1
+      expect(result[0]).toBe '[row 2] New product created.'
       file = '/tmp/impex.csv'
-      @export.queryString = ''
-      @export.export header, file, (res) ->
-        console.log "export", res
-        expect(res.status).toBe true
-        expect(res.message).toBe 'Export done.'
+      @exporter.export(csv, file).then (result) ->
+        console.log "export", result
+        expect(result).toBe 'Export done.'
         fs.readFile file, encoding: 'utf8', (err, content) ->
           console.log "export file content", content
           expect(content).toMatch header
           expect(content).toMatch p1
           done()
+    .fail (err) ->
+      done(_.prettify err)
+    .done()

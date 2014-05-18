@@ -3,7 +3,7 @@ Import = require '../../lib/import'
 Config = require '../../config'
 TestHelpers = require './testhelpers'
 
-jasmine.getEnv().defaultTimeoutInterval = 30000
+jasmine.getEnv().defaultTimeoutInterval = 60000
 
 createImporter = ->
   im = new Import Config
