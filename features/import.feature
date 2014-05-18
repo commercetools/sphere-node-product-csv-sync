@@ -1,5 +1,6 @@
 Feature: Import products
 
+  @wip
   Scenario: Simple import
     Given a file named "i.csv" with:
     """
