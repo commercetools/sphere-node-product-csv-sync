@@ -1,6 +1,6 @@
 Feature: Import products
 
-  Scenario Background:
+  Background:
     * I run `cp ~/sphere-project-credentials .`
 
   Scenario: Can't find product type
