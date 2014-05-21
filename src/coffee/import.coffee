@@ -117,7 +117,7 @@ class Import
 
   createOrUpdate: (products, types) =>
     if _.size(products) is 0
-      Q.reject 'Nothing to do.'
+      Q.resolve 'Nothing to do.'
     else
       # @initProgressBar 'Importing product(s)', _.size(products)
       posts = []
