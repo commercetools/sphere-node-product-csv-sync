@@ -106,13 +106,17 @@ module.exports = class
             show_progress: true
             user_agent: "#{package_json.name} - Import - #{package_json.version}"
             logConfig:
-              levelStream: 'warn'
-              levelFile: 'warn'
-
+              streams: [
+                {level: 'warn', stream: process.stdout}
+              ]
           if program.verbose
-            options.logConfig.levelStream = 'info'
+            options.logConfig.streams = [
+              {level: 'info', stream: process.stdout}
+            ]
           if program.debug
-            options.logConfig.levelStream = 'debug'
+            options.logConfig.streams = [
+              {level: 'debug', stream: process.stdout}
+            ]
 
           importer = new Importer options
           importer.blackListedCustomAttributesForUpdate = opts.customAttributesForCreationOnly or []
@@ -162,13 +166,18 @@ module.exports = class
             show_progress: true
             user_agent: "#{package_json.name} - State - #{package_json.version}"
             logConfig:
-              levelStream: 'warn'
-              levelFile: 'warn'
+              streams: [
+                {level: 'warn', stream: process.stdout}
+              ]
 
           if program.verbose
-            options.logConfig = 'info'
+            options.logConfig.streams = [
+              {level: 'info', stream: process.stdout}
+            ]
           if program.debug
-            options.logConfig = 'debug'
+            options.logConfig.streams = [
+              {level: 'debug', stream: process.stdout}
+            ]
 
           remove = opts.changeTo is 'delete'
           publish = switch opts.changeTo
@@ -234,12 +243,17 @@ module.exports = class
           user_agent: "#{package_json.name} - Export - #{package_json.version}"
           queryString: opts.queryString
           logConfig:
-            levelStream: 'warn'
-            levelFile: 'warn'
+            streams: [
+              {level: 'warn', stream: process.stdout}
+            ]
         if program.verbose
-          options.logConfig = 'info'
+          options.logConfig.streams = [
+            {level: 'info', stream: process.stdout}
+          ]
         if program.debug
-          options.logConfig = 'debug'
+          options.logConfig.streams = [
+            {level: 'debug', stream: process.stdout}
+          ]
 
         exporter = new Exporter options
         if opts.json
@@ -284,12 +298,17 @@ module.exports = class
           show_progress: true
           user_agent: "#{package_json.name} - Template - #{package_json.version}"
           logConfig:
-            levelStream: 'warn'
-            levelFile: 'warn'
+            streams: [
+              {level: 'warn', stream: process.stdout}
+            ]
         if program.verbose
-          options.logConfig = 'info'
+          options.logConfig.streams = [
+            {level: 'info', stream: process.stdout}
+          ]
         if program.debug
-          options.logConfig = 'debug'
+          options.logConfig.streams = [
+            {level: 'debug', stream: process.stdout}
+          ]
 
         exporter = new Exporter options
         exporter.createTemplate(opts.languages, opts.out, opts.all)
