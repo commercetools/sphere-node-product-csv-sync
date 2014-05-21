@@ -148,60 +148,68 @@ module.exports = class
       .option '--continueOnProblems', "When a there is a problem on changing a product's state (400er response), ignore it and continue with the next products"
       .action (opts) =>
 
-        options =
-          config:
-            project_key: program.projectKey
-            client_id: program.clientId
-            client_secret: program.clientSecret
-          timeout: program.timeout
-          show_progress: true
-          user_agent: "#{package_json.name} - Publish - #{package_json.version}"
-          logConfig:
-            levelStream: 'warn'
-            levelFile: 'warn'
-        if program.verbose
-          options.logConfig = 'info'
-        if program.debug
-          options.logConfig = 'debug'
+        credentialsConfig = ProjectCredentialsConfig.create()
+        .fail (err) ->
+          console.error "Problems on getting client credentials from config files: #{err}"
+          process.exit 2
+        .then (credentials) =>
+          options =
+            config: credentials.enrichCredentials
+              project_key: program.projectKey
+              client_id: program.clientId
+              client_secret: program.clientSecret
+            timeout: program.timeout
+            show_progress: true
+            user_agent: "#{package_json.name} - State - #{package_json.version}"
+            logConfig:
+              levelStream: 'warn'
+              levelFile: 'warn'
 
-        remove = opts.changeTo is 'delete'
-        publish = switch opts.changeTo
-          when 'publish','delete' then true
-          when 'unpublish' then false
-          else
-            console.error "Unknown argument '#{opts.changeTo}' for option changeTo!"
-            process.exit 2
+          if program.verbose
+            options.logConfig = 'info'
+          if program.debug
+            options.logConfig = 'debug'
 
-        run = =>
-          @_getFilterFunction(opts).then (filterFunction) ->
-            importer = new Importer options
-            importer.continueOnProblems = opts.continueOnProblems
-            importer.changeState(publish, remove, filterFunction)
+          remove = opts.changeTo is 'delete'
+          publish = switch opts.changeTo
+            when 'publish','delete' then true
+            when 'unpublish' then false
+            else
+              console.error "Unknown argument '#{opts.changeTo}' for option changeTo!"
+              process.exit 3
+
+          run = =>
+            @_getFilterFunction(opts)
+            .then (filterFunction) ->
+              importer = new Importer options
+              importer.continueOnProblems = opts.continueOnProblems
+              importer.changeState(publish, remove, filterFunction)
             .then (result) ->
               console.log result
               process.exit 0
-          .fail (err) ->
-            console.error err
-            process.exit 1
-          .done()
+            .fail (err) ->
+              console.error err
+              process.exit 1
+            .done()
 
-        if remove
-          prompt.start()
-          property =
-            name: 'ask'
-            message: 'Do you really want to delete products?'
-            validator: /y[es]*|n[o]?/
-            warning: 'Please answer with yes or no'
-            default: 'no'
+          if remove
+            prompt.start()
+            property =
+              name: 'ask'
+              message: 'Do you really want to delete products?'
+              validator: /y[es]*|n[o]?/
+              warning: 'Please answer with yes or no'
+              default: 'no'
 
-          prompt.get property, (err, result) ->
-            if _.isString(result.ask) and result.ask.match(/y(es){0,1}/i)
-              run()
-            else
-              console.log 'Cancelled.'
-              process.exit 9
-        else
-          run()
+            prompt.get property, (err, result) ->
+              if _.isString(result.ask) and result.ask.match(/y(es){0,1}/i)
+                run options
+              else
+                console.log 'Cancelled.'
+                process.exit 9
+          else
+            run options
+        .done()
 
 
     program
