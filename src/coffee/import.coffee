@@ -187,12 +187,15 @@ class Import
         else
           @publishProduct(result, rowIndex).then ->
             deferred.resolve "[row #{rowIndex}] Product updated."
-      .fail (err) ->
-        msg = "[row #{rowIndex}] Problem on updating product:\n#{_.prettify err}"
-        if @continueOnProblems
-          deferred.resolve "#{msg} - ignored!"
+      .fail (err) =>
+        if err.statusCode is 400
+          msg = "[row #{rowIndex}] Problem on updating product:\n#{_.prettify err}"
+          if @continueOnProblems
+            deferred.resolve "#{msg} - ignored!"
+          else
+            deferred.reject msg
         else
-          deferred.reject msg
+          deferred.reject "[row #{rowIndex}] Error on updating product:\n#{_.prettify err}"
       .done()
 
     deferred.promise
@@ -205,7 +208,7 @@ class Import
       @client.products.create(product)
       .then (result) ->
         deferred.resolve "[row #{rowIndex}] New product created."
-      .fail (err) ->
+      .fail (err) =>
         if err.statusCode is 400
           msg = "[row #{rowIndex}] Problem on creating new product:\n#{_.prettify err}"
           if @continueOnProblems
@@ -235,7 +238,7 @@ class Import
       @client.products.byId(product.id).update(data)
       .then (result) ->
         deferred.resolve "[row #{rowIndex}] Product #{action}ed."
-      .fail (err) ->
+      .fail (err) =>
         if err.statusCode is 400
           if @continueOnProblems
             deferred.resolve "[row #{rowIndex}] Product is already #{action}ed."
