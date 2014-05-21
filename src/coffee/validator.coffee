@@ -9,8 +9,8 @@ Taxes = require '../lib/taxes'
 Channels = require '../lib/channels'
 Mapping = require '../lib/mapping'
 Header = require '../lib/header'
-Rest = require('sphere-node-connect').Rest
 Q = require 'q'
+SphereClient = require 'sphere-node-client'
 
 class Validator
   constructor: (options = {}) ->
@@ -26,7 +26,7 @@ class Validator
     options.channels = @channels
     options.validator = @
     @map = new Mapping options
-    @rest = new Rest options if options.config
+    @client = new SphereClient options if options.config
     @rawProducts = []
     @errors = []
     @suppressMissingHeaderWarning = false
@@ -49,29 +49,32 @@ class Validator
   validateOnline: ->
     deferred = Q.defer()
     gets = [
-      @types.getAll @rest
-      @customerGroups.getAll @rest
-      @categories.getAll @rest
-      @taxes.getAll @rest
-      @channels.getAll @rest
+      @types.getAll @client
+      @customerGroups.getAll @client
+      @categories.getAll @client
+      @taxes.getAll @client
+      @channels.getAll @client
     ]
-    Q.all(gets).then ([productTypes, customerGroups, categories, taxes, channels]) =>
-      @productTypes = productTypes
-      @types.buildMaps productTypes
-      @customerGroups.buildMaps customerGroups
-      @categories.buildMaps categories
-      @taxes.buildMaps taxes
-      @channels.buildMaps channels
+    Q.all(gets)
+    .then ([productTypes, customerGroups, categories, taxes, channels]) =>
+      @productTypes = productTypes.body.results
+      @types.buildMaps productTypes.body.results
+      @customerGroups.buildMaps customerGroups.body.results
+      @categories.buildMaps categories.body.results
+      @taxes.buildMaps taxes.body.results
+      @channels.buildMaps channels.body.results
 
-      @valProductTypes @productTypes
       @valProducts @rawProducts
-
       if _.size(@errors) is 0
-        deferred.resolve @rawProducts
+        @valProductTypes @productTypes
+        if _.size(@errors) is 0
+          deferred.resolve @rawProducts
+        else
+          deferred.reject @errors
       else
         deferred.reject @errors
-    .fail (msg) ->
-      deferred.reject msg
+    .fail (err) ->
+      deferred.reject err
 
     deferred.promise
 
@@ -118,7 +121,7 @@ class Validator
       index = @types.id2index[ptInfo]
       rawMaster[@header.toIndex CONS.HEADER_PRODUCT_TYPE] = @productTypes[index]
     else
-      @errors.push "[row #{raw.startRow}] Can't find product type for '#{ptInfo}"
+      @errors.push "[row #{raw.startRow}] Can't find product type for '#{ptInfo}'"
 
   isVariant: (row) ->
     variantId = row[@header.toIndex(CONS.HEADER_VARIANT_ID)]

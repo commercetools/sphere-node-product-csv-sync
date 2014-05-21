@@ -1,14 +1,16 @@
 language: node_js
 branches:
-  only:
-    - master
+  except:
+    - latest
 node_js:
 - '0.10'
 before_script:
 - npm install -g grunt-cli
 - ./create_config.sh
+- gem install cucumber aruba
 script:
 - npm test
+- cucumber -t ~@wip
 - node lib/run import --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --csv data/minimum-header.csv
 notifications:
   hipchat:

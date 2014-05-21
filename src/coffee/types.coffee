@@ -10,19 +10,8 @@ class Types
     @id2SameForAllAttributes = {}
     @id2nameAttributeDefMap = {}
 
-  getAll: (rest) ->
-    deferred = Q.defer()
-    rest.GET "/product-types?limit=0", (error, response, body) ->
-      if error
-        deferred.reject 'Error on getting product types: ' + error
-      else if response.statusCode isnt 200
-        deferred.reject "Problem on getting product types:\n" +
-          "status #{response.statusCode})\n" +
-          "body " + response.body
-      else
-        productTypes = body.results
-        deferred.resolve productTypes
-    deferred.promise
+  getAll: (client) ->
+    client.productTypes.all().fetch()
 
   buildMaps: (productTypes) ->
     for pt,index in productTypes

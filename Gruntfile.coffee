@@ -41,6 +41,14 @@ module.exports = (grunt) ->
           rename: (dest, matchedSrcPath) ->
             dest + matchedSrcPath
           )
+      testhelper:
+        files: grunt.file.expandMapping(['**/testhelpers.coffee'], 'test/',
+          flatten: false
+          cwd: 'src/spec'
+          ext: '.js'
+          rename: (dest, matchedSrcPath) ->
+            dest + matchedSrcPath
+          )
 
     concat:
       options:
@@ -74,8 +82,6 @@ module.exports = (grunt) ->
         command: "jasmine-node --verbose --captureExceptions test"
       coverage:
         command: "istanbul cover jasmine-node --captureExceptions test && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
-      run:
-        command: "node lib/run.js stock.xml"
       publish:
         command: 'npm publish'
 

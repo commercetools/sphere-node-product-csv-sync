@@ -1,17 +1,16 @@
-fs = require 'fs'
-Q = require 'q'
 _ = require 'underscore'
-Export = require '../../lib/export'
 Import = require '../../lib/import'
 Config = require '../../config'
+TestHelpers = require './testhelpers'
 
-jasmine.getEnv().defaultTimeoutInterval = 30000
+jasmine.getEnv().defaultTimeoutInterval = 60000
+
+performAllProducts = -> true
 
 describe 'State', ->
   beforeEach (done) ->
-    @import = new Import Config
-    @export = new Export Config
-    @rest = @import.validator.rest
+    @importer = new Import Config
+    @client = @importer.client
 
     unique = new Date().getTime()
     @productType =
@@ -21,47 +20,13 @@ describe 'State', ->
         { name: 'myStateAttrib', label: { name: 'myStateAttrib' }, type: { name: 'text'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
       ]
 
-    deleteProduct = (product) =>
-      deferred = Q.defer()
-      data =
-        id: product.id
-        version: product.version
-        actions: [
-          action: 'unpublish'
-        ]
-      @rest.POST "/products/#{product.id}", JSON.stringify(data), (error, response, body) =>
-        if response.statusCode is 200
-          product.version = body.version
-        @rest.DELETE "/products/#{product.id}?version=#{product.version}", (error, response, body) ->
-          deferred.resolve response.statusCode
-      deferred.promise
+    TestHelpers.setup(@client, @productType).then (result) =>
+      @productType = result
+      done()
+    .fail (err) ->
+      done(_.prettify err)
+    .done()
 
-    deleteProductType = (productType) =>
-      deferred = Q.defer()
-      @rest.DELETE "/product-types/#{productType.id}?version=#{productType.version}", (error, response, body) ->
-        deferred.resolve response.statusCode
-      deferred.promise
-
-    @rest.GET '/products', (error, response, body) =>
-      expect(response.statusCode).toBe 200
-      productDeletes = []
-      typesDeletes = []
-      for product in body.results
-        productDeletes.push deleteProduct(product)
-      @rest.GET '/product-types?limit=0', (error, response, body) =>
-        expect(response.statusCode).toBe 200
-        for productType in body.results
-          typesDeletes.push deleteProductType(productType)
-        Q.all(productDeletes).then (statusCodes) =>
-          Q.all(typesDeletes).then (statusCodes) =>
-            @rest.POST '/product-types', JSON.stringify(@productType), (error, response, body) =>
-              expect(response.statusCode).toBe 201
-              @productType = body
-              done()
-          .fail (msg) ->
-            expect(true).toBe false
-        .fail (msg) ->
-          expect(true).toBe false
 
   it 'should publish and unplublish products', (done) ->
     csv =
@@ -70,22 +35,25 @@ describe 'State', ->
       #{@productType.name},myProduct1,my-slug1,1,sku1,foo
       #{@productType.name},myProduct2,my-slug2,1,sku2,bar
       """
-    @import.import csv, (res) =>
-      console.log 'state', res
-      expect(res.status).toBe true
-      expect(_.size res.message).toBe 2
-      expect(res.message['[row 2] New product created.']).toBe 1
-      expect(res.message['[row 3] New product created.']).toBe 1
-      performProduct = -> true
-      @import.changeState true, false, performProduct, (res) =>
-        console.log 'publish', res
-        expect(res.status).toBe true
-        expect(res.message['[row 0] Product published.']).toBe 2
-        @import.changeState false, false, performProduct, (res) ->
-          console.log 'unpublish', res
-          expect(res.status).toBe true
-          expect(res.message['[row 0] Product unpublished.']).toBe 2
-          done()
+    @importer.import(csv)
+    .then (result) =>
+      expect(_.size result).toBe 2
+      expect(result[0]).toBe '[row 2] New product created.'
+      expect(result[1]).toBe '[row 3] New product created.'
+      @importer.changeState(true, false, performAllProducts)
+    .then (result) =>
+      expect(_.size result).toBe 2
+      expect(result[0]).toBe '[row 0] Product published.'
+      expect(result[1]).toBe '[row 0] Product published.'
+      @importer.changeState(false, false, performAllProducts)
+    .then (result) ->
+      expect(_.size result).toBe 2
+      expect(result[0]).toBe '[row 0] Product unpublished.'
+      expect(result[1]).toBe '[row 0] Product unpublished.'
+      done()
+    .fail (err) ->
+      done(_.prettify err)
+    .done()
 
   it 'should only published products with hasStagedChanges', (done) ->
     csv =
@@ -94,31 +62,37 @@ describe 'State', ->
       #{@productType.name},myProduct1,my-slug1,1,sku1,foo
       #{@productType.name},myProduct2,my-slug2,1,sku2,bar
       """
-    @import.import csv, (res) =>
-      console.log 'state', res
-      expect(res.status).toBe true
-      expect(_.size res.message).toBe 2
-      expect(res.message['[row 2] New product created.']).toBe 1
-      expect(res.message['[row 3] New product created.']).toBe 1
-      performProduct = -> true
-      @import.changeState true, false, performProduct, (res) =>
-        console.log 'publish', res
-        expect(res.status).toBe true
-        expect(res.message['[row 0] Product published.']).toBe 2
-        csv =
-          """
-          productType,name.en,slug.en,variantId,sku,myStateAttrib
-          #{@productType.name},myProduct1,my-slug1,1,sku1,foo
-          #{@productType.name},myProduct2,my-slug2,1,sku2,baz
-          """
-        im = new Import Config
-        im.import csv, (res) =>
-          @import.changeState true, false, performProduct, (res) ->
-            console.log 'publish', res
-            expect(res.status).toBe true
-            expect(res.message['[row 0] Product published.']).toBe 1
-            done()
-
+    @importer.import(csv)
+    .then (result) =>
+      expect(_.size result).toBe 2
+      expect(result[0]).toBe '[row 2] New product created.'
+      expect(result[1]).toBe '[row 3] New product created.'
+      @importer.changeState(true, false, performAllProducts)
+    .then (result) =>
+      expect(_.size result).toBe 2
+      expect(result[0]).toBe '[row 0] Product published.'
+      expect(result[1]).toBe '[row 0] Product published.'
+      csv =
+        """
+        productType,name.en,slug.en,variantId,sku,myStateAttrib
+        #{@productType.name},myProduct1,my-slug1,1,sku1,foo
+        #{@productType.name},myProduct2,my-slug2,1,sku2,baz
+        """
+      im = new Import Config
+      im.import(csv)
+    .then (result) =>
+      expect(_.size result).toBe 2
+      expect(result[0]).toBe '[row 2] Product update not necessary.'
+      expect(result[1]).toBe '[row 3] Product updated.'
+      @importer.changeState(true, false, performAllProducts)
+    .then (result) ->
+      expect(_.size result).toBe 2
+      expect(_.contains(result, '[row 0] Product published.')).toBe true
+      expect(_.contains(result, '[row 0] Product is already published - no staged changes.')).toBe true
+      done()
+    .fail (err) ->
+      done(_.prettify err)
+    .done()
 
   it 'should delete unplublished products', (done) ->
     csv =
@@ -127,15 +101,17 @@ describe 'State', ->
       #{@productType.name},myProduct1,my-slug1,1,sku1,foo
       #{@productType.name},myProduct2,my-slug2,1,sku2,bar
       """
-    @import.import csv, (res) =>
-      console.log 'state', res
-      expect(res.status).toBe true
-      expect(_.size res.message).toBe 2
-      expect(res.message['[row 2] New product created.']).toBe 1
-      expect(res.message['[row 3] New product created.']).toBe 1
-      performProduct = -> true
-      @import.changeState true, true, performProduct, (res) ->
-        console.log 'delete', res
-        expect(res.status).toBe true
-        expect(res.message['[row 0] Product deleted.']).toBe 2
-        done()
+    @importer.import(csv)
+    .then (result) =>
+      expect(_.size result).toBe 2
+      expect(result[0]).toBe '[row 2] New product created.'
+      expect(result[1]).toBe '[row 3] New product created.'
+      @importer.changeState(true, true, performAllProducts)
+    .then (result) ->
+      expect(_.size result).toBe 2
+      expect(result[0]).toBe '[row 0] Product deleted.'
+      expect(result[1]).toBe '[row 0] Product deleted.'
+      done()
+    .fail (err) ->
+      done(_.prettify err)
+    .done()

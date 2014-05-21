@@ -7,7 +7,7 @@ fs = require 'fs'
 Q = require 'q'
 program = require 'commander'
 prompt = require 'prompt'
-
+{ProjectCredentialsConfig} = require 'sphere-node-utils'
 Csv = require 'csv'
 _ = require('underscore')._
 
@@ -20,7 +20,7 @@ module.exports = class
     if opts.csv
       fs.readFile opts.csv, 'utf8', (err, content) ->
         if err
-          console.error "Problems on reading identity file '#{opts.csv}': " + err
+          console.error "Problems on reading identity file '#{opts.csv}': #{err}"
           process.exit 2
         Csv().from.string(content).to.array (data, count) ->
           identHeader = data[0][0]
@@ -75,6 +75,7 @@ module.exports = class
       .option '--verbose', 'give more feedback during action'
       .option '--debug', 'give as many feedback as possible'
 
+
     program
       .command 'import'
       .description 'Import your products from CSV into your SPHERE.IO project.'
@@ -91,47 +92,56 @@ module.exports = class
       .action (opts) ->
         CONS.DEFAULT_LANGUAGE = opts.language
 
-        options =
-          config:
-            project_key: program.projectKey
-            client_id: program.clientId
-            client_secret: program.clientSecret
-          timeout: program.timeout
-          show_progress: true
-          user_agent: "#{package_json.name} - Import - #{package_json.version}"
-          logConfig:
-            streams: [
-              {level: 'warn', stream: process.stdout}
+        credentialsConfig = ProjectCredentialsConfig.create()
+        .fail (err) ->
+          console.error "Problems on getting client credentials from config files: #{err}"
+          process.exit 2
+        .then (credentials) ->
+          options =
+            config: credentials.enrichCredentials
+              project_key: program.projectKey
+              client_id: program.clientId
+              client_secret: program.clientSecret
+            timeout: program.timeout
+            show_progress: true
+            user_agent: "#{package_json.name} - Import - #{package_json.version}"
+            logConfig:
+              streams: [
+                {level: 'warn', stream: process.stdout}
+              ]
+          if program.verbose
+            options.logConfig.streams = [
+              {level: 'info', stream: process.stdout}
             ]
-        if program.verbose
-          options.logConfig.streams = [
-            {level: 'info', stream: process.stdout}
-          ]
-        if program.debug
-          options.logConfig.streams = [
-            {level: 'debug', stream: process.stdout}
-          ]
+          if program.debug
+            options.logConfig.streams = [
+              {level: 'debug', stream: process.stdout}
+            ]
 
-        importer = new Importer options
-        importer.blackListedCustomAttributesForUpdate = opts.customAttributesForCreationOnly or []
-        importer.continueOnProblems = opts.continueOnProblems
-        importer.validator.suppressMissingHeaderWarning = opts.suppressMissingHeaderWarning
-        importer.allowRemovalOfVariants = opts.allowRemovalOfVariants
-        importer.syncSeoAttributes = false if opts.ignoreSeoAttributes
-        importer.publishProducts = opts.publish
-        importer.dryRun = true if opts.dryRun
+          importer = new Importer options
+          importer.blackListedCustomAttributesForUpdate = opts.customAttributesForCreationOnly or []
+          importer.continueOnProblems = opts.continueOnProblems
+          importer.validator.suppressMissingHeaderWarning = opts.suppressMissingHeaderWarning
+          importer.allowRemovalOfVariants = opts.allowRemovalOfVariants
+          importer.syncSeoAttributes = false if opts.ignoreSeoAttributes
+          importer.publishProducts = opts.publish
+          importer.dryRun = true if opts.dryRun
 
-        fs.readFile opts.csv, 'utf8', (err, content) ->
-          if err
-            console.error "Problems on reading file '#{opts.csv}': " + err
-            process.exit 2
+          fs.readFile opts.csv, 'utf8', (err, content) ->
+            if err
+              console.error "Problems on reading file '#{opts.csv}': #{err}"
+              process.exit 2
+            else
+              importer.import(content)
+              .then (result) ->
+                console.log result
+                process.exit 0
+              .fail (err) ->
+                console.error err
+                process.exit 1
+              .done()
+        .done()
 
-          importer.import content, (result) ->
-            if result.status
-              console.log result.message
-              process.exit 0
-            console.error result.message
-            process.exit 1
 
     program
       .command 'state'
@@ -154,54 +164,57 @@ module.exports = class
             streams: [
               {level: 'warn', stream: process.stdout}
             ]
-        if program.verbose
-          options.logConfig.streams = [
-            {level: 'info', stream: process.stdout}
-          ]
-        if program.debug
-          options.logConfig.streams = [
-            {level: 'debug', stream: process.stdout}
-          ]
 
-        remove = opts.changeTo is 'delete'
-        publish = switch opts.changeTo
-          when 'publish','delete' then true
-          when 'unpublish' then false
-          else
-            console.error "Unknown argument '#{opts.changeTo}' for option changeTo!"
-            process.exit 2
+          if program.verbose
+            options.logConfig.streams = [
+              {level: 'info', stream: process.stdout}
+            ]
+          if program.debug
+            options.logConfig.streams = [
+              {level: 'debug', stream: process.stdout}
+            ]
 
-        run = =>
-          @_getFilterFunction(opts).then (filterFunction) ->
-            importer = new Importer options
-            importer.continueOnProblems = opts.continueOnProblems
-            importer.changeState publish, remove, filterFunction, (result) ->
-              if result.status
-                console.log result.message
-                process.exit 0
-              console.error result.message
-              process.exit 1
-          .fail (msg) ->
-            console.error msg
-            process.exit 3
-
-        if remove
-          prompt.start()
-          property =
-            name: 'ask'
-            message: 'Do you really want to delete products?'
-            validator: /y[es]*|n[o]?/
-            warning: 'Please answer with yes or no'
-            default: 'no'
-
-          prompt.get property, (err, result) ->
-            if _.isString(result.ask) and result.ask.match(/y(es){0,1}/i)
-              run()
+          remove = opts.changeTo is 'delete'
+          publish = switch opts.changeTo
+            when 'publish','delete' then true
+            when 'unpublish' then false
             else
-              console.log 'Cancelled.'
-              process.exit 9
-        else
-          run()
+              console.error "Unknown argument '#{opts.changeTo}' for option changeTo!"
+              process.exit 3
+
+          run = =>
+            @_getFilterFunction(opts)
+            .then (filterFunction) ->
+              importer = new Importer options
+              importer.continueOnProblems = opts.continueOnProblems
+              importer.changeState(publish, remove, filterFunction)
+            .then (result) ->
+              console.log result
+              process.exit 0
+            .fail (err) ->
+              console.error err
+              process.exit 1
+            .done()
+
+          if remove
+            prompt.start()
+            property =
+              name: 'ask'
+              message: 'Do you really want to delete products?'
+              validator: /y[es]*|n[o]?/
+              warning: 'Please answer with yes or no'
+              default: 'no'
+
+            prompt.get property, (err, result) ->
+              if _.isString(result.ask) and result.ask.match(/y(es){0,1}/i)
+                run options
+              else
+                console.log 'Cancelled.'
+                process.exit 9
+          else
+            run options
+        .done()
+
 
     program
       .command 'export'
@@ -238,23 +251,30 @@ module.exports = class
           ]
 
         exporter = new Exporter options
-        handleResult = (result) ->
-          if result.status
-            console.log result.message
-            process.exit 0
-          console.error result.message
-          process.exit 1
-
         if opts.json
-          # TODO: check that output extension is `.json` ?
-          exporter.exportAsJson opts.json, handleResult
+          exporter.exportAsJson(opts.json)
+          .then (result) ->
+            console.log result
+            process.exit 0
+          .fail (err) ->
+            console.error err
+            process.exit 1
+          .done()
         else
           fs.readFile opts.template, 'utf8', (err, content) ->
             if err
-              console.error "Problems on reading template file '#{opts.template}': " + err
+              console.error "Problems on reading template file '#{opts.template}': #{err}"
               process.exit 2
+            else
+            exporter.export(content, opts.out)
+            .then (result) ->
+              console.log result
+              process.exit 0
+            .fail (err) ->
+              console.error err
+              process.exit 1
+            .done()
 
-            exporter.export content, opts.out, handleResult
 
     program
       .command 'template'
@@ -286,13 +306,17 @@ module.exports = class
           ]
 
         exporter = new Exporter options
-        exporter.createTemplate opts.languages, opts.out, opts.all, (result) ->
-          if result.status
-            console.log result.message
-            process.exit 0
-          console.error result.message
+        exporter.createTemplate(opts.languages, opts.out, opts.all)
+        .then (result) ->
+          console.log result
+          process.exit 0
+        .fail (err) ->
+          console.error err
           process.exit 1
+        .done()
 
+
+    # TODO: remove
     program
       .command 'groupvariants'
       .description 'Allows you to group products with its variant in order to proceed with SPHERE.IOs CSV product format.'
@@ -304,7 +328,7 @@ module.exports = class
         variants = new Variants()
         fs.readFile opts.in, 'utf8', (err, content) ->
           if err
-            console.error "Problems on reading template file '#{opts.template}': " + err
+            console.error "Problems on reading template file '#{opts.template}': #{err}"
             process.exit 2
           Csv().from.string(content).to.array (data, count) ->
             header = data[0]
