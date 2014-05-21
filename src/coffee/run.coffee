@@ -152,23 +152,18 @@ module.exports = class
       .option '--continueOnProblems', "When a there is a problem on changing a product's state (400er response), ignore it and continue with the next products"
       .action (opts) =>
 
-        credentialsConfig = ProjectCredentialsConfig.create()
-        .fail (err) ->
-          console.error "Problems on getting client credentials from config files: #{err}"
-          process.exit 2
-        .then (credentials) =>
-          options =
-            config: credentials.enrichCredentials
-              project_key: program.projectKey
-              client_id: program.clientId
-              client_secret: program.clientSecret
-            timeout: program.timeout
-            show_progress: true
-            user_agent: "#{package_json.name} - State - #{package_json.version}"
-            logConfig:
-              streams: [
-                {level: 'warn', stream: process.stdout}
-              ]
+        options =
+          config:
+            project_key: program.projectKey
+            client_id: program.clientId
+            client_secret: program.clientSecret
+          timeout: program.timeout
+          show_progress: true
+          user_agent: "#{package_json.name} - Publish - #{package_json.version}"
+          logConfig:
+            streams: [
+              {level: 'warn', stream: process.stdout}
+            ]
 
           if program.verbose
             options.logConfig.streams = [
