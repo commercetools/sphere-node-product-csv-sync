@@ -1,8 +1,5 @@
 Feature: Import products
 
-  Background:
-    * I run `cp ~/.sphere-project-credentials .`
-
   Scenario: Can't find product type
     Given a file named "i.csv" with:
     """
