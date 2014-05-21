@@ -185,7 +185,7 @@ class Import
         if result.statusCode is 304
           deferred.resolve "[row #{rowIndex}] Product update not necessary."
         else
-          @publishProduct(result, rowIndex).then ->
+          @publishProduct(result.body, rowIndex).then ->
             deferred.resolve "[row #{rowIndex}] Product updated."
       .fail (err) =>
         if err.statusCode is 400
@@ -206,8 +206,9 @@ class Import
       deferred.resolve "[row #{rowIndex}] DRY-RUN - create new product."
     else
       @client.products.create(product)
-      .then (result) ->
-        deferred.resolve "[row #{rowIndex}] New product created."
+      .then (result) =>
+        @publishProduct(result.body, rowIndex).then ->
+          deferred.resolve "[row #{rowIndex}] New product created."
       .fail (err) =>
         if err.statusCode is 400
           msg = "[row #{rowIndex}] Problem on creating new product:\n#{_.prettify err}"
