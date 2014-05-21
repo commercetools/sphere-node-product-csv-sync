@@ -15,7 +15,7 @@ Feature: Import products
     """
 
   @wip
-  Scenario: Import simple product
+  Scenario: Import/update and remove a product
     Given a file named "i.csv" with:
     """
     productType,variantId,name,sku
@@ -43,12 +43,28 @@ Feature: Import products
     [ '[row 2] Product update not necessary.' ]
     """
 
-    Given a file named "i.csv" with:
+    Given a file named "u.csv" with:
+    """
+    productType,variantId,name,sku
+    theType,1,myProductCHANGED,12345
+    """
+    When I run `node ../../lib/run --projectKey sphere-node-product-csv-sync-94 import --csv u.csv`
+    Then the exit status should be 0
+    And the output should contain:
+    """
+    CSV file with 2 row(s) loaded.
+    Mapping 1 product(s) ...
+    Mapping done. Fetching existing product(s) ...
+    Comparing against 1 existing product(s) ...
+    [ '[row 2] Product updated.' ]
+    """
+
+    Given a file named "d.csv" with:
     """
     sku
     12345
     """
-    When I run `node ../../lib/run --projectKey sphere-node-product-csv-sync-94 state --changeTo delete --csv i.csv` interactively
+    When I run `node ../../lib/run --projectKey sphere-node-product-csv-sync-94 state --changeTo delete --csv d.csv` interactively
     And I type "yes"
     Then the exit status should be 0
     And the output should contain:
