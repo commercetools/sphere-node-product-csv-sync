@@ -7,3 +7,5 @@ config.js
 .coveralls.yml
 coverage
 package
+.sphere-project-credentials
+.sphere/
