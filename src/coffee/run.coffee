@@ -1,6 +1,5 @@
 Importer = require '../lib/import'
 Exporter = require '../lib/export'
-Variants = require '../lib/variants'
 package_json = require '../package.json'
 CONS = require '../lib/constants'
 fs = require 'fs'
@@ -320,28 +319,6 @@ module.exports = class
           console.error err
           process.exit 1
         .done()
-
-
-    # TODO: remove
-    program
-      .command 'groupvariants'
-      .description 'Allows you to group products with its variant in order to proceed with SPHERE.IOs CSV product format.'
-      .option '--in <file>', 'Path to CSV file to analyse.'
-      .option '--out <file>', 'Path to the file that will contained the product/variant relations.'
-      .option '--headerIndex <number>', 'Index of column (starting at 0) header, that defines the identity of variants to one product', parseInt
-      .usage '--in <file> --out <file> --headerIndex <number>'
-      .action (opts) ->
-        variants = new Variants()
-        fs.readFile opts.in, 'utf8', (err, content) ->
-          if err
-            console.error "Problems on reading template file '#{opts.template}': #{err}"
-            process.exit 2
-          Csv().from.string(content).to.array (data, count) ->
-            header = data[0]
-            header.push ['variantId']
-            csv = variants.groupVariants _.rest(data), opts.headerIndex
-            exporter = new Exporter()
-            exporter._saveCSV opts.out, [header].concat(csv)
 
     program.parse argv
     program.help() if program.args.length is 0
