@@ -417,7 +417,7 @@ describe 'Import', ->
         """
         productType,name,slug,variantId,multiSamelEnum,sku
         #{@productType.id},x,my-slug,1,cc,myPersonalSKU3
-        ,,,2
+        ,,,2,,myPersonalSKU2
         """
         im = createImporter()
         im.import(csv)
@@ -431,7 +431,7 @@ describe 'Import', ->
         expect(_.size p.variants).toBe 1
         expect(p.name.en).toBe 'x'
         expect(p.masterVariant.sku).toBe 'myPersonalSKU3'
-        expect(p.variants[0].sku).toBeUndefined()
+        expect(p.variants[0].sku).toBe 'myPersonalSKU2'
         ats = p.masterVariant.attributes
         expect(ats[0]).toEqual { name: 'descN', value: 'a' }
         expect(ats[1]).toEqual { name: 'descU', value: 'b' }
