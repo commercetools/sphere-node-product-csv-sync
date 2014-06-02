@@ -38,7 +38,6 @@ This tool uses sub commands for the various task. Please refer to the usage of t
 - [export](#export)
 - [template](#template)
 - [state](#product-state)
-- [groupVariants](#group-variants)
 
 General command line options can be seen by simply executing the command `node lib/run`.
 ```
@@ -52,7 +51,6 @@ node lib/run
     state [options]        Allows to publish, unpublish or delete (all) products of your SPHERE.IO project.
     export [options]       Export your products from your SPHERE.IO project to CSV using.
     template [options]     Create a template for a product type of your SPHERE.IO project.
-    groupvariants [options]  Allows you to group products with its variant in order to proceed with SPHERE.IOs CSV product format.
 
   Options:
 
@@ -346,28 +344,6 @@ Query first 10 products of a specific product type
 limit=10&where=productType(id%3D%2224da8abf-7be6-4b27-9ce6-69ee4b026513%22)
 # decoded: limit=0&where=productType(id="24da8abf-7be6-4b27-9ce6-69ee4b026513")
 ```
-
-## Group Variants
-
-With this sub command you can group several rows in a CSV together as variants of one product.
-It will add a column `variantId` to all rows. Thereby rows are handled as a groups if the they have the same value in the column defined via `headerIndex`.
-
-### Usage
-
-```
-node lib/run groupvariants --help
-
-  Usage: groupvariants --in <file> --out <file> --headerIndex <number>
-
-  Options:
-
-    -h, --help              output usage information
-    --in <file>             Path to CSV file to analyse.
-    --out <file>            Path to the file that will contained the product/variant relations.
-    --headerIndex <number>  Index of column (starting at 0) header, that defines the identity of variants to one product
-```
-
-> Please note that you don't need any of the global command line options, such as `--projectKey` etc for this sub command.
 
 ## General CSV notes
 
