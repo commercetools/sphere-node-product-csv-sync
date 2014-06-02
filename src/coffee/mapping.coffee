@@ -109,11 +109,12 @@ class Mapping
   mapVariant: (rawVariant, variantId, productType, rowIndex, product) ->
     if variantId > 2
       vId = @mapNumber rawVariant[@header.toIndex CONS.HEADER_VARIANT_ID], CONS.HEADER_VARIANT_ID, rowIndex
-      return unless vId
-      if vId isnt variantId
-        @errors.push "[row #{rowIndex}:#{CONS.HEADER_VARIANT_ID}] The variantId is not in order!\n" +
-          "Please ensure it's ordered beginning at 2. (the masterVariant has always variantId 1)."
+      if vId?
+        variantId = vId
+      else
+        # we have no valid variant id - mapNumber already mentioned this as error
         return
+
     variant =
       id: variantId
       attributes: []

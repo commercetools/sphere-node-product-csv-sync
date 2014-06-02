@@ -119,8 +119,6 @@ row 4: product with master variant
 row 5: 2nd variant of product in row 4
 ```
 
-> Please note that the `variantId` column must be sorted in ascending order.
-
 Non required product attributes
 - slug
 - metaTitle

@@ -121,14 +121,6 @@ describe 'Mapping', ->
       expect(_.size @map.errors).toBe 1
       expect(@map.errors[0]).toBe "[row 7:variantId] The number 'foo' isn't valid!"
 
-    it 'should give feedback when variantId is not in order', ->
-      @map.header = new Header [ 'variantId' ]
-      @map.header.toIndex()
-      variant = @map.mapVariant [ '3' ], 4, null, 7
-      expect(variant).toBeUndefined()
-      expect(_.size @map.errors).toBe 1
-      expect(@map.errors[0]).toBe "[row 7:variantId] The variantId is not in order!\nPlease ensure it's ordered beginning at 2. (the masterVariant has always variantId 1)."
-
     it 'should map variant with one attribute', ->
       productType =
         attributes: [
