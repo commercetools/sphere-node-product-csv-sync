@@ -42,16 +42,17 @@ git add -A &>/dev/null
 git commit -m "Release packaged version ${VERSION} to ${LATEST_BRANCH_NAME} branch" &>/dev/null
 echo "About to push to ${LATEST_BRANCH_NAME} branch"
 git push --force origin master:${LATEST_BRANCH_NAME}
+cd -
 
 # test that zipped package works
 echo "About to download and test released package"
-cd ..
 mkdir -p tmp
 cd tmp
 curl -L https://github.com/sphereio/sphere-node-product-csv-sync/archive/latest.zip -o latest.zip
 unzip -q latest.zip
 cd sphere-node-product-csv-sync-latest/
 node lib/run
+cd -
 
 # cleanup package / tmp folder
 cleanup
