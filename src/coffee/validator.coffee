@@ -78,6 +78,9 @@ class Validator
 
     deferred.promise
 
+
+  # TODO: Allow to define a column that defines the variant relationship.
+  # If the value is the same, they belong to the same product
   buildProducts: (content) ->
     _.each content, (row, index) =>
       rowIndex = index + 2 # Excel et all start counting at 1 and we already popped the header
