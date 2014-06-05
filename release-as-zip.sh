@@ -52,7 +52,7 @@ curl -L https://github.com/sphereio/sphere-node-product-csv-sync/archive/latest.
 unzip -q latest.zip
 cd sphere-node-product-csv-sync-latest/
 node lib/run
-cd -
+cd ../..
 
 # cleanup package / tmp folder
 cleanup
