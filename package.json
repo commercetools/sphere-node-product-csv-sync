@@ -41,7 +41,7 @@
     "commander": "2.2.0",
     "csv": "0.3.7",
     "sphere-node-client": "0.7.2",
-    "sphere-node-sync": "0.5.11",
+    "sphere-node-sync": "0.5.12",
     "sphere-node-utils": "0.4.11",
     "optimist": "0.6.1",
     "prompt": "0.2.12",
