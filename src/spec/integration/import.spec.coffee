@@ -514,15 +514,15 @@ describe 'Import', ->
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0].masterData.staged
         expect(p.name.en).toBe 'mySeoProdcut'
-        expect(p.metaTitle.en).toBe 'x' # I would actually expect ''
-        expect(p.metaDescription.en).toBe 'y'
-        expect(p.metaKeywords.en).toBe 'z'
+        expect(p.metaTitle.en).toBe 'a' # I would actually expect ''
+        expect(p.metaDescription.en).toBe 'b'
+        expect(p.metaKeywords.en).toBe 'changed'
         done()
       .fail (err) ->
         done(_.prettify err)
       .done()
 
-    it 'should fail a partial update of SEO attribute', (done) ->
+    it 'should not update SEO attribute if not all 3 headers are present', (done) ->
       csv =
         """
         productType,variantId,sku,name,metaTitle,metaDescription,metaKeywords
