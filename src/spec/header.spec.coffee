@@ -19,13 +19,25 @@ describe 'Header', ->
     it 'should return error for each missing header', (done) ->
       csv =
         """
+        foo,sku
+        1,2
+        """
+      @validator.parse csv, =>
+        errors = @validator.header.validate()
+        expect(errors.length).toBe 1
+        expect(errors[0]).toBe "Can't find necessary base header 'productType'!"
+        done()
+
+    it 'should return error when no sku and not variantId header', (done) ->
+      csv =
+        """
         foo,productType
         1,2
         """
       @validator.parse csv, =>
         errors = @validator.header.validate()
         expect(errors.length).toBe 1
-        expect(errors[0]).toBe "Can't find necessary base header 'variantId'!"
+        expect(errors[0]).toBe "You need either the column 'variantId' or 'sku' to identify your variants!"
         done()
 
     it 'should return error on duplicate header', (done) ->

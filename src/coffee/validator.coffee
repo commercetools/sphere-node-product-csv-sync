@@ -81,16 +81,16 @@ class Validator
 
   # TODO: Allow to define a column that defines the variant relationship.
   # If the value is the same, they belong to the same product
-  buildProducts: (content) ->
+  buildProducts: (content, variantColumn = CONS.HEADER_VARIANT_ID) ->
     _.each content, (row, index) =>
       rowIndex = index + 2 # Excel et all start counting at 1 and we already popped the header
-      if @isProduct row
+      if @isProduct row, variantColumn
         product =
           master: row
           startRow: rowIndex
           variants: []
         @rawProducts.push product
-      else if @isVariant row
+      else if @isVariant row, variantColumn
         product = _.last @rawProducts
         unless product
           @errors.push "[row #{rowIndex}] We need a product before starting with a variant!"
@@ -126,12 +126,22 @@ class Validator
     else
       @errors.push "[row #{raw.startRow}] Can't find product type for '#{ptInfo}'"
 
-  isVariant: (row) ->
-    variantId = row[@header.toIndex(CONS.HEADER_VARIANT_ID)]
-    parseInt(variantId) > 1
+  isVariant: (row, variantColumn) ->
+    if variantColumn is CONS.HEADER_VARIANT_ID
+      variantId = row[@header.toIndex(CONS.HEADER_VARIANT_ID)]
+      parseInt(variantId) > 1
+    else
+      @_hasVariantCriteria row, variantColumn
 
-  isProduct: (row) ->
-    not _s.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)]) and
-    row[@header.toIndex(CONS.HEADER_VARIANT_ID)] is '1'
+  isProduct: (row, variantColumn) ->
+    hasProductTypeColumn = not _s.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)])
+    if variantColumn is CONS.HEADER_VARIANT_ID
+      hasProductTypeColumn and row[@header.toIndex(CONS.HEADER_VARIANT_ID)] is '1'
+    else
+      hasProductTypeColumn and not @_hasVariantCriteria row, variantColumn
+
+  _hasVariantCriteria: (row, variantColumn) ->
+    critertia = row[@header.toIndex(variantColumn)]
+    critertia?
 
 module.exports = Validator

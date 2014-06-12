@@ -10,10 +10,13 @@ class Header
     if @rawHeader.length isnt _.unique(@rawHeader).length
       errors.push "There are duplicate header entries!"
 
-    missingHeaders = _.difference CONS.BASE_HEADERS, @rawHeader
+    missingHeaders = _.difference [CONS.HEADER_PRODUCT_TYPE], @rawHeader
     if _.size(missingHeaders) > 0
       for missingHeader in missingHeaders
         errors.push "Can't find necessary base header '#{missingHeader}'!"
+
+    if not _.contains(@rawHeader, CONS.HEADER_VARIANT_ID) and not _.contains(@rawHeader, CONS.HEADER_SKU)
+      errors.push "You need either the column '#{CONS.HEADER_VARIANT_ID}' or '#{CONS.HEADER_SKU}' to identify your variants!"
 
     errors
 
