@@ -521,3 +521,36 @@ describe 'Import', ->
       .fail (err) ->
         done(_.prettify err)
       .done()
+
+    it 'should fail a partial update of SEO attribute', (done) ->
+      csv =
+        """
+        productType,variantId,sku,name,metaTitle,metaDescription,metaKeywords
+        #{@productType.id},1,a111,mySeoProdcut,a,b,c
+        """
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        csv =
+          """
+          productType,variantId,sku,name,metaTitle,metaDescription
+          #{@productType.id},1,a111,mySeoProdcut,x,y
+          """
+        im = createImporter()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product update not necessary.'
+        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0].masterData.staged
+        expect(p.name.en).toBe 'mySeoProdcut'
+        expect(p.metaTitle.en).toBe 'a'
+        expect(p.metaDescription.en).toBe 'b'
+        expect(p.metaKeywords.en).toBe 'c'
+        done()
+      .fail (err) ->
+        done(_.prettify err)
+      .done()
