@@ -501,8 +501,8 @@ describe 'Import', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,variantId,sku,name,metaTitle,metaKeywords
-          #{@productType.id},1,a111,mySeoProdcut,,changed
+          productType,variantId,sku,name,metaTitle,metaDescription,metaKeywords
+          #{@productType.id},1,a111,mySeoProdcut,,b,changed
           """
         im = createImporter()
         im.import(csv)
