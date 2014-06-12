@@ -489,7 +489,7 @@ describe 'Import', ->
         done(_.prettify err)
       .done()
 
-    it 'should do a partial update of SEO attribute', (done) ->
+    it 'should do a full update of SEO attribute', (done) ->
       csv =
         """
         productType,variantId,sku,name,metaTitle,metaDescription,metaKeywords
@@ -501,8 +501,8 @@ describe 'Import', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,variantId,sku,name,metaTitle,metaKeywords
-          #{@productType.id},1,a111,mySeoProdcut,,changed
+          productType,variantId,sku,name,metaTitle,metaDescription,metaKeywords
+          #{@productType.id},1,a111,mySeoProdcut,x,y,z
           """
         im = createImporter()
         im.import(csv)
@@ -514,9 +514,9 @@ describe 'Import', ->
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0].masterData.staged
         expect(p.name.en).toBe 'mySeoProdcut'
-        expect(p.metaTitle.en).toBe 'a' # I would actually expect ''
-        expect(p.metaDescription.en).toBe 'b'
-        expect(p.metaKeywords.en).toBe 'changed'
+        expect(p.metaTitle.en).toBe 'x' # I would actually expect ''
+        expect(p.metaDescription.en).toBe 'y'
+        expect(p.metaKeywords.en).toBe 'z'
         done()
       .fail (err) ->
         done(_.prettify err)
