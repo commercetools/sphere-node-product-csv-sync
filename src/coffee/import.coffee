@@ -165,7 +165,7 @@ class Import
         when 'changeName' then header.has(CONS.HEADER_NAME) or header.hasLanguage(CONS.HEADER_NAME)
         when 'changeSlug' then header.has(CONS.HEADER_SLUG) or header.hasLanguage(CONS.HEADER_SLUG)
         when 'setDescription' then header.has(CONS.HEADER_DESCRIPTION) or header.hasLanguage(CONS.HEADER_DESCRIPTION)
-        when 'setMetaAttributes' then @syncSeoAttributes
+        when 'setMetaAttributes' then header.has(CONS.HEADER_META_TITLE) and header.has(CONS.HEADER_META_DESCRIPTION) and header.has(CONS.HEADER_META_KEYWORDS) and @syncSeoAttributes
         when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
         when 'setSKU' then header.has(CONS.HEADER_SKU)
