@@ -170,7 +170,7 @@ class Import
         when 'setMetaAttributes'
           (header.has(CONS.HEADER_META_TITLE) or header.hasLanguageForCustomAttribute(CONS.HEADER_META_TITLE))
           and (header.has(CONS.HEADER_META_DESCRIPTION)  or header.hasLanguageForCustomAttribute(CONS.HEADER_META_DESCRIPTION))
-          and header.has(CONS.HEADER_META_KEYWORDS) or header.hasLanguageForCustomAttribute(CONS.HEADER_META_KEYWORDS))
+          and (header.has(CONS.HEADER_META_KEYWORDS) or header.hasLanguageForCustomAttribute(CONS.HEADER_META_KEYWORDS))
           and @syncSeoAttributes
         when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
