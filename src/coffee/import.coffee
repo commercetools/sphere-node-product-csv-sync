@@ -162,16 +162,16 @@ class Import
       #console.log "ACTION", action
       switch action.action
         when 'setAttribute', 'setAttributeInAllVariants'
-          (header.has(action.name) or header.hasLanguageForCustomAttribute(action.name))
-          and not @_isBlackListedForUpdate(action.name)
+          (header.has(action.name) or header.hasLanguageForCustomAttribute(action.name)) and not
+          @_isBlackListedForUpdate(action.name)
         when 'changeName' then header.has(CONS.HEADER_NAME) or header.hasLanguageForBaseAttribute(CONS.HEADER_NAME)
         when 'changeSlug' then header.has(CONS.HEADER_SLUG) or header.hasLanguageForBaseAttribute(CONS.HEADER_SLUG)
         when 'setDescription' then header.has(CONS.HEADER_DESCRIPTION) or header.hasLanguageForBaseAttribute(CONS.HEADER_DESCRIPTION)
         when 'setMetaAttributes'
-          (header.has(CONS.HEADER_META_TITLE) or header.hasLanguageForCustomAttribute(CONS.HEADER_META_TITLE))
-          and (header.has(CONS.HEADER_META_DESCRIPTION)  or header.hasLanguageForCustomAttribute(CONS.HEADER_META_DESCRIPTION))
-          and (header.has(CONS.HEADER_META_KEYWORDS) or header.hasLanguageForCustomAttribute(CONS.HEADER_META_KEYWORDS))
-          and @syncSeoAttributes
+          (header.has(CONS.HEADER_META_TITLE) or header.hasLanguageForCustomAttribute(CONS.HEADER_META_TITLE)) and
+          (header.has(CONS.HEADER_META_DESCRIPTION)  or header.hasLanguageForCustomAttribute(CONS.HEADER_META_DESCRIPTION)) and
+          (header.has(CONS.HEADER_META_KEYWORDS) or header.hasLanguageForCustomAttribute(CONS.HEADER_META_KEYWORDS)) and
+          @syncSeoAttributes
         when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
         when 'setSKU' then header.has(CONS.HEADER_SKU)
