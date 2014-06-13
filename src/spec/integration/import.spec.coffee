@@ -394,8 +394,8 @@ describe 'Import', ->
     it 'should do a partial update of localized attributes', (done) ->
       csv =
         """
-        productType,variantId,sku,name,description.en,description.de,descN.en,descN.de,descN.it
-        #{@productType.id},1,someSKU,myProductY,foo bar,bla bla,english,german,italian
+        productType,variantId,sku,name,description.en,description.de,description.fr,descN.en,descN.de,descN.it
+        #{@productType.id},1,someSKU,myProductY,foo bar,bla bla,bon jour,english,german,italian
         """
       @importer.import(csv)
       .then (result) =>
@@ -413,8 +413,8 @@ describe 'Import', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         csv =
           """
-          productType,variantId,sku,description.de,descN.it
-          #{@productType.id},1,someSKU,"Hallo Welt",ciao
+          productType,variantId,sku,description.de,description.fr,descN.en,descN.it
+          #{@productType.id},1,someSKU,"Hallo Welt",bon jour,english,ciao
           """
         im = createImporter()
         im.import(csv)
@@ -429,7 +429,7 @@ describe 'Import', ->
         expect(p.description.de).toBe 'Hallo Welt'
         attrib = _.find p.masterVariant.attributes, (a) ->
           a.name = 'descN'
-        expect(attrib.value.en).toBeUndefined() # TODO: expecting 'english'
+        expect(attrib.value.en).toBe 'english'
         expect(attrib.value.de).toBeUndefined() # TODO: expecting 'german'
         expect(attrib.value.it).toBe 'ciao'
         done()
