@@ -35,11 +35,16 @@ class Header
     return @langH2i[name] if name
     @langH2i
 
-  hasLanguage: (name) ->
+  hasLanguageForBaseAttribute: (name) ->
     _.has @langH2i, name
 
+  hasLanguageForCustomAttribute: (name) ->
+    foo = _.find @productTypeId2HeaderIndex, (productTypeLangH2i) ->
+      _.has productTypeLangH2i, name
+    foo?
+
   # "a,x.de,y,x.it,z"
-  # productTypeAttributeToIndex for 'foo'
+  # productTypeAttributeToIndex for 'x'
   #   de: 1
   #   it: 3
   productTypeAttributeToIndex: (productType, attribute) ->

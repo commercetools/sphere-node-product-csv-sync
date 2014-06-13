@@ -111,7 +111,7 @@ class Import
     index = @id2index[product.id] if product.id?
     unless index
       index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku?
-      if not index and (entry.header.has(CONS.HEADER_SLUG) or entry.header.hasLanguage(CONS.HEADER_SLUG))
+      if not index and (entry.header.has(CONS.HEADER_SLUG) or entry.header.hasLanguageForBaseAttribute(CONS.HEADER_SLUG))
         index = @slug2index[product.slug[CONS.DEFAULT_LANGUAGE]] if product.slug? and product.slug[CONS.DEFAULT_LANGUAGE]?
     return @existingProducts[index] if index > -1
 
@@ -161,10 +161,10 @@ class Import
     filtered = diff.filterActions (action) =>
       #console.log "ACTION", action
       switch action.action
-        when 'setAttribute', 'setAttributeInAllVariants' then (header.has(action.name) or header.hasLanguage(action.name)) and not @_isBlackListedForUpdate(action.name)
-        when 'changeName' then header.has(CONS.HEADER_NAME) or header.hasLanguage(CONS.HEADER_NAME)
-        when 'changeSlug' then header.has(CONS.HEADER_SLUG) or header.hasLanguage(CONS.HEADER_SLUG)
-        when 'setDescription' then header.has(CONS.HEADER_DESCRIPTION) or header.hasLanguage(CONS.HEADER_DESCRIPTION)
+        when 'setAttribute', 'setAttributeInAllVariants' then (header.has(action.name) or header.hasLanguageForCustomAttribute(action.name)) and not @_isBlackListedForUpdate(action.name)
+        when 'changeName' then header.has(CONS.HEADER_NAME) or header.hasLanguageForBaseAttribute(CONS.HEADER_NAME)
+        when 'changeSlug' then header.has(CONS.HEADER_SLUG) or header.hasLanguageForBaseAttribute(CONS.HEADER_SLUG)
+        when 'setDescription' then header.has(CONS.HEADER_DESCRIPTION) or header.hasLanguageForBaseAttribute(CONS.HEADER_DESCRIPTION)
         when 'setMetaAttributes' then header.has(CONS.HEADER_META_TITLE) and header.has(CONS.HEADER_META_DESCRIPTION) and header.has(CONS.HEADER_META_KEYWORDS) and @syncSeoAttributes
         when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)

@@ -31,7 +31,7 @@ describe 'Import', ->
       name: 'myType'
       description: 'foobar'
       attributes: [
-        { name: 'descN', label: { de: 'descN' }, type: { name: 'text'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
+        { name: 'descN', label: { de: 'descN' }, type: { name: 'ltext'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
         { name: 'descU', label: { de: 'descU' }, type: { name: 'text'}, attributeConstraint: 'Unique', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
         { name: 'descCU1', label: { de: 'descCU1' }, type: { name: 'text'}, attributeConstraint: 'CombinationUnique', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
         { name: 'descCU2', label: { de: 'descCU2' }, type: { name: 'text'}, attributeConstraint: 'CombinationUnique', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
@@ -391,6 +391,52 @@ describe 'Import', ->
         done(_.prettify err)
       .done()
 
+    it 'should do a partial update of localized attributes', (done) ->
+      csv =
+        """
+        productType,variantId,sku,name,description.en,description.de,descN.en,descN.de,descN.it
+        #{@productType.id},1,someSKU,myProductY,foo bar,bla bla,english,german,italian
+        """
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        csv =
+          """
+          productType,variantId,sku
+          #{@productType.id},1,someSKU
+          """
+        im = createImporter()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product update not necessary.'
+        csv =
+          """
+          productType,variantId,sku,description.de,descN.it
+          #{@productType.id},1,someSKU,"Hallo Welt",ciao
+          """
+        im = createImporter()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0].masterData.staged
+        expect(p.description.en).toBeUndefined() # TODO: expecting 'foo bar'
+        expect(p.description.de).toBe 'Hallo Welt'
+        attrib = _.find p.masterVariant.attributes, (a) ->
+          a.name = 'descN'
+        expect(attrib.value.en).toBeUndefined() # TODO: expecting 'english'
+        expect(attrib.value.de).toBeUndefined() # TODO: expecting 'german'
+        expect(attrib.value.it).toBe 'ciao'
+        done()
+      .fail (err) ->
+        done(_.prettify err)
+      .done()
+
     it 'should do a partial update of custom attributes', (done) ->
       csv =
         """
@@ -433,7 +479,7 @@ describe 'Import', ->
         expect(p.masterVariant.sku).toBe 'myPersonalSKU3'
         expect(p.variants[0].sku).toBe 'myPersonalSKU2'
         ats = p.masterVariant.attributes
-        expect(ats[0]).toEqual { name: 'descN', value: 'a' }
+        expect(ats[0]).toEqual { name: 'descN', value: { en: 'a' } }
         expect(ats[1]).toEqual { name: 'descU', value: 'b' }
         expect(ats[2]).toEqual { name: 'descCU1', value: 'c' }
         expect(ats[3]).toEqual { name: 'descCU2', value: 'd' }
@@ -441,7 +487,7 @@ describe 'Import', ->
         expect(ats[5]).toEqual { name: 'multiEnum', value: [{ key: 'x', label: 'X' }] }
         expect(ats[6]).toEqual { name: 'multiSamelEnum', value: [{ key: 'cc', label: { en: 'CC', 'de': 'Cc' } }] }
         ats = p.variants[0].attributes
-        expect(ats[0]).toEqual { name: 'descN', value: 'b' }
+        expect(ats[0]).toEqual { name: 'descN', value: { en: 'b' } }
         expect(ats[1]).toEqual { name: 'descU', value: 'c' }
         expect(ats[2]).toEqual { name: 'descCU1', value: 'd' }
         expect(ats[3]).toEqual { name: 'descCU2', value: 'e' }
