@@ -7,6 +7,7 @@
 [![Build Status](https://travis-ci.org/sphereio/sphere-node-product-csv-sync.png?branch=master)](https://travis-ci.org/sphereio/sphere-node-product-csv-sync) [![NPM version](https://badge.fury.io/js/sphere-node-product-csv-sync.png)](http://badge.fury.io/js/sphere-node-product-csv-sync) [![Coverage Status](https://coveralls.io/repos/sphereio/sphere-node-product-csv-sync/badge.png)](https://coveralls.io/r/sphereio/sphere-node-product-csv-sync) [![Dependency Status](https://david-dm.org/sphereio/sphere-node-product-csv-sync.png?theme=shields.io)](https://david-dm.org/sphereio/sphere-node-product-csv-sync) [![devDependency Status](https://david-dm.org/sphereio/sphere-node-product-csv-sync/dev-status.png?theme=shields.io)](https://david-dm.org/sphereio/sphere-node-product-csv-sync#info=devDependencies)
 
 This component allows you to import, update and export SPHERE.IO Products via CSV.
+Further you can change the publish state of products.
 
 # Setup
 
@@ -41,7 +42,7 @@ This tool uses sub commands for the various task. Please refer to the usage of t
 
 General command line options can be seen by simply executing the command `node lib/run`.
 ```
-node lib/run
+./bin/product-csv-sync
 
   Usage: run [globals] [sub-command] [options]
 
@@ -64,27 +65,34 @@ node lib/run
     --debug                      give as many feedback as possible
 ```
 
-For all sub command specific options please call `node lib/run <sub command> --help`.
+For all sub command specific options please call `./bin/product-csv-sync <sub command> --help`.
 
 
 ## Import
 
+The import command allows to create new products with their variants as well to update existing products and their variants.
+During update it is possible to concentrate only on those attributes that should be updated.
+This means that the CSV may contain only those columns that contain changed values.
+
 ### Usage
 
 ```
-node lib/run import --help
+./bin/product-csv-sync import --help
 
   Usage: import --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>
 
   Options:
 
-    -h, --help                      output usage information
-    -c, --csv <file>                CSV file containing products to import
-    -l, --language [lang]           Default language to using during import (for slug generation, category linking etc.)
-    --continueOnProblems            When a product does not validate on the server side (400er response), ignore it and continue with the next products
-    --suppressMissingHeaderWarning  Do not show which headers are missing per produt type.
-    --allowRemovalOfVariants        If given variants will be removed if there is no corresponding row in the CSV. Otherwise they are not touched.
-    --publish                       When given, all changes will be published immediately
+    -h, --help                                 output usage information
+    -c, --csv <file>                           CSV file containing products to import
+    -l, --language [lang]                      Default language to using during import (for slug generation, category linking etc. - default is en)
+    --customAttributesForCreationOnly <items>  List of comma-separated attributes to use when creating products (ignore when updating)
+    --continueOnProblems                       When a product does not validate on the server side (400er response), ignore it and continue with the next products
+    --suppressMissingHeaderWarning             Do not show which headers are missing per produt type.
+    --allowRemovalOfVariants                   If given variants will be removed if there is no corresponding row in the CSV. Otherwise they are not touched.
+    --ignoreSeoAttributes                      If true all meta* attrbutes are kept untouched.
+    --publish                                  When given, all changes will be published immediately
+    --dryRun                                   Will list all action that would be triggered, but will not POST them to SPHERE.IO
 ```
 
 ### CSV Format
@@ -136,10 +144,15 @@ The following product attributes can be localized:
 - name
 - description
 - slug
+- metaTitle
+- metaDescriptions
+- metaKeywords
 
 > Further any custom attribute of type `ltext` can be filled with several language values.
 
 Using the command line option `--language`, you can define in which language the values should be imported.
+
+> Using the `--language` option you can define only a single language
 
 Multiple languages can be imported by defining for each language an own column with the following schema:
 ```
@@ -149,6 +162,11 @@ myType,my Product,mein Produkt,foo bar,bla bal,my-product,mein-product
 
 The pattern for the language header is:
 `<attribute name>.<language>`
+
+##### Update of localized attributes
+
+When you want to update a localized attribute, you have to provide all languages of that particular attribute in the CSV file.
+Otherwise the language that isn't provided will be removed.
 
 #### Set attributes
 
@@ -222,6 +240,14 @@ https://example.com/image.jpg;http://www.example.com/picture.bmp
 
 > In general we recommend to import images without the protocol like `//example.com/image.png`
 
+#### SEO Attributes
+
+The current implementation allows the set the SEO attributes only if all three SEO attributes are present.
+- metaTitle
+- metaDescriptions
+- metaKeywords
+
+
 ## Product State
 
 This sub command allows you to publish/unpublish or delete as set of (or all) products with a single call.
@@ -229,7 +255,7 @@ This sub command allows you to publish/unpublish or delete as set of (or all) pr
 ### Usage
 
 ```
-node lib/run state --help
+./bin/product-csv-sync state --help
 
   Usage: state --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo <state>
 
@@ -259,6 +285,7 @@ M3456
 
 > Please note that you always delete products not variants!
 
+
 ## Template
 
 Using this sub command, you can generate a CSV template (does only contain the header row)
@@ -268,7 +295,7 @@ If you leave this options out, you will be ask for which product type to generat
 ### Usage
 
 ```
-node lib/run template --help
+./bin/product-csv-sync template --help
 
   Usage: template --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --out <file>
 
@@ -276,7 +303,7 @@ node lib/run template --help
 
     -h, --help                   output usage information
     -o, --out <file>             Path to the file the exporter will write the resulting CSV in
-    -l, --languages [lang,lang]  List of languages to use for template
+    -l, --languages [lang,lang]  List of languages to use for template (default is [en])
     --all                        Generates one template for all product types - if not given you will be ask which product type to use
 ```
 
@@ -299,7 +326,7 @@ productType,name.en,varianId
 ### Usage
 
 ```
-node lib/run export --help
+./bin/product-csv-sync export --help
 
   Usage: export --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>
 
@@ -309,8 +336,8 @@ node lib/run export --help
     -t, --template <file>  CSV file containing your header that defines what you want to export
     -o, --out <file>       Path to the file the exporter will write the resulting CSV in
     -j, --json <file>      Path to the JSON file the exporter will write the resulting products
-    -l, --language [lang]  Language used on export for category names
-    -q, --queryString      Query string to specify the subset of products to export. Please note that the query must be URL encoded!
+    -q, --queryString      Query string to specify the sub-set of products to export. Please note that the query must be URL encoded!
+    -l, --language [lang]  Language used on export for category names (default is en)
 ```
 
 #### Export as JSON
