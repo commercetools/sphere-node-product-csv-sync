@@ -25,11 +25,11 @@ class ExportMapping
 
     rows
 
-  createTemplate: (productType, languages = [CONS.DEFAULT_LANGUAGE]) ->
+  createTemplate: (productType, languages = [GLOBALS.DEFAULT_LANGUAGE]) ->
     header = [ CONS.HEADER_PUBLISHED, CONS.HEADER_HAS_STAGED_CHANGES ].concat(CONS.BASE_HEADERS.concat(CONS.SPECIAL_HEADERS))
     _.each CONS.BASE_LOCALIZED_HEADERS, (locBaseAttrib) ->
       header = header.concat _.map languages, (lang) ->
-        "#{locBaseAttrib}#{CONS.DELIM_HEADER_LANGUAGE}#{lang}"
+        "#{locBaseAttrib}#{GLOBALS.DELIM_HEADER_LANGUAGE}#{lang}"
     _.each productType.attributes, (attribute) =>
       switch attribute.type.name
         when CONS.ATTRIBUTE_TYPE_SET then header = header.concat @_mapAttributeTypeDef attribute.type.elementType, attribute, languages
@@ -38,7 +38,7 @@ class ExportMapping
 
   _mapAttributeTypeDef: (attributeTypeDef, attribute, languages) ->
     switch attributeTypeDef.name
-      when CONS.ATTRIBUTE_TYPE_LTEXT then _.map languages, (lang) -> "#{attribute.name}#{CONS.DELIM_HEADER_LANGUAGE}#{lang}"
+      when CONS.ATTRIBUTE_TYPE_LTEXT then _.map languages, (lang) -> "#{attribute.name}#{GLOBALS.DELIM_HEADER_LANGUAGE}#{lang}"
       else [ attribute.name ]
 
   _mapBaseProduct: (product, productType) ->

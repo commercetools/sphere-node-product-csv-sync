@@ -48,8 +48,8 @@ class Mapping
 
     unless product.slug
       product.slug = {}
-      if product.name? and product.name[CONS.DEFAULT_LANGUAGE]?
-        product.slug[CONS.DEFAULT_LANGUAGE] = @ensureValidSlug(_s.slugify product.name[CONS.DEFAULT_LANGUAGE], rowIndex)
+      if product.name? and product.name[GLOBALS.DEFAULT_LANGUAGE]?
+        product.slug[GLOBALS.DEFAULT_LANGUAGE] = @ensureValidSlug(_s.slugify product.name[GLOBALS.DEFAULT_LANGUAGE], rowIndex)
 
     product
 
@@ -237,7 +237,7 @@ class Mapping
     if _.size(values) is 0
       return unless @header.has(attribName)
       val = row[@header.toIndex attribName]
-      values[CONS.DEFAULT_LANGUAGE] = val if val
+      values[GLOBALS.DEFAULT_LANGUAGE] = val if val
 
     return if _.isEmpty values
     values

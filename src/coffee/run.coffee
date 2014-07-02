@@ -91,7 +91,7 @@ module.exports = class
       .option '--dryRun', 'Will list all action that would be triggered, but will not POST them to SPHERE.IO'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>'
       .action (opts) ->
-        CONS.DEFAULT_LANGUAGE = opts.language
+        GLOBALS.DEFAULT_LANGUAGE = opts.language
         GLOBALS.DELIM_MULTI_VALUE = opts.multiValueDelimiter
 
         credentialsConfig = ProjectCredentialsConfig.create()
@@ -235,7 +235,7 @@ module.exports = class
       .option '-l, --language [lang]', 'Language used on export for category names (default is en)', 'en'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) ->
-        CONS.DEFAULT_LANGUAGE = opts.language
+        GLOBALS.DEFAULT_LANGUAGE = opts.language
 
         options =
           config:

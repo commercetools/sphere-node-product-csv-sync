@@ -55,9 +55,9 @@ class Validator
     allDelimiter = {
       csvDelimiter: @csvOptions.delimiter,
       csvQuote: @csvOptions.quote,
-      language: CONS.DELIM_HEADER_LANGUAGE,
+      language: GLOBALS.DELIM_HEADER_LANGUAGE,
       multiValue: GLOBALS.DELIM_MULTI_VALUE,
-      categoryChildren: CONS.DELIM_CATEGORY_CHILD
+      categoryChildren: GLOBALS.DELIM_CATEGORY_CHILD
     }
     delims = _.map allDelimiter, (delim, _) -> delim
     if _.size(delims) isnt _.size(_.uniq(delims))

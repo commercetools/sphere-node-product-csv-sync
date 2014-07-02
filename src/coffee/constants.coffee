@@ -1,7 +1,4 @@
 constants =
-  # This isn't a constants - TODO move it to proper location
-  DEFAULT_LANGUAGE: 'en'
-
   HEADER_PRODUCT_TYPE: 'productType'
   HEADER_ID: 'id'
   HEADER_VARIANT_ID: 'variantId'
@@ -27,9 +24,6 @@ constants =
   HEADER_HAS_STAGED_CHANGES: '_hasStagedChanges'
   HEADER_CREATED_AT: '_createdAt'
   HEADER_LAST_MODIFIED_AT: '_lastModifiedAt'
-
-  DELIM_HEADER_LANGUAGE: '.'
-  DELIM_CATEGORY_CHILD: '>'
 
   ATTRIBUTE_TYPE_SET: 'set'
   ATTRIBUTE_TYPE_LTEXT: 'ltext'
