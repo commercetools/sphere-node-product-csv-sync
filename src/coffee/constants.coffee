@@ -29,7 +29,6 @@ constants =
   HEADER_LAST_MODIFIED_AT: '_lastModifiedAt'
 
   DELIM_HEADER_LANGUAGE: '.'
-  DELIM_MULTI_VALUE: ';'
   DELIM_CATEGORY_CHILD: '>'
 
   ATTRIBUTE_TYPE_SET: 'set'

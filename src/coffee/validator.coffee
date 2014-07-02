@@ -2,6 +2,7 @@ _ = require('underscore')._
 _s = require 'underscore.string'
 Csv = require 'csv'
 CONS = require '../lib/constants'
+GLOBALS = require '../lib/globals'
 Types = require '../lib/types'
 Categories = require '../lib/categories'
 CustomerGroups = require '../lib/customergroups'
@@ -55,7 +56,7 @@ class Validator
       csvDelimiter: @csvOptions.delimiter,
       csvQuote: @csvOptions.quote,
       language: CONS.DELIM_HEADER_LANGUAGE,
-      multiValue: CONS.DELIM_MULTI_VALUE,
+      multiValue: GLOBALS.DELIM_MULTI_VALUE,
       categoryChildren: CONS.DELIM_CATEGORY_CHILD
     }
     delims = _.map allDelimiter, (delim, _) -> delim
