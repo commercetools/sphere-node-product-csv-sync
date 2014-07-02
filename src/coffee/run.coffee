@@ -80,6 +80,7 @@ module.exports = class
       .description 'Import your products from CSV into your SPHERE.IO project.'
       .option '-c, --csv <file>', 'CSV file containing products to import'
       .option '-l, --language [lang]', 'Default language to using during import (for slug generation, category linking etc. - default is en)', 'en'
+      .option '--csvDelimiter', 'CSV Delimiter that separates the cells (default is comma - ",")'
       .option '--customAttributesForCreationOnly <items>', 'List of comma-separated attributes to use when creating products (ignore when updating)', @_list
       .option '--continueOnProblems', 'When a product does not validate on the server side (400er response), ignore it and continue with the next products'
       .option '--suppressMissingHeaderWarning', 'Do not show which headers are missing per produt type.'
@@ -108,6 +109,7 @@ module.exports = class
               streams: [
                 {level: 'warn', stream: process.stdout}
               ]
+            csvDelimiter: program.csvDelimiter
 
           if program.verbose
             options.logConfig.streams = [

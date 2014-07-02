@@ -41,6 +41,26 @@ describe 'Validator', ->
         expect(content[1]).toEqual ['row2', 'foo']
         done()
 
+  describe '#checkDelimiters', ->
+    it 'should work if all delimiters are different', ->
+      @validator = new Validator
+        csvDelimiter: '#'
+        csvQuote: "'"
+      @validator.checkDelimiters()
+      expect(_.size @validator.errors).toBe 0
+
+    it 'should produce an error of two delimiters are the same', ->
+      @validator = new Validator
+        csvDelimiter: ';'
+      @validator.checkDelimiters()
+      expect(_.size @validator.errors).toBe 1
+      expectedErrorMessage =
+        '''
+        Your selected delimiter clash with each other:
+        {"csvDelimiter":";","csvQuote":"\\"","language":".","multiValue":";","categoryChildren":">"}
+        '''
+      expect(@validator.errors[0]).toBe expectedErrorMessage
+
   describe '#isVariant', ->
     beforeEach ->
       @validator.header = new Header CONS.BASE_HEADERS
