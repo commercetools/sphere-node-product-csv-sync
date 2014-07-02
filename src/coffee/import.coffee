@@ -1,5 +1,6 @@
 _ = require 'underscore'
 CONS = require '../lib/constants'
+GLOBALS = require '../lib/globals'
 Validator = require '../lib/validator'
 ProductSync = require('sphere-node-sync').ProductSync
 Q = require 'q'
