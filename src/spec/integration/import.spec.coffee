@@ -74,6 +74,16 @@ describe 'Import', ->
       .then (result) ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
+        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0].masterData.staged
+        expect(_.size p.masterVariant.prices).toBe 3
+        prices = p.masterVariant.prices
+        expect(prices[0]).toEqual { value: { currencyCode: 'EUR', centAmount: 899 } }
+        expect(prices[1]).toEqual { country: 'CH', value: { currencyCode: 'EUR', centAmount: 999 } }
+        expect(prices[2].channel.typeId).toBe 'channel'
+        expect(prices[2].channel.id).toBeDefined()
         done()
       .fail (err) ->
         done(_.prettify err)
