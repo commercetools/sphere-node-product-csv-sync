@@ -71,7 +71,7 @@ describe 'Import', ->
         #{@productType.id},myProduct,1,slug,EUR 899;CH-EUR 999;CH-USD 77777700 #retailerA
         """
       @importer.import(csv)
-      .then (result) ->
+      .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
         @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
