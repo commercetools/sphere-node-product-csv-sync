@@ -60,6 +60,7 @@ General command line options can be seen by simply executing the command `node l
     -p, --projectKey <key>       your SPHERE.IO project-key
     -i, --clientId <id>          your OAuth client id for the SPHERE.IO API
     -s, --clientSecret <secret>  your OAuth client secret for the SPHERE.IO API
+    --sphereHost                 SPHERE.IO API host to connecto to
     --timeout [millis]           Set timeout for requests
     --verbose                    give more feedback during action
     --debug                      give as many feedback as possible
@@ -86,6 +87,8 @@ This means that the CSV may contain only those columns that contain changed valu
     -h, --help                                 output usage information
     -c, --csv <file>                           CSV file containing products to import
     -l, --language [lang]                      Default language to using during import (for slug generation, category linking etc. - default is en)
+    --csvDelimiter                             CSV Delimiter that separates the cells (default is comma - ",")
+    --multiValueDelimiter                      Delimiter to separate values inside of a cell (default is semicolon - ";")
     --customAttributesForCreationOnly <items>  List of comma-separated attributes to use when creating products (ignore when updating)
     --continueOnProblems                       When a product does not validate on the server side (400er response), ignore it and continue with the next products
     --suppressMissingHeaderWarning             Do not show which headers are missing per produt type.
