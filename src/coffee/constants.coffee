@@ -39,7 +39,7 @@ constants =
   REGEX_NUMBER: new RegExp /^-?\d+$/
 
 
-for name,value of constants
+for name, value of constants
   exports[name] = value
 
 exports.BASE_HEADERS = [

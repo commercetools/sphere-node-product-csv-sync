@@ -5,5 +5,5 @@ globals =
   DELIM_CATEGORY_CHILD: '>'
 
 
-for name,value of globals
+for name, value of globals
   exports[name] = value
