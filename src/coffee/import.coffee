@@ -55,7 +55,6 @@ class Import
 
     deferred.promise
 
-
   changeState: (publish = true, remove = false, filterFunction) ->
     deferred = Q.defer()
     @publishProducts = true
@@ -133,7 +132,6 @@ class Import
           index = @slug2index[product.slug[GLOBALS.DEFAULT_LANGUAGE]] if product.slug? and product.slug[GLOBALS.DEFAULT_LANGUAGE]?
     return @existingProducts[index] if index > -1
 
-
   _matchOnCustomAttribute: (product) ->
     attribute = undefined
     if @customAttributeNameToMatch?
@@ -142,7 +140,6 @@ class Import
       _.find variants, (variant) =>
         variant.attributes or= []
         attribute = _.find variant.attributes, (attrib) =>
-          console.log "A", attrib
           attrib.name is @customAttributeNameToMatch
         attribute?
 
