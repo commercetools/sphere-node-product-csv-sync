@@ -48,7 +48,7 @@ cd -
 echo "About to download and test released package"
 mkdir -p tmp
 cd tmp
-curl -L https://github.com/sphereio/sphere-node-product-csv-sync/archive/latest.zip -o latest.zip
+curl -s -L https://github.com/sphereio/sphere-node-product-csv-sync/archive/latest.zip -o latest.zip
 unzip -q latest.zip
 cd sphere-node-product-csv-sync-latest/
 node lib/run
