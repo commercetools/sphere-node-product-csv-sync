@@ -49,7 +49,9 @@ class Validator
   validateOffline: (csvContent) ->
     @header.validate()
     @checkDelimiters()
-    @buildProducts csvContent
+
+    variantHeader = CONS.HEADER_VARIANT_ID if @header.toIndex(CONS.HEADER_VARIANT_ID)
+    @buildProducts csvContent, variantHeader
 
   checkDelimiters: ->
     allDelimiter = {
@@ -98,7 +100,7 @@ class Validator
 
   # TODO: Allow to define a column that defines the variant relationship.
   # If the value is the same, they belong to the same product
-  buildProducts: (content, variantColumn = CONS.HEADER_VARIANT_ID) ->
+  buildProducts: (content, variantColumn) ->
     _.each content, (row, index) =>
       rowIndex = index + 2 # Excel et all start counting at 1 and we already popped the header
       if @isProduct row, variantColumn
@@ -148,14 +150,14 @@ class Validator
       variantId = row[@header.toIndex(CONS.HEADER_VARIANT_ID)]
       parseInt(variantId) > 1
     else
-      @_hasVariantCriteria row, variantColumn
+      false
 
   isProduct: (row, variantColumn) ->
     hasProductTypeColumn = not _s.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)])
     if variantColumn is CONS.HEADER_VARIANT_ID
       hasProductTypeColumn and row[@header.toIndex(CONS.HEADER_VARIANT_ID)] is '1'
     else
-      hasProductTypeColumn and not @_hasVariantCriteria row, variantColumn
+      hasProductTypeColumn
 
   _hasVariantCriteria: (row, variantColumn) ->
     critertia = row[@header.toIndex(variantColumn)]
