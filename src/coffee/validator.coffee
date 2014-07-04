@@ -2,6 +2,7 @@ _ = require('underscore')._
 _s = require 'underscore.string'
 Csv = require 'csv'
 CONS = require '../lib/constants'
+GLOBALS = require '../lib/globals'
 Types = require '../lib/types'
 Categories = require '../lib/categories'
 CustomerGroups = require '../lib/customergroups'
@@ -30,9 +31,12 @@ class Validator
     @rawProducts = []
     @errors = []
     @suppressMissingHeaderWarning = false
+    @csvOptions =
+      delimiter: options.csvDelimiter or ','
+      quote: options.csvQuote or '"'
 
   parse: (csvString, callback) ->
-    Csv().from.string(csvString)
+    Csv().from.string(csvString, @csvOptions)
     .to.array (data, count) =>
       @header = new Header(data[0])
       @map.header = @header
@@ -44,7 +48,20 @@ class Validator
 
   validateOffline: (csvContent) ->
     @header.validate()
+    @checkDelimiters()
     @buildProducts csvContent
+
+  checkDelimiters: ->
+    allDelimiter = {
+      csvDelimiter: @csvOptions.delimiter,
+      csvQuote: @csvOptions.quote,
+      language: GLOBALS.DELIM_HEADER_LANGUAGE,
+      multiValue: GLOBALS.DELIM_MULTI_VALUE,
+      categoryChildren: GLOBALS.DELIM_CATEGORY_CHILD
+    }
+    delims = _.map allDelimiter, (delim, _) -> delim
+    if _.size(delims) isnt _.size(_.uniq(delims))
+      @errors.push "Your selected delimiter clash with each other:\n#{JSON.stringify(allDelimiter)}"
 
   validateOnline: ->
     deferred = Q.defer()

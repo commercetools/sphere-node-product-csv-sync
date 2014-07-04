@@ -2,6 +2,7 @@ Importer = require '../lib/import'
 Exporter = require '../lib/export'
 package_json = require '../package.json'
 CONS = require '../lib/constants'
+GLOBALS = require '../lib/globals'
 fs = require 'fs'
 Q = require 'q'
 program = require 'commander'
@@ -70,6 +71,7 @@ module.exports = class
       .option '-p, --projectKey <key>', 'your SPHERE.IO project-key'
       .option '-i, --clientId <id>', 'your OAuth client id for the SPHERE.IO API'
       .option '-s, --clientSecret <secret>', 'your OAuth client secret for the SPHERE.IO API'
+      .option '--sphereHost <host>', 'SPHERE.IO API host to connecto to'
       .option '--timeout [millis]', 'Set timeout for requests (default is 300000)', parseInt, 300000
       .option '--verbose', 'give more feedback during action'
       .option '--debug', 'give as many feedback as possible'
@@ -80,6 +82,8 @@ module.exports = class
       .description 'Import your products from CSV into your SPHERE.IO project.'
       .option '-c, --csv <file>', 'CSV file containing products to import'
       .option '-l, --language [lang]', 'Default language to using during import (for slug generation, category linking etc. - default is en)', 'en'
+      .option '--csvDelimiter', 'CSV Delimiter that separates the cells (default is comma - ",")'
+      .option '--multiValueDelimiter', 'Delimiter to separate values inside of a cell (default is semicolon - ";")'
       .option '--customAttributesForCreationOnly <items>', 'List of comma-separated attributes to use when creating products (ignore when updating)', @_list
       .option '--continueOnProblems', 'When a product does not validate on the server side (400er response), ignore it and continue with the next products'
       .option '--suppressMissingHeaderWarning', 'Do not show which headers are missing per produt type.'
@@ -89,7 +93,8 @@ module.exports = class
       .option '--dryRun', 'Will list all action that would be triggered, but will not POST them to SPHERE.IO'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>'
       .action (opts) ->
-        CONS.DEFAULT_LANGUAGE = opts.language
+        GLOBALS.DEFAULT_LANGUAGE = opts.language
+        GLOBALS.DELIM_MULTI_VALUE = opts.multiValueDelimiter
 
         credentialsConfig = ProjectCredentialsConfig.create()
         .fail (err) ->
@@ -108,6 +113,9 @@ module.exports = class
               streams: [
                 {level: 'warn', stream: process.stdout}
               ]
+            csvDelimiter: opts.csvDelimiter
+
+          options.host = program.sphereHost if program.sphereHost
 
           if program.verbose
             options.logConfig.streams = [
@@ -170,6 +178,8 @@ module.exports = class
                 {level: 'warn', stream: process.stdout}
               ]
 
+          options.host = program.sphereHost if program.sphereHost
+
           if program.verbose
             options.logConfig.streams = [
               {level: 'info', stream: process.stdout}
@@ -231,7 +241,7 @@ module.exports = class
       .option '-l, --language [lang]', 'Language used on export for category names (default is en)', 'en'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) ->
-        CONS.DEFAULT_LANGUAGE = opts.language
+        GLOBALS.DEFAULT_LANGUAGE = opts.language
 
         options =
           config:
@@ -246,6 +256,9 @@ module.exports = class
             streams: [
               {level: 'warn', stream: process.stdout}
             ]
+
+        options.host = program.sphereHost if program.sphereHost
+
         if program.verbose
           options.logConfig.streams = [
             {level: 'info', stream: process.stdout}
@@ -301,6 +314,9 @@ module.exports = class
             streams: [
               {level: 'warn', stream: process.stdout}
             ]
+
+        options.host = program.sphereHost if program.sphereHost
+
         if program.verbose
           options.logConfig.streams = [
             {level: 'info', stream: process.stdout}

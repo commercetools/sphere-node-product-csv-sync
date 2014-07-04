@@ -1,5 +1,6 @@
 _ = require('underscore')._
 CONS = require '../lib/constants'
+GLOBALS = require '../lib/globals'
 Q = require 'q'
 
 
@@ -16,7 +17,7 @@ class Categories
 
   buildMaps: (categories) ->
     for category, index in categories
-      name = category.name[CONS.DEFAULT_LANGUAGE]
+      name = category.name[GLOBALS.DEFAULT_LANGUAGE]
       id = category.id
       @id2index[id] = index
       if _.has @name2id, name
@@ -28,9 +29,9 @@ class Categories
       if category.ancestors
         for anchestor in category.ancestors
           cat = categories[@id2index[anchestor.id]]
-          name = cat.name[CONS.DEFAULT_LANGUAGE]
-          fqName = "#{fqName}#{name}#{CONS.DELIM_CATEGORY_CHILD}"
-      fqName = "#{fqName}#{category.name[CONS.DEFAULT_LANGUAGE]}"
+          name = cat.name[GLOBALS.DEFAULT_LANGUAGE]
+          fqName = "#{fqName}#{name}#{GLOBALS.DELIM_CATEGORY_CHILD}"
+      fqName = "#{fqName}#{category.name[GLOBALS.DEFAULT_LANGUAGE]}"
       @fqName2id[fqName] = category.id
       @id2fqName[category.id] = fqName
 

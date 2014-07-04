@@ -1,5 +1,6 @@
 _ = require('underscore')._
 CONS = require '../lib/constants'
+GLOBALS = require '../lib/globals'
 
 class Header
   constructor: (@rawHeader) ->
@@ -62,7 +63,7 @@ class Header
     langH2i = {}
     for langAttribName in localizedAttributes
       for head, index in @rawHeader
-        parts = head.split CONS.DELIM_HEADER_LANGUAGE
+        parts = head.split GLOBALS.DELIM_HEADER_LANGUAGE
         if _.size(parts) is 2
           if parts[0] is langAttribName
             lang = parts[1]

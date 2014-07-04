@@ -1,7 +1,7 @@
 {
   "name": "sphere-node-product-csv-sync",
   "description": "Import and export your products from/to your SPHERE.IO project.",
-  "version": "0.4.7",
+  "version": "0.4.12",
   "homepage": "https://github.com/sphereio/sphere-node-product-csv-sync",
   "private": false,
   "author": {
@@ -41,7 +41,7 @@
     "commander": "2.2.0",
     "csv": "0.3.7",
     "sphere-node-client": "0.7.2",
-    "sphere-node-sync": "0.5.12",
+    "sphere-node-sync": "0.5.13",
     "sphere-node-utils": "0.4.11",
     "optimist": "0.6.1",
     "prompt": "0.2.12",
@@ -60,7 +60,7 @@
     "grunt-contrib-watch": "0.6.1",
     "grunt-shell": "0.6.4",
     "istanbul": "0.2.7",
-    "jasmine-node": "1.14.3",
+    "jasmine-node": "1.14.0",
     "sphere-coffeelint": "git://github.com/sphereio/sphere-coffeelint.git#master"
   },
   "keywords": []

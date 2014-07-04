@@ -1,6 +1,7 @@
 _ = require('underscore')._
 _s = require 'underscore.string'
 CONS = require '../lib/constants'
+GLOBALS = require '../lib/globals'
 
 class ExportMapping
 
@@ -24,11 +25,11 @@ class ExportMapping
 
     rows
 
-  createTemplate: (productType, languages = [CONS.DEFAULT_LANGUAGE]) ->
+  createTemplate: (productType, languages = [GLOBALS.DEFAULT_LANGUAGE]) ->
     header = [ CONS.HEADER_PUBLISHED, CONS.HEADER_HAS_STAGED_CHANGES ].concat(CONS.BASE_HEADERS.concat(CONS.SPECIAL_HEADERS))
     _.each CONS.BASE_LOCALIZED_HEADERS, (locBaseAttrib) ->
       header = header.concat _.map languages, (lang) ->
-        "#{locBaseAttrib}#{CONS.DELIM_HEADER_LANGUAGE}#{lang}"
+        "#{locBaseAttrib}#{GLOBALS.DELIM_HEADER_LANGUAGE}#{lang}"
     _.each productType.attributes, (attribute) =>
       switch attribute.type.name
         when CONS.ATTRIBUTE_TYPE_SET then header = header.concat @_mapAttributeTypeDef attribute.type.elementType, attribute, languages
@@ -37,7 +38,7 @@ class ExportMapping
 
   _mapAttributeTypeDef: (attributeTypeDef, attribute, languages) ->
     switch attributeTypeDef.name
-      when CONS.ATTRIBUTE_TYPE_LTEXT then _.map languages, (lang) -> "#{attribute.name}#{CONS.DELIM_HEADER_LANGUAGE}#{lang}"
+      when CONS.ATTRIBUTE_TYPE_LTEXT then _.map languages, (lang) -> "#{attribute.name}#{GLOBALS.DELIM_HEADER_LANGUAGE}#{lang}"
       else [ attribute.name ]
 
   _mapBaseProduct: (product, productType) ->
@@ -61,7 +62,7 @@ class ExportMapping
 
     if @header.has(CONS.HEADER_CATEGORIES)
       row[@header.toIndex CONS.HEADER_CATEGORIES] = _.reduce(product.categories or [], (memo, category, index) =>
-        memo += CONS.DELIM_MULTI_VALUE unless index is 0
+        memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
         memo + @categoryService.id2fqName[category.id]
       , '')
 
@@ -104,7 +105,7 @@ class ExportMapping
 
   _mapPrices: (prices) ->
     _.reduce(prices, (acc, price, index) =>
-      acc += CONS.DELIM_MULTI_VALUE unless index is 0
+      acc += GLOBALS.DELIM_MULTI_VALUE unless index is 0
       countryPart = ''
       if price.country
         countryPart = "#{price.country}-"
@@ -122,7 +123,7 @@ class ExportMapping
 
   _mapImages: (images) ->
     _.reduce(images, (acc, image, index) ->
-      acc += CONS.DELIM_MULTI_VALUE unless index is 0
+      acc += GLOBALS.DELIM_MULTI_VALUE unless index is 0
       acc + image.url
     , '')
 
@@ -146,16 +147,16 @@ class ExportMapping
     switch attributeTypeDef.elementType.name
       when CONS.ATTRIBUTE_TYPE_ENUM, CONS.ATTRIBUTE_TYPE_LENUM
         _.reduce(attribute.value, (memo, val, index) ->
-          memo += CONS.DELIM_MULTI_VALUE unless index is 0
+          memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
           memo + val.key
         , '')
       when CONS.ATTRIBUTE_TYPE_MONEY
         _.reduce(attribute.value, (memo, val, index) ->
-          memo += CONS.DELIM_MULTI_VALUE unless index is 0
+          memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
           memo + _mapMoney val
         , '')
       else
-        attribute.value.join CONS.DELIM_MULTI_VALUE
+        attribute.value.join GLOBALS.DELIM_MULTI_VALUE
 
 
 module.exports = ExportMapping

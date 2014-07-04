@@ -1,5 +1,6 @@
 _ = require 'underscore'
 CONS = require '../lib/constants'
+GLOBALS = require '../lib/globals'
 Validator = require '../lib/validator'
 ProductSync = require('sphere-node-sync').ProductSync
 Q = require 'q'
@@ -91,7 +92,7 @@ class Import
     for product, index in existingProducts
       @id2index[product.id] = index
       if product.slug?
-        slug = product.slug[CONS.DEFAULT_LANGUAGE]
+        slug = product.slug[GLOBALS.DEFAULT_LANGUAGE]
         @slug2index[slug] = index if slug?
 
       mSku = @getSku(product.masterVariant)
@@ -112,7 +113,7 @@ class Import
     unless index
       index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku?
       if not index and (entry.header.has(CONS.HEADER_SLUG) or entry.header.hasLanguageForBaseAttribute(CONS.HEADER_SLUG))
-        index = @slug2index[product.slug[CONS.DEFAULT_LANGUAGE]] if product.slug? and product.slug[CONS.DEFAULT_LANGUAGE]?
+        index = @slug2index[product.slug[GLOBALS.DEFAULT_LANGUAGE]] if product.slug? and product.slug[GLOBALS.DEFAULT_LANGUAGE]?
     return @existingProducts[index] if index > -1
 
   createOrUpdate: (products, types) =>

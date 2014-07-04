@@ -4,7 +4,6 @@
 - allow to define image dimensions
 
 ### Command line options
-- allow to overwrite delimiters
 - add option to re-index after import (new endpoint necessary)
 
 ### Ideas

@@ -1,6 +1,7 @@
 _ = require('underscore')._
 _s = require 'underscore.string'
 CONS = require '../lib/constants'
+GLOBALS = require '../lib/globals'
 
 class Mapping
   constructor: (options = {}) ->
@@ -47,8 +48,8 @@ class Mapping
 
     unless product.slug
       product.slug = {}
-      if product.name? and product.name[CONS.DEFAULT_LANGUAGE]?
-        product.slug[CONS.DEFAULT_LANGUAGE] = @ensureValidSlug(_s.slugify product.name[CONS.DEFAULT_LANGUAGE], rowIndex)
+      if product.name? and product.name[GLOBALS.DEFAULT_LANGUAGE]?
+        product.slug[GLOBALS.DEFAULT_LANGUAGE] = @ensureValidSlug(_s.slugify product.name[GLOBALS.DEFAULT_LANGUAGE], rowIndex)
 
     product
 
@@ -73,7 +74,7 @@ class Mapping
   mapCategories: (rawMaster, rowIndex) ->
     categories = []
     return categories unless @hasValidValueForHeader(rawMaster, CONS.HEADER_CATEGORIES)
-    rawCategories = rawMaster[@header.toIndex CONS.HEADER_CATEGORIES].split CONS.DELIM_MULTI_VALUE
+    rawCategories = rawMaster[@header.toIndex CONS.HEADER_CATEGORIES].split GLOBALS.DELIM_MULTI_VALUE
     for rawCategory in rawCategories
       cat =
         typeId: 'category'
@@ -154,7 +155,7 @@ class Mapping
   # TODO: support set of ltext attributes!
   mapSetAttribute: (raw) ->
     return unless @isValidValue(raw)
-    rawValues = raw.split CONS.DELIM_MULTI_VALUE
+    rawValues = raw.split GLOBALS.DELIM_MULTI_VALUE
     values = []
     for rawValue in rawValues
       values.push rawValue
@@ -164,7 +165,7 @@ class Mapping
   mapPrices: (raw, rowIndex) ->
     prices = []
     return prices unless @isValidValue(raw)
-    rawPrices = raw.split CONS.DELIM_MULTI_VALUE
+    rawPrices = raw.split GLOBALS.DELIM_MULTI_VALUE
     for rawPrice in rawPrices
       matchedPrice = CONS.REGEX_PRICE.exec rawPrice
       unless matchedPrice
@@ -236,7 +237,7 @@ class Mapping
     if _.size(values) is 0
       return unless @header.has(attribName)
       val = row[@header.toIndex attribName]
-      values[CONS.DEFAULT_LANGUAGE] = val if val
+      values[GLOBALS.DEFAULT_LANGUAGE] = val if val
 
     return if _.isEmpty values
     values
@@ -244,7 +245,7 @@ class Mapping
   mapImages: (rawVariant, variantId, rowIndex) ->
     images = []
     return images unless @hasValidValueForHeader(rawVariant, CONS.HEADER_IMAGES)
-    rawImages = rawVariant[@header.toIndex CONS.HEADER_IMAGES].split CONS.DELIM_MULTI_VALUE
+    rawImages = rawVariant[@header.toIndex CONS.HEADER_IMAGES].split GLOBALS.DELIM_MULTI_VALUE
     
     for rawImage in rawImages
       image =
