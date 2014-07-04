@@ -130,6 +130,5 @@ describe 'Header', ->
         header.toIndex()
         header.toLanguageIndex()
         missingHeaders = header.missingHeaderForProductType(productType)
-        console.log "MISSING %j", missingHeaders
         expect(_.size missingHeaders).toBe 1
         expect(missingHeaders[0]).toEqual { name: 'a2', type: { name: 'set' } }
