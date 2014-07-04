@@ -71,7 +71,7 @@ module.exports = class
       .option '-p, --projectKey <key>', 'your SPHERE.IO project-key'
       .option '-i, --clientId <id>', 'your OAuth client id for the SPHERE.IO API'
       .option '-s, --clientSecret <secret>', 'your OAuth client secret for the SPHERE.IO API'
-      .option '--sphereHost', 'SPHERE.IO API host to connecto to'
+      .option '--sphereHost <host>', 'SPHERE.IO API host to connecto to'
       .option '--timeout [millis]', 'Set timeout for requests (default is 300000)', parseInt, 300000
       .option '--verbose', 'give more feedback during action'
       .option '--debug', 'give as many feedback as possible'
@@ -113,9 +113,9 @@ module.exports = class
               streams: [
                 {level: 'warn', stream: process.stdout}
               ]
-            csvDelimiter: program.csvDelimiter
+            csvDelimiter: opts.csvDelimiter
 
-          options.host = argv.sphereHost if argv.sphereHost
+          options.host = program.sphereHost if program.sphereHost
 
           if program.verbose
             options.logConfig.streams = [
@@ -178,7 +178,7 @@ module.exports = class
                 {level: 'warn', stream: process.stdout}
               ]
 
-          options.host = argv.sphereHost if argv.sphereHost
+          options.host = program.sphereHost if program.sphereHost
 
           if program.verbose
             options.logConfig.streams = [
@@ -257,7 +257,7 @@ module.exports = class
               {level: 'warn', stream: process.stdout}
             ]
 
-        options.host = argv.sphereHost if argv.sphereHost
+        options.host = program.sphereHost if program.sphereHost
 
         if program.verbose
           options.logConfig.streams = [
@@ -315,7 +315,7 @@ module.exports = class
               {level: 'warn', stream: process.stdout}
             ]
 
-        options.host = argv.sphereHost if argv.sphereHost
+        options.host = program.sphereHost if program.sphereHost
 
         if program.verbose
           options.logConfig.streams = [

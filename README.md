@@ -60,7 +60,7 @@ General command line options can be seen by simply executing the command `node l
     -p, --projectKey <key>       your SPHERE.IO project-key
     -i, --clientId <id>          your OAuth client id for the SPHERE.IO API
     -s, --clientSecret <secret>  your OAuth client secret for the SPHERE.IO API
-    --sphereHost                 SPHERE.IO API host to connecto to
+    --sphereHost <host>          SPHERE.IO API host to connecto to
     --timeout [millis]           Set timeout for requests
     --verbose                    give more feedback during action
     --debug                      give as many feedback as possible
