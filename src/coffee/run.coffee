@@ -94,7 +94,7 @@ module.exports = class
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>'
       .action (opts) ->
         GLOBALS.DEFAULT_LANGUAGE = opts.language
-        GLOBALS.DELIM_MULTI_VALUE = opts.multiValueDelimiter
+        GLOBALS.DELIM_MULTI_VALUE = opts.multiValueDelimiter ? GLOBALS.DELIM_MULTI_VALUE
 
         credentialsConfig = ProjectCredentialsConfig.create()
         .fail (err) ->
