@@ -81,7 +81,7 @@ describe 'Validator', ->
   describe '#buildProducts', ->
     beforeEach ->
 
-    it 'should build 2 products their variants', (done) ->
+    it 'should build 2 products and their variants', (done) ->
       csv =
         """
         productType,name,variantId
@@ -114,7 +114,7 @@ describe 'Validator', ->
         ,,
         """
       @validator.parse csv, (content) =>
-        @validator.buildProducts content
+        @validator.buildProducts content, CONS.HEADER_VARIANT_ID
         expect(@validator.errors.length).toBe 3
         expect(@validator.errors[0]).toBe '[row 3] Could not be identified as product or variant!'
         expect(@validator.errors[1]).toBe '[row 5] Could not be identified as product or variant!'
@@ -128,7 +128,7 @@ describe 'Validator', ->
         foo,,2
         """
       @validator.parse csv, (content) =>
-        @validator.buildProducts content
+        @validator.buildProducts content, CONS.HEADER_VARIANT_ID
         expect(@validator.errors.length).toBe 1
         expect(@validator.errors[0]).toBe '[row 2] We need a product before starting with a variant!'
         done()

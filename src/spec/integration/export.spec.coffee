@@ -58,7 +58,7 @@ describe 'Export', ->
     .fail (err) ->
       expect(_.size err).toBe 2
       expect(err[0]).toBe 'There are duplicate header entries!'
-      expect(err[1]).toBe "Can't find necessary base header 'variantId'!"
+      expect(err[1]).toBe "You need either the column 'variantId' or 'sku' to identify your variants!"
       done()
     .done()
 
