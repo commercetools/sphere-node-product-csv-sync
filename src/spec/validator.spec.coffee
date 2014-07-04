@@ -92,7 +92,7 @@ describe 'Validator', ->
         ,,2
         """
       @validator.parse csv, (content) =>
-        @validator.buildProducts content
+        @validator.buildProducts content, CONS.HEADER_VARIANT_ID
         expect(@validator.errors.length).toBe 0
         expect(@validator.rawProducts.length).toBe 2
         expect(@validator.rawProducts[0].master).toEqual ['foo', 'n1', '1']
