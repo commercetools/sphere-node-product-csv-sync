@@ -9,16 +9,20 @@ SphereClient = require 'sphere-node-client'
 class Import
 
   constructor: (options = {}) ->
+    if options.config #for easier unit testing
+      @sync = new ProductSync options
+      @client = new SphereClient options
+
     @validator = new Validator options
-    @sync = new ProductSync options
     @rest = @validator.rest
     @publishProducts = false
     @continueOnProblems = false
     @allowRemovalOfVariants = false
     @syncSeoAttributes = true
     @dryRun = false
-    @client = new SphereClient options
     @blackListedCustomAttributesForUpdate = []
+
+    @customAttributeNameToMatch = undefined
 
   import: (fileContent) ->
     deferred = Q.defer()
@@ -87,6 +91,7 @@ class Import
   initMatcher: (existingProducts) ->
     @existingProducts = existingProducts
     @id2index = {}
+    @customAttributeValue2index = {}
     @sku2index = {}
     @slug2index = {}
     for product, index in existingProducts
@@ -95,26 +100,54 @@ class Import
         slug = product.slug[GLOBALS.DEFAULT_LANGUAGE]
         @slug2index[slug] = index if slug?
 
-      mSku = @getSku(product.masterVariant)
-      @sku2index[mSku] = index if mSku?
-      for variant in product.variants
-        vSku = @getSku(variant)
-        @sku2index[vSku] = index if vSku?
+      product.variants or= []
+      variants = [product.masterVariant].concat(product.variants)
+
+      _.each variants, (variant) =>
+        sku = @getSku variant
+        @sku2index[sku] = index if sku?
+        @customAttributeValue2index[@getCustomAttributeValue variant] = index if @customAttributeNameToMatch?
+
     #console.log "id2index", @id2index
+    #console.log "customAttributeValue2index", @customAttributeValue2index
     #console.log "sku2index", @sku2index
     #console.log "slug2index", @slug2index
 
   getSku: (variant) ->
     variant.sku
 
+  getCustomAttributeValue: (variant) ->
+    variant.attributes or= []
+    attrib = _.find variant.attributes, (attribute) =>
+      attribute.name is @customAttributeNameToMatch
+    attrib?.value
+
   match: (entry) ->
     product = entry.product
     index = @id2index[product.id] if product.id?
-    unless index
-      index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku?
-      if not index and (entry.header.has(CONS.HEADER_SLUG) or entry.header.hasLanguageForBaseAttribute(CONS.HEADER_SLUG))
-        index = @slug2index[product.slug[GLOBALS.DEFAULT_LANGUAGE]] if product.slug? and product.slug[GLOBALS.DEFAULT_LANGUAGE]?
+    if not index
+      index = @_matchOnCustomAttribute product
+      if not index
+        index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku?
+        if not index and (entry.header.has(CONS.HEADER_SLUG) or entry.header.hasLanguageForBaseAttribute(CONS.HEADER_SLUG))
+          index = @slug2index[product.slug[GLOBALS.DEFAULT_LANGUAGE]] if product.slug? and product.slug[GLOBALS.DEFAULT_LANGUAGE]?
     return @existingProducts[index] if index > -1
+
+
+  _matchOnCustomAttribute: (product) ->
+    attribute = undefined
+    if @customAttributeNameToMatch?
+      product.variants or= []
+      variants = [product.masterVariant].concat(product.variants)
+      _.find variants, (variant) =>
+        variant.attributes or= []
+        attribute = _.find variant.attributes, (attrib) =>
+          console.log "A", attrib
+          attrib.name is @customAttributeNameToMatch
+        attribute?
+
+    if attribute?
+      @customAttributeValue2index[attribute.value]
 
   createOrUpdate: (products, types) =>
     if _.size(products) is 0
