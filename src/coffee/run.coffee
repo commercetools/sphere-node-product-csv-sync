@@ -90,6 +90,7 @@ module.exports = class
       .option '--allowRemovalOfVariants', 'If given variants will be removed if there is no corresponding row in the CSV. Otherwise they are not touched.'
       .option '--ignoreSeoAttributes', 'If true all meta* attrbutes are kept untouched.'
       .option '--publish', 'When given, all changes will be published immediately'
+      .option '--updatesOnly', "Won't create new products, only updates existing"
       .option '--dryRun', 'Will list all action that would be triggered, but will not POST them to SPHERE.IO'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>'
       .action (opts) ->
@@ -133,6 +134,7 @@ module.exports = class
           importer.allowRemovalOfVariants = opts.allowRemovalOfVariants
           importer.syncSeoAttributes = false if opts.ignoreSeoAttributes
           importer.publishProducts = opts.publish
+          importer.updatesOnly = true if opts.updatesOnly
           importer.dryRun = true if opts.dryRun
 
           fs.readFile opts.csv, 'utf8', (err, content) ->

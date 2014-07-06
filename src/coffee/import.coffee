@@ -19,6 +19,7 @@ class Import
     @continueOnProblems = false
     @allowRemovalOfVariants = false
     @syncSeoAttributes = true
+    @updatesOnly = false
     @dryRun = false
     @blackListedCustomAttributesForUpdate = []
 
@@ -241,6 +242,8 @@ class Import
     deferred = Q.defer()
     if @dryRun
       deferred.resolve "[row #{rowIndex}] DRY-RUN - create new product."
+    else if @updatesOnly
+      deferred.resolve "[row #{rowIndex}] UPDATES ONLY - nothing done."
     else
       @client.products.create(product)
       .then (result) =>
