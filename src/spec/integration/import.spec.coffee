@@ -10,7 +10,7 @@ createImporter = ->
   im.allowRemovalOfVariants = true
   im
 
-describe 'Import', ->
+xdescribe 'Import integration test', ->
   beforeEach (done) ->
     @importer = createImporter()
     @client = @importer.client

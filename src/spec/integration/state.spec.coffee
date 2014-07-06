@@ -7,7 +7,7 @@ jasmine.getEnv().defaultTimeoutInterval = 60000
 
 performAllProducts = -> true
 
-describe 'State', ->
+xdescribe 'State integration tests', ->
   beforeEach (done) ->
     @importer = new Import Config
     @client = @importer.client

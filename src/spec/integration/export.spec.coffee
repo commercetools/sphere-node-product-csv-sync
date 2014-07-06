@@ -8,7 +8,7 @@ TestHelpers = require './testhelpers'
 
 jasmine.getEnv().defaultTimeoutInterval = 60000
 
-describe 'Export', ->
+xdescribe 'Export integration tests', ->
   beforeEach (done) ->
     @export = new Export Config
     @client = @export.client

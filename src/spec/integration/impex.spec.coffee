@@ -8,7 +8,7 @@ TestHelpers = require './testhelpers'
 
 jasmine.getEnv().defaultTimeoutInterval = 60000
 
-describe 'Impex', ->
+xdescribe 'Impex integration tests', ->
   beforeEach (done) ->
     @importer = new Import Config
     @exporter = new Export Config
