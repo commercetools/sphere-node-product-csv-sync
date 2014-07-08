@@ -95,6 +95,7 @@ This means that the CSV may contain only those columns that contain changed valu
     --allowRemovalOfVariants                   If given variants will be removed if there is no corresponding row in the CSV. Otherwise they are not touched.
     --ignoreSeoAttributes                      If true all meta* attrbutes are kept untouched.
     --publish                                  When given, all changes will be published immediately
+    --updatesOnly                              Won't create any new products, only updates existing
     --dryRun                                   Will list all action that would be triggered, but will not POST them to SPHERE.IO
 ```
 
@@ -102,16 +103,14 @@ This means that the CSV may contain only those columns that contain changed valu
 
 #### Base attributes
 
-The following 2 attributes are the bare minimum to create products:
-```
-productType,variantId
-```
+To create or update products you need 2 columns.
+You always need the `productType`. Further you need either `variantId` or `sku` to identify the specific variant
 
-You can define the productType via id or name (as long as it is unique).
+You can define the `productType` via id or name (as long as it is unique).
 
 #### Variants
 
-Variants are defined by leaving the `productType` cell empty and defining a `variantId > 1`:
+Variants are defined by leaving the `productType` cell empty:
 ```
 productType,name,variantId,myAttribute
 typeName,myProduct,1,value
@@ -185,10 +184,10 @@ The example above will set the value of the `colors` attribute to `[ 'green', 'r
 To not DRY (don't repeat yourself) when working with attributes that are constrained with `SameForAll`,
 you simply have to define the value for all variants on the masterVariant.
 ```
-productType,variantId,mySameForAllAttribute
-myType,1,thisIsTheValueForAllVariants
-,2,
-,3,thisDifferentValueWillBeIgnored
+productType,sku,mySameForAllAttribute
+myType,123,thisIsTheValueForAllVariants
+,234,
+,345,thisDifferentValueWillBeIgnored
 ```
 
 > Please note, that values for those attributes on the variant rows are completely ignored
