@@ -32,6 +32,7 @@ class Header
     @h2i
 
   has: (name) ->
+    @toIndex() unless @h2i?
     _.has @h2i, name
 
   toLanguageIndex: (name) ->

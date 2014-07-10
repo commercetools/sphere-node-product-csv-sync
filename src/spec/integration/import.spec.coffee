@@ -10,7 +10,7 @@ createImporter = ->
   im.allowRemovalOfVariants = true
   im
 
-xdescribe 'Import integration test', ->
+describe 'Import integration test', ->
   beforeEach (done) ->
     @importer = createImporter()
     @client = @importer.client
@@ -509,7 +509,7 @@ xdescribe 'Import integration test', ->
         done(_.prettify err)
       .done()
 
-    it 'should do a partial update of prices and images', (done) ->
+    it 'partial update should not overwrite name, prices and images', (done) ->
       csv =
         """
         productType,name,slug,variantId,prices,images
@@ -606,6 +606,42 @@ xdescribe 'Import integration test', ->
         expect(p.metaTitle.en).toBe 'a'
         expect(p.metaDescription.en).toBe 'b'
         expect(p.metaKeywords.en).toBe 'c'
+        done()
+      .fail (err) ->
+        done(_.prettify err)
+      .done()
+
+    it 'should do a partial update of prices based on SKUs', (done) ->
+      csv =
+        """
+        productType,name,sku,variantId,prices
+        #{@productType.id},xyz,sku1,1,EUR 999
+        ,,sku2,2,USD 70000
+        """
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        csv =
+          """
+          variantId,sku,prices,productType
+          1,sku1,EUR 1999,#{@productType.name}
+          2,sku2,USD 80000
+          """
+        im = createImporter()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0].masterData.staged
+        expect(p.name.en).toBe 'xyz'
+        expect(p.masterVariant.sku).toBe 'sku1'
+        expect(p.masterVariant.prices[0].value).toEqual { centAmount: 1999, currencyCode: 'EUR' }
+        expect(p.variants[0].sku).toBe 'sku2'
+        expect(p.variants[0].prices[0].value).toEqual { centAmount: 80000, currencyCode: 'USD' }
         done()
       .fail (err) ->
         done(_.prettify err)

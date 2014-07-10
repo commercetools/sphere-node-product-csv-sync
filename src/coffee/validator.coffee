@@ -50,7 +50,7 @@ class Validator
     @header.validate()
     @checkDelimiters()
 
-    variantHeader = CONS.HEADER_VARIANT_ID if @header.toIndex(CONS.HEADER_VARIANT_ID)
+    variantHeader = CONS.HEADER_VARIANT_ID if @header.has(CONS.HEADER_VARIANT_ID)
     @buildProducts csvContent, variantHeader
 
   checkDelimiters: ->
