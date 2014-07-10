@@ -14,9 +14,12 @@ Feature: Import products
     [ '[row 2] Can\'t find product type for \'foo\'' ]
     """
 
-  @wip
   Scenario: Show message when delimiter selection clashes
-    When I run `../../bin/product-csv-sync --projectKey import-101-64 import --csvDelimiter ;`
+    Given a file named "i.csv" with:
+    """
+    productType,variantId
+    """
+    When I run `../../bin/product-csv-sync --projectKey import-101-64 import --csvDelimiter ';' --csv i.csv`
     Then the exit status should be 1
     And the output should contain:
     """
