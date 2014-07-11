@@ -137,18 +137,22 @@ describe 'Validator', ->
       csv =
         """
         productType,sku
-        foo,1
-        foo,2
+        foo,123
+        bar,234
+        ,345
+        ,456
         """
       @validator.parse csv, (content) =>
         @validator.buildProducts content
         expect(@validator.errors.length).toBe 0
         expect(@validator.rawProducts.length).toBe 2
-        expect(@validator.rawProducts[0].master).toEqual ['foo', '1']
+        expect(@validator.rawProducts[0].master).toEqual ['foo', '123']
         expect(@validator.rawProducts[0].variants.length).toBe 0
         expect(@validator.rawProducts[0].startRow).toBe 2
-        expect(@validator.rawProducts[1].master).toEqual ['foo', '2']
-        expect(@validator.rawProducts[1].variants.length).toBe 0
+        expect(@validator.rawProducts[1].master).toEqual ['bar', '234']
+        expect(@validator.rawProducts[1].variants.length).toBe 2
+        expect(@validator.rawProducts[1].variants[0]).toEqual ['', '345']
+        expect(@validator.rawProducts[1].variants[1]).toEqual ['', '456']
         expect(@validator.rawProducts[1].startRow).toBe 3
         done()
 

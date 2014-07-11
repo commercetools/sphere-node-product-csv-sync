@@ -150,7 +150,7 @@ class Validator
       variantId = row[@header.toIndex(CONS.HEADER_VARIANT_ID)]
       parseInt(variantId) > 1
     else
-      false
+      not @isProduct row
 
   isProduct: (row, variantColumn) ->
     hasProductTypeColumn = not _s.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)])
