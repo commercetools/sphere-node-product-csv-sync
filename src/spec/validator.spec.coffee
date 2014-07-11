@@ -133,6 +133,24 @@ describe 'Validator', ->
         expect(@validator.errors[0]).toBe '[row 2] We need a product before starting with a variant!'
         done()
 
+    it 'should build products without variantId', (done) ->
+      csv =
+        """
+        productType,sku
+        foo,1
+        foo,2
+        """
+      @validator.parse csv, (content) =>
+        @validator.buildProducts content
+        expect(@validator.errors.length).toBe 0
+        expect(@validator.rawProducts.length).toBe 2
+        expect(@validator.rawProducts[0].master).toEqual ['foo', '1']
+        expect(@validator.rawProducts[0].variants.length).toBe 0
+        expect(@validator.rawProducts[0].startRow).toBe 2
+        expect(@validator.rawProducts[1].master).toEqual ['foo', '2']
+        expect(@validator.rawProducts[1].variants.length).toBe 0
+        expect(@validator.rawProducts[1].startRow).toBe 3
+        done()
 
   describe '#valProduct', ->
     it 'should return no error', ->
