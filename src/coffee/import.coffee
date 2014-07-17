@@ -42,7 +42,7 @@ class Import
             deferred.reject @validator.map.errors
           else
             console.log "Mapping done. Fetching existing product(s) ..."
-            @client.productProjections.staged().all().fetch()
+            @client.productProjections.staged().sort('id').all().fetch()
             .then (result) =>
               existingProducts = result.body.results
               console.log "Comparing against #{_.size existingProducts} existing product(s) ..."
