@@ -578,6 +578,43 @@ describe 'Import integration test', ->
         done(_.prettify err)
       .done()
 
+    xit 'should do a full update of multi language SEO attribute', (done) ->
+      csv =
+        """
+        productType,variantId,sku,name,metaTitle.de,metaDescription.de,metaKeywords.de,metaTitle.en,metaDescription.en,metaKeywords.en
+        #{@productType.id},1,a111,mySeoProdcut,a,b,c,x,y,z
+        """
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        csv =
+          """
+          productType,variantId,sku,name,metaTitle.de,metaDescription.de,metaKeywords.de,metaTitle.en,metaDescription.en,metaKeywords.en
+          #{@productType.id},1,a111,mySeoProdcut,,b,changed,x,new,
+          """
+        im = createImporter()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0].masterData.staged
+        expect(p.name.en).toBe 'mySeoProdcut'
+        expect(p.metaTitle.de).toBe 'a' # I would actually expect ''
+        expect(p.metaDescription.de).toBe 'b'
+        expect(p.metaKeywords.de).toBe 'changed'
+        expect(p.metaTitle.en).toBe 'x'
+        expect(p.metaDescription.en).toBe 'new'
+        expect(p.metaKeywords.en).toBe 'z' # I would actually expect ''
+        done()
+      .fail (err) ->
+        done(_.prettify err)
+      .done()
+
+
     it 'should not update SEO attribute if not all 3 headers are present', (done) ->
       csv =
         """
