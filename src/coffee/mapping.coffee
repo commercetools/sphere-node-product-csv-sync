@@ -146,21 +146,27 @@ class Mapping
 
   mapValue: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
     switch attribute.type.name
-      when CONS.ATTRIBUTE_TYPE_SET then @mapSetAttribute rawVariant[@header.toIndex attribute.name]
+      when CONS.ATTRIBUTE_TYPE_SET then @mapSetAttribute rawVariant, attribute.name, attribute.type.elementType, languageHeader2Index
       when CONS.ATTRIBUTE_TYPE_LTEXT then @mapLocalizedAttrib rawVariant, attribute.name, languageHeader2Index
       when CONS.ATTRIBUTE_TYPE_NUMBER then @mapNumber rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       else rawVariant[@header.toIndex attribute.name] # works for text, enum and lenum
 
   # TODO: support set of ltext attributes!
-  mapSetAttribute: (raw) ->
-    return unless @isValidValue(raw)
-    rawValues = raw.split GLOBALS.DELIM_MULTI_VALUE
-    values = []
-    for rawValue in rawValues
-      values.push rawValue
-    
-    values
+  mapSetAttribute: (rawVariant, attributeName, elementType, languageHeader2Index) ->
+    switch elementType.name
+      when CONS.ATTRIBUTE_TYPE_LTEXT
+        multiVal = @mapLocalizedAttrib rawVariant, attributeName, languageHeader2Index
+        _.each multiVal, (raw, lang) =>
+          if @isValidValue(raw)
+            rawValues = raw.split GLOBALS.DELIM_MULTI_VALUE
+            multiVal[lang] = _.map rawValues, (rawValue) -> rawValue
+        multiVal
+      else
+        raw = rawVariant[@header.toIndex attribute.name]
+        if @isValidValue(raw)
+          rawValues = raw.split GLOBALS.DELIM_MULTI_VALUE
+          _.map rawValues, (rawValue) -> rawValue
 
   mapPrices: (raw, rowIndex) ->
     prices = []

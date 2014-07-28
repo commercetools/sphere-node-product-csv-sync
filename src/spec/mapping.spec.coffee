@@ -202,6 +202,27 @@ describe 'Mapping', ->
           es: 'hola'
       expect(attribute).toEqual expectedAttribute
 
+    it 'should map set of lext attribute', ->
+      productType =
+        id: 'myType'
+        attributes: [
+          name: 'baz'
+          type:
+            name: 'set'
+            elementType:
+              name: 'ltext'
+        ]
+      @map.header = new Header [ 'foo', 'baz.en', 'baz.de' ]
+      languageHeader2Index = @map.header._productTypeLanguageIndexes productType
+      attribute = @map.mapAttribute [ 'some text', 'foo1;foo2', 'barA;barB;barC' ], productType.attributes[0], languageHeader2Index
+
+      expectedAttribute =
+        name: 'baz'
+        value:
+          en: [ 'foo1', 'foo2' ]
+          de: [ 'barA', 'barB', 'barC' ]
+      expect(attribute).toEqual expectedAttribute
+
   describe '#mapPrices', ->
     it 'should map single simple price', ->
       prices = @map.mapPrices 'EUR 999'
