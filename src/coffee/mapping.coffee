@@ -163,7 +163,7 @@ class Mapping
             multiVal[lang] = _.map rawValues, (rawValue) -> rawValue
         multiVal
       else
-        raw = rawVariant[@header.toIndex attribute.name]
+        raw = rawVariant[@header.toIndex attributeName]
         if @isValidValue(raw)
           rawValues = raw.split GLOBALS.DELIM_MULTI_VALUE
           _.map rawValues, (rawValue) -> rawValue
