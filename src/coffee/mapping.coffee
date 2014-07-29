@@ -152,7 +152,7 @@ class Mapping
       when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       else rawVariant[@header.toIndex attribute.name] # works for text, enum and lenum
 
-  # TODO: support set of ltext attributes!
+  # TODO: support set of money and number attributes!
   mapSetAttribute: (rawVariant, attributeName, elementType, languageHeader2Index) ->
     switch elementType.name
       when CONS.ATTRIBUTE_TYPE_LTEXT
