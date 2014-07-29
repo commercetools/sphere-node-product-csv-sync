@@ -23,7 +23,7 @@ Feature: Import products
     Then the exit status should be 1
     And the output should contain:
     """
-    [ 'Your selected delimiter clash with each other: {"csvDelimiter":";","csvQuote":"\"","language":".","multiValue":";","categoryChildren":">"}' ]
+    [ 'Your selected delimiter clash with each other: {"csvDelimiter":";","csvQuote":"\\"","language":".","multiValue":";","categoryChildren":">"}' ]
     """
 
   @wip
