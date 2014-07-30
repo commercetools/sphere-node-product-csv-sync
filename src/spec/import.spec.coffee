@@ -4,12 +4,27 @@ CONS = require '../lib/constants'
 
 describe 'Import', ->
   beforeEach ->
-    @import = new Import({})
+    @importer = new Import()
 
   describe '#constructor', ->
-    it 'should initialize', ->
-      expect(-> new Import()).toBeDefined()
-      expect(@import).toBeDefined()
+    it 'should initialize without options', ->
+      expect(@importer).toBeDefined()
+      expect(@importer.sync).not.toBeDefined()
+      expect(@importer.client).not.toBeDefined()
+
+    it 'should initialize with options', ->
+      importer = new Import
+        config:
+          project_key: 'foo'
+          client_id: 'id'
+          client_secret: 'secret'
+        logConfig:
+          streams: [
+            {level: 'warn', stream: process.stdout}
+          ]
+      expect(importer).toBeDefined()
+      expect(importer.client).toEqual importer.sync._client
+      expect(importer.client._task._maxParallel).toBe 10
 
   describe 'match on custom attribute', ->
     it 'should find match based on custom attribute', ->
@@ -19,21 +34,21 @@ describe 'Import', ->
           attributes: [
             { name: 'foo', value: 'bar' }
           ]
-      @import.customAttributeNameToMatch = 'foo'
-      
-      val = @import.getCustomAttributeValue(product.masterVariant)
+      @importer.customAttributeNameToMatch = 'foo'
+
+      val = @importer.getCustomAttributeValue(product.masterVariant)
       expect(val).toEqual 'bar'
 
-      @import.initMatcher [product]
-      expect(@import.id2index).toEqual { 123: 0 }
-      expect(@import.sku2index).toEqual {}
-      expect(@import.slug2index).toEqual {}
-      expect(@import.customAttributeValue2index).toEqual { 'bar': 0 }
+      @importer.initMatcher [product]
+      expect(@importer.id2index).toEqual { 123: 0 }
+      expect(@importer.sku2index).toEqual {}
+      expect(@importer.slug2index).toEqual {}
+      expect(@importer.customAttributeValue2index).toEqual { 'bar': 0 }
 
-      index = @import._matchOnCustomAttribute product
+      index = @importer._matchOnCustomAttribute product
       expect(index).toBe 0
-      
-      match = @import.match
+
+      match = @importer.match
         product:
           masterVariant:
             attributes: []

@@ -4,14 +4,14 @@ GLOBALS = require '../lib/globals'
 Validator = require '../lib/validator'
 ProductSync = require('sphere-node-sync').ProductSync
 Q = require 'q'
-SphereClient = require 'sphere-node-client'
 
 class Import
 
   constructor: (options = {}) ->
     if options.config #for easier unit testing
       @sync = new ProductSync options
-      @client = new SphereClient options
+      @client = @sync._client # share client instance to have only one TaskQueue
+      @client.setMaxParallel 10
 
     @validator = new Validator options
     @rest = @validator.rest
