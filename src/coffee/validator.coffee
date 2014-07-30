@@ -63,7 +63,7 @@ class Validator
     }
     delims = _.map allDelimiter, (delim, _) -> delim
     if _.size(delims) isnt _.size(_.uniq(delims))
-      @errors.push "Your selected delimiter clash with each other:\n#{JSON.stringify(allDelimiter)}"
+      @errors.push "Your selected delimiter clash with each other: #{JSON.stringify(allDelimiter)}"
 
   validateOnline: ->
     deferred = Q.defer()

@@ -56,8 +56,7 @@ describe 'Validator', ->
       expect(_.size @validator.errors).toBe 1
       expectedErrorMessage =
         '''
-        Your selected delimiter clash with each other:
-        {"csvDelimiter":";","csvQuote":"\\"","language":".","multiValue":";","categoryChildren":">"}
+        Your selected delimiter clash with each other: {"csvDelimiter":";","csvQuote":"\\"","language":".","multiValue":";","categoryChildren":">"}
         '''
       expect(@validator.errors[0]).toBe expectedErrorMessage
 
