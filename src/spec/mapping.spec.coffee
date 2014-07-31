@@ -218,9 +218,13 @@ describe 'Mapping', ->
 
       expectedAttribute =
         name: 'baz'
-        value:
-          en: [ 'foo1', 'foo2' ]
-          de: [ 'barA', 'barB', 'barC' ]
+        value: [
+          {"en": "foo1"},
+          {"en": "foo2"},
+          {"de": "barA"},
+          {"de": "barB"},
+          {"de": "barC"}
+        ]
       expect(attribute).toEqual expectedAttribute
 
   describe '#mapPrices', ->

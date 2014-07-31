@@ -157,11 +157,15 @@ class Mapping
     switch elementType.name
       when CONS.ATTRIBUTE_TYPE_LTEXT
         multiVal = @mapLocalizedAttrib rawVariant, attributeName, languageHeader2Index
+        value = []
         _.each multiVal, (raw, lang) =>
           if @isValidValue(raw)
             rawValues = raw.split GLOBALS.DELIM_MULTI_VALUE
-            multiVal[lang] = _.map rawValues, (rawValue) -> rawValue
-        multiVal
+            _.map rawValues, (rawValue) ->
+              localized = {}
+              localized[lang] = rawValue
+              value.push localized
+        value
       else
         raw = rawVariant[@header.toIndex attributeName]
         if @isValidValue(raw)
@@ -213,7 +217,7 @@ class Mapping
       @errors.push "[row #{rowIndex}:#{attribName}] Can not parse money '#{rawMoney}'!"
       return
     # TODO: check for correct currencyCode
-    
+
     money =
       currencyCode: matchedMoney[1]
       centAmount: parseInt matchedMoney[2]
@@ -252,7 +256,7 @@ class Mapping
     images = []
     return images unless @hasValidValueForHeader(rawVariant, CONS.HEADER_IMAGES)
     rawImages = rawVariant[@header.toIndex CONS.HEADER_IMAGES].split GLOBALS.DELIM_MULTI_VALUE
-    
+
     for rawImage in rawImages
       image =
         url: rawImage
