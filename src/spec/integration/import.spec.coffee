@@ -43,7 +43,7 @@ describe 'Import integration test', ->
     TestHelpers.setupProductType(@client, @productType)
     .then (result) =>
       @productType = result
-      TestHelpers.setupChannel(@client, 'retailerA', 'InventorySupply')
+      @client.channels.ensure('retailerA', 'InventorySupply')
     .then (result) =>
       done()
     .fail (err) ->
@@ -67,7 +67,6 @@ describe 'Import integration test', ->
       .done()
 
     it 'should import a product with prices', (done) ->
-
       csv =
         """
         productType,name,variantId,slug,prices

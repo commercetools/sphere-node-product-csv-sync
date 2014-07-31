@@ -41,14 +41,3 @@ exports.setupProductType = (client, productType, product) ->
   .done()
 
   deferred.promise
-
-exports.setupChannel = (client, channelKey, channelRole) ->
-  deferred = Q.defer()
-  client.channels.ensure(channelKey, channelRole)
-  .then (result) ->
-    deferred.resolve result
-  .fail (err) ->
-    deferred.reject err
-  .done()
-
-  deferred.promise
