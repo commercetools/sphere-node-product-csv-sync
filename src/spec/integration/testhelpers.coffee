@@ -5,7 +5,7 @@ _ = require 'underscore'
  * You may omit the product in this case it resolves the created product type.
  * Otherwise the created product is resolved.
 ###
-exports.setup = (client, productType, product) ->
+exports.setupProductType = (client, productType, product) ->
   deferred = Q.defer()
   client.products.sort('id').where('masterData(published = "true")').process (payload) ->
     Q.all _.map payload.body.results, (existingProduct) ->
@@ -36,6 +36,17 @@ exports.setup = (client, productType, product) ->
         deferred.resolve result.body
     else
       deferred.resolve result.body
+  .fail (err) ->
+    deferred.reject err
+  .done()
+
+  deferred.promise
+
+exports.setupChannel = (client, channelKey, channelRole) ->
+  deferred = Q.defer()
+  client.channels.ensure(channelKey, channelRole)
+  .then (result) ->
+    deferred.resolve result
   .fail (err) ->
     deferred.reject err
   .done()

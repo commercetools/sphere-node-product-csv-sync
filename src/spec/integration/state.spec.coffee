@@ -20,7 +20,7 @@ describe 'State integration tests', ->
         { name: 'myStateAttrib', label: { name: 'myStateAttrib' }, type: { name: 'text'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
       ]
 
-    TestHelpers.setup(@client, @productType).then (result) =>
+    TestHelpers.setupProductType(@client, @productType).then (result) =>
       @productType = result
       done()
     .fail (err) ->

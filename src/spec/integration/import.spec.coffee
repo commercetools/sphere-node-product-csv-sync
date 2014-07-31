@@ -40,13 +40,15 @@ describe 'Import integration test', ->
         { name: 'multiSamelEnum', label: { de: 'multiSamelEnum' }, type: { name: 'set', elementType: { name: 'lenum', values: lvalues } }, attributeConstraint: 'SameForAll', isRequired: false, isSearchable: false }
       ]
 
-    TestHelpers.setup(@client, @productType).then (result) =>
+    TestHelpers.setupProductType(@client, @productType)
+    .then (result) =>
       @productType = result
+      TestHelpers.setupChannel(@client, 'retailerA', 'InventorySupply')
+    .then (result) =>
       done()
     .fail (err) ->
       done(_.prettify err)
     .done()
-
 
   describe '#import', ->
     it 'should import a simple product', (done) ->
@@ -65,6 +67,7 @@ describe 'Import integration test', ->
       .done()
 
     it 'should import a product with prices', (done) ->
+
       csv =
         """
         productType,name,variantId,slug,prices

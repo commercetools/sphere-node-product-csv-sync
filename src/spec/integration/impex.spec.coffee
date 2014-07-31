@@ -24,7 +24,7 @@ describe 'Impex integration tests', ->
         { name: 'myMultiText', label: { name: 'myMultiText' }, type: { name: 'set', elementType: { name: 'text'} }, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
       ]
 
-    TestHelpers.setup(@client, @productType).then (result) =>
+    TestHelpers.setupProductType(@client, @productType).then (result) =>
       @productType = result
       done()
     .fail (err) ->
