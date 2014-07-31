@@ -9,3 +9,5 @@ coverage
 package
 .sphere-project-credentials
 .sphere/
+
+.project
