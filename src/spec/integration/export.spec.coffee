@@ -40,7 +40,7 @@ describe 'Export integration tests', ->
       slug:
         en: 'foo'
 
-    TestHelpers.setup(@client, @productType, @product).then (result) ->
+    TestHelpers.setupProductType(@client, @productType, @product).then (result) ->
       done()
     .fail (err) ->
       done(_.prettify err)

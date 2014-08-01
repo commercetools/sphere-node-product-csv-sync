@@ -40,13 +40,15 @@ describe 'Import integration test', ->
         { name: 'multiSamelEnum', label: { de: 'multiSamelEnum' }, type: { name: 'set', elementType: { name: 'lenum', values: lvalues } }, attributeConstraint: 'SameForAll', isRequired: false, isSearchable: false }
       ]
 
-    TestHelpers.setup(@client, @productType).then (result) =>
+    TestHelpers.setupProductType(@client, @productType)
+    .then (result) =>
       @productType = result
+      @client.channels.ensure('retailerA', 'InventorySupply')
+    .then (result) =>
       done()
     .fail (err) ->
       done(_.prettify err)
     .done()
-
 
   describe '#import', ->
     it 'should import a simple product', (done) ->
