@@ -219,10 +219,8 @@ describe 'Mapping', ->
       expectedAttribute =
         name: 'baz'
         value: [
-          {"en": "foo1"},
-          {"en": "foo2"},
-          {"de": "barA"},
-          {"de": "barB"},
+          {"en": "foo1", "de": "barA"},
+          {"en": "foo2", "de": "barB"},
           {"de": "barC"}
         ]
       expect(attribute).toEqual expectedAttribute

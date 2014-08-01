@@ -156,15 +156,15 @@ class Mapping
   mapSetAttribute: (rawVariant, attributeName, elementType, languageHeader2Index) ->
     switch elementType.name
       when CONS.ATTRIBUTE_TYPE_LTEXT
-        multiVal = @mapLocalizedAttrib rawVariant, attributeName, languageHeader2Index
+        multiValObj = @mapLocalizedAttrib rawVariant, attributeName, languageHeader2Index
         value = []
-        _.each multiVal, (raw, lang) =>
+        _.each multiValObj, (raw, lang) =>
           if @isValidValue(raw)
-            rawValues = raw.split GLOBALS.DELIM_MULTI_VALUE
-            _.map rawValues, (rawValue) ->
+            languageVals = raw.split GLOBALS.DELIM_MULTI_VALUE
+            _.each languageVals, (v, index) ->
               localized = {}
-              localized[lang] = rawValue
-              value.push localized
+              localized[lang] = v
+              value[index] = _.extend (value[index] or {}), localized
         value
       else
         raw = rawVariant[@header.toIndex attributeName]
