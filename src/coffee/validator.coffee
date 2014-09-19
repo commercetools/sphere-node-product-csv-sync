@@ -15,6 +15,9 @@ SphereClient = require 'sphere-node-client'
 
 class Validator
   constructor: (options = {}) ->
+    # TODO:
+    # - move them to services folder
+    # - can we simplify those?
     @types = new Types()
     @customerGroups = new CustomerGroups()
     @categories = new Categories()
@@ -27,6 +30,9 @@ class Validator
     options.channels = @channels
     options.validator = @
     @map = new Mapping options
+    # TODO:
+    # - pass only correct options, not all classes
+    # - avoid creating a new instance of the client, since it should be created from Import class
     @client = new SphereClient options if options.config
     @rawProducts = []
     @errors = []

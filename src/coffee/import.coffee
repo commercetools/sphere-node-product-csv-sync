@@ -7,6 +7,10 @@ Validator = require '../lib/validator'
 
 class Import
 
+  # TODO:
+  # - better organize subcommands / classes / helpers
+  # - don't save partial results globally, instead pass them around to functions that need them
+
   constructor: (options = {}) ->
     if options.config #for easier unit testing
       @sync = new ProductSync options
@@ -34,7 +38,10 @@ class Import
         else
           products = []
           console.log "Mapping #{_.size rawProducts} product(s) ..."
-          # TODO: process products in batches!!
+          # TODO:
+          # - process products in batches!!
+          # - for each chunk match products -> createOrUpdate
+          # - provide a way to accumulate partial results, or just log them to console
           for rawProduct in @validator.rawProducts
             products.push @validator.map.mapProduct(rawProduct)
           if _.size(@validator.map.errors) isnt 0
