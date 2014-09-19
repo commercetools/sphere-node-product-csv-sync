@@ -178,7 +178,7 @@ describe 'Validator', ->
         """
       @validator.parse csv
       .then (parsed) =>
-        #@validator.valProduct parsed.data
+        @validator.valProduct parsed.data
       .fail (e) -> done(e)
 
   describe '#validateOffline', ->
