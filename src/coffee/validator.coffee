@@ -66,7 +66,6 @@ class Validator
       @errors.push "Your selected delimiter clash with each other: #{JSON.stringify(allDelimiter)}"
 
   validateOnline: ->
-    deferred = Q.defer()
     gets = [
       @types.getAll @client
       @customerGroups.getAll @client
@@ -87,15 +86,11 @@ class Validator
       if _.size(@errors) is 0
         @valProductTypes @productTypes
         if _.size(@errors) is 0
-          deferred.resolve @rawProducts
+          Q @rawProducts
         else
-          deferred.reject @errors
+          Q.reject @errors
       else
-        deferred.reject @errors
-    .fail (err) ->
-      deferred.reject err
-
-    deferred.promise
+        Q.reject @errors
 
 
   # TODO: Allow to define a column that defines the variant relationship.
