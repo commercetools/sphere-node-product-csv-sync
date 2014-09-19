@@ -28,6 +28,20 @@ class Import
 
     @customAttributeNameToMatch = undefined
 
+  # current workflow:
+  # - parse csv
+  # - validate csv
+  # - map all parsed products
+  # - get all existing products
+  # - create/update products based on matches
+  #
+  # ideally workflow:
+  # - stream csv -> chunk
+  # - validate chunk
+  # - map products in chunk
+  # - lookup mapped products in sphere
+  # - create/update products based on matches from result
+  # - next chunk
   import: (fileContent) ->
     @validator.parse fileContent
     .then (parsed) =>
@@ -37,13 +51,13 @@ class Import
         if _.size(@validator.errors) isnt 0
           Q.reject @validator.errors
         else
-          products = []
-          console.log "Mapping #{_.size rawProducts} product(s) ..."
           # TODO:
           # - process products in batches!!
           # - for each chunk match products -> createOrUpdate
           # - provide a way to accumulate partial results, or just log them to console
-          for rawProduct in @validator.rawProducts
+          products = []
+          console.log "Mapping #{_.size rawProducts} product(s) ..."
+          for rawProduct in rawProducts
             products.push @validator.map.mapProduct(rawProduct)
           if _.size(@validator.map.errors) isnt 0
             Q.reject @validator.map.errors
