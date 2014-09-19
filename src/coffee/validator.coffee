@@ -36,6 +36,8 @@ class Validator
       quote: options.csvQuote or '"'
 
   parse: (csvString, callback) ->
+    # TODO: use parser with streaming API
+    # https://github.com/sphereio/sphere-node-product-csv-sync/issues/56
     Csv().from.string(csvString, @csvOptions)
     .to.array (data, count) =>
       @header = new Header(data[0])
@@ -73,10 +75,12 @@ class Validator
       @taxes.getAll @client
       @channels.getAll @client
     ]
+    # TODO: too much parallel?
+    # TODO: is it ok storing everything in memory?
     Q.all(gets)
     .then ([productTypes, customerGroups, categories, taxes, channels]) =>
       @productTypes = productTypes.body.results
-      @types.buildMaps productTypes.body.results
+      @types.buildMaps @productTypes
       @customerGroups.buildMaps customerGroups.body.results
       @categories.buildMaps categories.body.results
       @taxes.buildMaps taxes.body.results

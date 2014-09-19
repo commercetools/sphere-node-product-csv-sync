@@ -1,9 +1,9 @@
+Q = require 'q'
 _ = require 'underscore'
 CONS = require '../lib/constants'
 GLOBALS = require '../lib/globals'
 Validator = require '../lib/validator'
-ProductSync = require('sphere-node-sync').ProductSync
-Q = require 'q'
+{ProductSync} = require 'sphere-node-sync'
 
 class Import
 
@@ -14,7 +14,6 @@ class Import
       @client.setMaxParallel 10
 
     @validator = new Validator options
-    @rest = @validator.rest
     @publishProducts = false
     @continueOnProblems = false
     @allowRemovalOfVariants = false
@@ -26,20 +25,20 @@ class Import
     @customAttributeNameToMatch = undefined
 
   import: (fileContent) ->
-    deferred = Q.defer()
     @validator.parse fileContent, (data, count) =>
       console.log "CSV file with #{count} row(s) loaded."
       @validator.validate(data)
       .then (rawProducts) =>
         if _.size(@validator.errors) isnt 0
-          deferred.reject @validator.errors
+          Q.reject @validator.errors
         else
           products = []
           console.log "Mapping #{_.size rawProducts} product(s) ..."
+          # TODO: process products in batches!!
           for rawProduct in @validator.rawProducts
             products.push @validator.map.mapProduct(rawProduct)
           if _.size(@validator.map.errors) isnt 0
-            deferred.reject @validator.map.errors
+            Q.reject @validator.map.errors
           else
             console.log "Mapping done. Fetching existing product(s) ..."
             @client.productProjections.staged().sort('id').all().fetch()
@@ -48,16 +47,8 @@ class Import
               console.log "Comparing against #{_.size existingProducts} existing product(s) ..."
               @initMatcher existingProducts
               @createOrUpdate(products, @validator.types)
-              .then (result) ->
-                deferred.resolve result
-      .fail (err) ->
-        deferred.reject err
-      .done()
-
-    deferred.promise
 
   changeState: (publish = true, remove = false, filterFunction) ->
-    deferred = Q.defer()
     @publishProducts = true
     @client.productProjections.staged(remove or publish).all().fetch()
     .then (result) =>
@@ -68,7 +59,7 @@ class Import
       console.log "Filtered #{_.size filteredProducts} product(s)."
 
       if _.size(filteredProducts) is 0
-        deferred.resolve 'Nothing to do.'
+        Q 'Nothing to do.'
       else
         posts = _.map filteredProducts, (product) =>
           if remove
@@ -80,13 +71,6 @@ class Import
         action = 'Deleting' if remove
         console.log "#{action} #{_.size posts} product(s) ..."
         Q.all(posts)
-    .then (result) ->
-      deferred.resolve result
-    .fail (err) ->
-      deferred.reject err
-    .done()
-
-    deferred.promise
 
   initMatcher: (existingProducts) ->
     @existingProducts = existingProducts
@@ -149,7 +133,7 @@ class Import
 
   createOrUpdate: (products, types) =>
     if _.size(products) is 0
-      Q.resolve 'Nothing to do.'
+      Q 'Nothing to do.'
     else
       # @initProgressBar 'Importing product(s)', _.size(products)
       posts = []
@@ -169,7 +153,6 @@ class Import
       _.contains @blackListedCustomAttributesForUpdate, attributeName
 
   update: (product, existingProduct, types, header, rowIndex) ->
-    deferred = Q.defer()
     allSameValueAttributes = types.id2SameForAllAttributes[product.productType.id]
     config = [
       { type: 'base', group: 'white' }
@@ -214,61 +197,53 @@ class Import
     if @dryRun
       updates = filtered.get()
       if updates?
-        deferred.resolve "[row #{rowIndex}] DRY-RUN - updates for #{existingProduct.id}:\n#{_.prettify filtered.get()}"
+        Q "[row #{rowIndex}] DRY-RUN - updates for #{existingProduct.id}:\n#{_.prettify filtered.get()}"
       else
-        deferred.resolve "[row #{rowIndex}] DRY-RUN - nothing to update."
+        Q "[row #{rowIndex}] DRY-RUN - nothing to update."
     else
       filtered.update()
       .then (result) =>
         if result.statusCode is 304
-          deferred.resolve "[row #{rowIndex}] Product update not necessary."
+          Q "[row #{rowIndex}] Product update not necessary."
         else
           @publishProduct(result.body, rowIndex).then ->
-            deferred.resolve "[row #{rowIndex}] Product updated."
+            Q "[row #{rowIndex}] Product updated."
       .fail (err) =>
         if err.statusCode is 400
           msg = "[row #{rowIndex}] Problem on updating product:\n#{_.prettify err}"
           if @continueOnProblems
-            deferred.resolve "#{msg} - ignored!"
+            Q "#{msg} - ignored!"
           else
-            deferred.reject msg
+            Q.reject msg
         else
-          deferred.reject "[row #{rowIndex}] Error on updating product:\n#{_.prettify err}"
-      .done()
-
-    deferred.promise
+          Q.reject "[row #{rowIndex}] Error on updating product:\n#{_.prettify err}"
 
   create: (product, rowIndex) ->
-    deferred = Q.defer()
     if @dryRun
-      deferred.resolve "[row #{rowIndex}] DRY-RUN - create new product."
+      Q "[row #{rowIndex}] DRY-RUN - create new product."
     else if @updatesOnly
-      deferred.resolve "[row #{rowIndex}] UPDATES ONLY - nothing done."
+      Q "[row #{rowIndex}] UPDATES ONLY - nothing done."
     else
       @client.products.create(product)
       .then (result) =>
         @publishProduct(result.body, rowIndex).then ->
-          deferred.resolve "[row #{rowIndex}] New product created."
+          Q "[row #{rowIndex}] New product created."
       .fail (err) =>
         if err.statusCode is 400
           msg = "[row #{rowIndex}] Problem on creating new product:\n#{_.prettify err}"
           if @continueOnProblems
-            deferred.resolve "#{msg} - ignored!"
+            Q "#{msg} - ignored!"
           else
-            deferred.reject msg
+            Q.reject msg
         else
-          deferred.reject "[row #{rowIndex}] Error on creating new product:\n#{_.prettify err}"
-      .done()
-
-    deferred.promise
+          Q.reject "[row #{rowIndex}] Error on creating new product:\n#{_.prettify err}"
 
   publishProduct: (product, rowIndex, publish = true) ->
-    deferred = Q.defer()
     action = if publish then 'publish' else 'unpublish'
     if not @publishProducts
-      deferred.resolve "Do not #{action}."
+      Q "Do not #{action}."
     else if publish and product.published and not product.hasStagedChanges
-      deferred.resolve "[row #{rowIndex}] Product is already published - no staged changes."
+      Q "[row #{rowIndex}] Product is already published - no staged changes."
     else
       data =
         id: product.id
@@ -278,29 +253,21 @@ class Import
         ]
       @client.products.byId(product.id).update(data)
       .then (result) ->
-        deferred.resolve "[row #{rowIndex}] Product #{action}ed."
+        Q "[row #{rowIndex}] Product #{action}ed."
       .fail (err) =>
         if err.statusCode is 400
           if @continueOnProblems
-            deferred.resolve "[row #{rowIndex}] Product is already #{action}ed."
+            Q "[row #{rowIndex}] Product is already #{action}ed."
           else
-            deferred.reject "[row #{rowIndex}] Problem on #{action}ing product:\n#{_.prettify err}"
+            Q.reject "[row #{rowIndex}] Problem on #{action}ing product:\n#{_.prettify err}"
         else
-          deferred.reject "[row #{rowIndex}] Error on #{action}ing product:\n#{_.prettify err}"
-      .done()
-
-    deferred.promise
+          Q.reject "[row #{rowIndex}] Error on #{action}ing product:\n#{_.prettify err}"
 
   deleteProduct: (product, rowIndex) ->
-    deferred = Q.defer()
     @client.products.byId(product.id).delete(product.version)
     .then ->
-      deferred.resolve "[row #{rowIndex}] Product deleted."
+      Q "[row #{rowIndex}] Product deleted."
     .fail (err) ->
-      deferred.reject "[row #{rowIndex}] Error on deleting product:\n#{_.prettify err}"
-    .done()
-
-    deferred.promise
-
+      Q.reject "[row #{rowIndex}] Error on deleting product:\n#{_.prettify err}"
 
 module.exports = Import
