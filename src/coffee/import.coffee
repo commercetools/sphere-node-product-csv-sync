@@ -29,9 +29,10 @@ class Import
     @customAttributeNameToMatch = undefined
 
   import: (fileContent) ->
-    @validator.parse fileContent, (data, count) =>
-      console.log "CSV file with #{count} row(s) loaded."
-      @validator.validate(data)
+    @validator.parse fileContent
+    .then (parsed) =>
+      console.log "CSV file with #{parsed.count} row(s) loaded."
+      @validator.validate(parsed.data)
       .then (rawProducts) =>
         if _.size(@validator.errors) isnt 0
           Q.reject @validator.errors
