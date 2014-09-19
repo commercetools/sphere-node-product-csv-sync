@@ -179,6 +179,7 @@ describe 'Validator', ->
       @validator.parse csv
       .then (parsed) =>
         @validator.valProduct parsed.data
+        done()
       .fail (e) -> done(e)
 
   describe '#validateOffline', ->
@@ -192,4 +193,5 @@ describe 'Validator', ->
       .then (parsed) =>
         @validator.validateOffline parsed.data
         expect(@validator.errors).toEqual []
+        done()
       .fail (e) -> done(e)
