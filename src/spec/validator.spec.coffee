@@ -121,7 +121,7 @@ describe 'Validator', ->
         ,,
         """
       @validator.parse csv
-      .then (content) =>
+      .then (parsed) =>
         @validator.buildProducts parsed.data, CONS.HEADER_VARIANT_ID
         expect(@validator.errors.length).toBe 3
         expect(@validator.errors[0]).toBe '[row 3] Could not be identified as product or variant!'
@@ -154,7 +154,7 @@ describe 'Validator', ->
         ,456
         """
       @validator.parse csv
-      .then (content) =>
+      .then (parsed) =>
         @validator.buildProducts parsed.data
         expect(@validator.errors.length).toBe 0
         expect(@validator.rawProducts.length).toBe 2
