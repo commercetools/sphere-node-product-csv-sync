@@ -1,23 +1,26 @@
-Q = require 'q'
 _ = require 'underscore'
-CONS = require '../lib/constants'
-GLOBALS = require '../lib/globals'
-Validator = require '../lib/validator'
-{ProductSync} = require 'sphere-node-sync'
+Promise = require 'bluebird'
+{SphereClient, ProductSync, Errors} = require 'sphere-node-sdk'
+CONS = require './constants'
+GLOBALS = require './globals'
+Validator = require './validator'
 
 class Import
 
   # TODO:
   # - better organize subcommands / classes / helpers
   # - don't save partial results globally, instead pass them around to functions that need them
+  # - JSDoc
 
   constructor: (options = {}) ->
     if options.config #for easier unit testing
-      @sync = new ProductSync options
-      @client = @sync._client # share client instance to have only one TaskQueue
+      @client = new SphereClient options
       @client.setMaxParallel 10
+      @sync = new ProductSync
 
     @validator = new Validator options
+
+    # TODO: define globale options variable object
     @publishProducts = false
     @continueOnProblems = false
     @allowRemovalOfVariants = false
@@ -25,7 +28,6 @@ class Import
     @updatesOnly = false
     @dryRun = false
     @blackListedCustomAttributesForUpdate = []
-
     @customAttributeNameToMatch = undefined
 
   # current workflow:
@@ -49,7 +51,7 @@ class Import
       @validator.validate(parsed.data)
       .then (rawProducts) =>
         if _.size(@validator.errors) isnt 0
-          Q.reject @validator.errors
+          Promise.reject @validator.errors
         else
           # TODO:
           # - process products in batches!!
@@ -72,8 +74,8 @@ class Import
 
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true
-    @client.productProjections.staged(remove or publish).all().fetch()
-    .then (result) =>
+
+    @client.productProjections.staged(remove or publish).perPage(10).process (result) =>
       existingProducts = result.body.results
 
       console.log "Found #{_.size existingProducts} product(s) ..."
@@ -81,7 +83,8 @@ class Import
       console.log "Filtered #{_.size filteredProducts} product(s)."
 
       if _.size(filteredProducts) is 0
-        Q 'Nothing to do.'
+        # Q 'Nothing to do.'
+        Promise.resolve()
       else
         posts = _.map filteredProducts, (product) =>
           if remove
@@ -92,7 +95,9 @@ class Import
         action = if publish then 'Publishing' else 'Unpublishing'
         action = 'Deleting' if remove
         console.log "#{action} #{_.size posts} product(s) ..."
-        Q.all(posts)
+        Promise.all(posts)
+    , {accumulate: false}
+
 
   initMatcher: (existingProducts) ->
     @existingProducts = existingProducts
@@ -153,20 +158,13 @@ class Import
     if attribute?
       @customAttributeValue2index[attribute.value]
 
-  createOrUpdate: (products, types) =>
-    if _.size(products) is 0
-      Q 'Nothing to do.'
-    else
-      # @initProgressBar 'Importing product(s)', _.size(products)
-      posts = []
-      for entry in products
-        existingProduct = @match(entry)
-        if existingProduct?
-          posts.push @update(entry.product, existingProduct, types, entry.header, entry.rowIndex)
-        else
-          posts.push @create(entry.product, entry.rowIndex)
-
-      Q.all posts
+  createOrUpdate: (products, types) ->
+    Promise.all _.map products, (product) ->
+      existingProduct = @match(entry)
+      if existingProduct?
+        @update(entry.product, existingProduct, types, entry.header, entry.rowIndex)
+      else
+        @create(entry.product, entry.rowIndex)
 
   _isBlackListedForUpdate: (attributeName) ->
     if _.isEmpty @blackListedCustomAttributesForUpdate
@@ -192,10 +190,9 @@ class Import
     else
       config.push { type: 'images', group: 'black' }
 
-    diff = @sync.config(config).buildActions(product, existingProduct, allSameValueAttributes)
-
-    #console.log "DIFF %j", diff.get()
-    filtered = diff.filterActions (action) =>
+    filtered = @sync.config(config)
+    .buildActions(product, existingProduct, allSameValueAttributes)
+    .filterActions (action) =>
       #console.log "ACTION", action
       switch action.action
         when 'setAttribute', 'setAttributeInAllVariants'
@@ -217,55 +214,52 @@ class Import
         else throw Error "The action '#{action.action}' is not supported. Please contact the SPHERE.IO team!"
 
     if @dryRun
-      updates = filtered.get()
-      if updates?
-        Q "[row #{rowIndex}] DRY-RUN - updates for #{existingProduct.id}:\n#{_.prettify filtered.get()}"
+      if filtered.shouldUpdate()
+        Promise.resolve "[row #{rowIndex}] DRY-RUN - updates for #{existingProduct.id}:\n#{_.prettify filtered.getUpdatePayload()}"
       else
-        Q "[row #{rowIndex}] DRY-RUN - nothing to update."
+        Promise.resolve "[row #{rowIndex}] DRY-RUN - nothing to update."
     else
-      filtered.update()
+      @client.products.byId(filtered.getUpdateId()).update(filtered.getUpdatePayload())
       .then (result) =>
         if result.statusCode is 304
-          Q "[row #{rowIndex}] Product update not necessary."
+          Promise.resolve "[row #{rowIndex}] Product update not necessary."
         else
-          @publishProduct(result.body, rowIndex).then ->
-            Q "[row #{rowIndex}] Product updated."
-      .fail (err) =>
-        if err.statusCode is 400
-          msg = "[row #{rowIndex}] Problem on updating product:\n#{_.prettify err}"
-          if @continueOnProblems
-            Q "#{msg} - ignored!"
-          else
-            Q.reject msg
+          @publishProduct(result.body, rowIndex)
+          .then -> Promise.resolve "[row #{rowIndex}] Product updated."
+      .catch Errors.BadRequest, (err) =>
+        msg = "[row #{rowIndex}] Problem on updating product:\n#{_.prettify err}"
+        if @continueOnProblems
+          Promise.resolve "#{msg} - ignored!"
         else
-          Q.reject "[row #{rowIndex}] Error on updating product:\n#{_.prettify err}"
+          Promise.reject msg
+      .catch (err) ->
+        Promise.reject "[row #{rowIndex}] Error on updating product:\n#{_.prettify err}"
 
   create: (product, rowIndex) ->
     if @dryRun
-      Q "[row #{rowIndex}] DRY-RUN - create new product."
+      Promise.resolve "[row #{rowIndex}] DRY-RUN - create new product."
     else if @updatesOnly
-      Q "[row #{rowIndex}] UPDATES ONLY - nothing done."
+      Promise.resolve "[row #{rowIndex}] UPDATES ONLY - nothing done."
     else
       @client.products.create(product)
       .then (result) =>
-        @publishProduct(result.body, rowIndex).then ->
-          Q "[row #{rowIndex}] New product created."
-      .fail (err) =>
-        if err.statusCode is 400
-          msg = "[row #{rowIndex}] Problem on creating new product:\n#{_.prettify err}"
-          if @continueOnProblems
-            Q "#{msg} - ignored!"
-          else
-            Q.reject msg
+        @publishProduct(result.body, rowIndex)
+        .then -> Promise.resolve "[row #{rowIndex}] New product created."
+      .catch Errors.BadRequest (err) =>
+        msg = "[row #{rowIndex}] Problem on creating new product:\n#{_.prettify err}"
+        if @continueOnProblems
+          Promise.resolve "#{msg} - ignored!"
         else
-          Q.reject "[row #{rowIndex}] Error on creating new product:\n#{_.prettify err}"
+          Promise.reject msg
+      .catch (err) ->
+        Promise.reject "[row #{rowIndex}] Error on creating new product:\n#{_.prettify err}"
 
   publishProduct: (product, rowIndex, publish = true) ->
     action = if publish then 'publish' else 'unpublish'
     if not @publishProducts
-      Q "Do not #{action}."
+      Promise.resolve "Do not #{action}."
     else if publish and product.published and not product.hasStagedChanges
-      Q "[row #{rowIndex}] Product is already published - no staged changes."
+      Promise.resolve "[row #{rowIndex}] Product is already published - no staged changes."
     else
       data =
         id: product.id
@@ -275,21 +269,20 @@ class Import
         ]
       @client.products.byId(product.id).update(data)
       .then (result) ->
-        Q "[row #{rowIndex}] Product #{action}ed."
-      .fail (err) =>
-        if err.statusCode is 400
-          if @continueOnProblems
-            Q "[row #{rowIndex}] Product is already #{action}ed."
-          else
-            Q.reject "[row #{rowIndex}] Problem on #{action}ing product:\n#{_.prettify err}"
+        Promise.resolve "[row #{rowIndex}] Product #{action}ed."
+      .catch Errors.BadRequest, (err) =>
+        if @continueOnProblems
+          Promise.resolve "[row #{rowIndex}] Product is already #{action}ed."
         else
-          Q.reject "[row #{rowIndex}] Error on #{action}ing product:\n#{_.prettify err}"
+          Promise.reject "[row #{rowIndex}] Problem on #{action}ing product:\n#{_.prettify err}"
+      .catch (err) ->
+        Promise.resolve "[row #{rowIndex}] Error on #{action}ing product:\n#{_.prettify err}"
 
   deleteProduct: (product, rowIndex) ->
     @client.products.byId(product.id).delete(product.version)
     .then ->
-      Q "[row #{rowIndex}] Product deleted."
-    .fail (err) ->
-      Q.reject "[row #{rowIndex}] Error on deleting product:\n#{_.prettify err}"
+      Promise.resolve "[row #{rowIndex}] Product deleted."
+    .catch (err) ->
+      Promise.reject "[row #{rowIndex}] Error on deleting product:\n#{_.prettify err}"
 
 module.exports = Import

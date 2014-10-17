@@ -1,46 +1,47 @@
-Importer = require '../lib/import'
-Exporter = require '../lib/export'
-package_json = require '../package.json'
-CONS = require '../lib/constants'
-GLOBALS = require '../lib/globals'
-fs = require 'fs'
-Q = require 'q'
+_ = require 'underscore'
 program = require 'commander'
 prompt = require 'prompt'
-{ProjectCredentialsConfig} = require 'sphere-node-utils'
 Csv = require 'csv'
-_ = require('underscore')._
+Promise = require 'bluebird'
+fs = Promise.promisify require('fs')
+{ProjectCredentialsConfig} = require 'sphere-node-utils'
+Importer = require './import'
+Exporter = require './export'
+CONS = require './constants'
+GLOBALS = require './globals'
+package_json = require '../package.json'
 
 module.exports = class
 
   @_list: (val) -> _.map val.split(','), (v) -> v.trim()
 
   @_getFilterFunction: (opts) ->
-    deferred = Q.defer()
-    if opts.csv
-      fs.readFile opts.csv, 'utf8', (err, content) ->
-        if err
-          console.error "Problems on reading identity file '#{opts.csv}': #{err}"
-          process.exit 2
-        Csv().from.string(content).to.array (data, count) ->
-          identHeader = data[0][0]
-          if identHeader is CONS.HEADER_ID
-            productIds = _.flatten _.rest data
-            f = (product) ->
-              _.contains productIds, product.id
-            deferred.resolve f
-          else if identHeader is CONS.HEADER_SKU
-            skus = _.flatten _.rest data
-            f = (product) ->
-              product.variants or= []
-              variants = [product.masterVariant].concat(product.variants)
-              v = _.find variants, (variant) ->
-                _.contains skus, variant.sku
-              v?
-            deferred.resolve f
-          else
-            deferred.reject "CSV does not fit! You only need one column - either '#{CONS.HEADER_ID}' or '#{CONS.HEADER_SKU}'."
-
+    new Promise (resolve, reject) ->
+      if opts.csv
+        fs.readFileAsync opts.csv, 'utf8'
+        .then (content) ->
+          if err
+            # TODO: use reject
+            console.error "Problems on reading identity file '#{opts.csv}': #{err}"
+            process.exit 2
+          Csv().from.string(content)
+          .to.array (data, count) ->
+            identHeader = data[0][0]
+            if identHeader is CONS.HEADER_ID
+              productIds = _.flatten _.rest data
+              f = (product) -> _.contains productIds, product.id
+              resolve f
+            else if identHeader is CONS.HEADER_SKU
+              skus = _.flatten _.rest data
+              f = (product) ->
+                product.variants or= []
+                variants = [product.masterVariant].concat(product.variants)
+                v = _.find variants, (variant) ->
+                  _.contains skus, variant.sku
+                v?
+              resolve f
+            else
+              reject "CSV does not fit! You only need one column - either '#{CONS.HEADER_ID}' or '#{CONS.HEADER_SKU}'."
 #        TODO: you may define a custom attribute to filter on
 #        customAttributeName = ''
 #        customAttributeType = ''
@@ -58,13 +59,12 @@ module.exports = class
 #                else attribute.value
 #              _.contains customAttributeValues, value
 
-    else
-      f = (product) -> true
-      deferred.resolve f
-
-    deferred.promise
+      else
+        f = (product) -> true
+        resolve f
 
   @run: (argv) ->
+
     program
       .version package_json.version
       .usage '[globals] [sub-command] [options]'
@@ -98,9 +98,6 @@ module.exports = class
         GLOBALS.DELIM_MULTI_VALUE = opts.multiValueDelimiter ? GLOBALS.DELIM_MULTI_VALUE
 
         credentialsConfig = ProjectCredentialsConfig.create()
-        .fail (err) ->
-          console.error "Problems on getting client credentials from config files: #{err}"
-          process.exit 2
         .then (credentials) ->
           options =
             config: credentials.enrichCredentials
@@ -110,22 +107,22 @@ module.exports = class
             timeout: program.timeout
             show_progress: true
             user_agent: "#{package_json.name} - Import - #{package_json.version}"
-            logConfig:
-              streams: [
-                {level: 'warn', stream: process.stdout}
-              ]
+            # logConfig:
+            #   streams: [
+            #     {level: 'warn', stream: process.stdout}
+            #   ]
             csvDelimiter: opts.csvDelimiter
 
           options.host = program.sphereHost if program.sphereHost
 
-          if program.verbose
-            options.logConfig.streams = [
-              {level: 'info', stream: process.stdout}
-            ]
-          if program.debug
-            options.logConfig.streams = [
-              {level: 'debug', stream: process.stdout}
-            ]
+          # if program.verbose
+          #   options.logConfig.streams = [
+          #     {level: 'info', stream: process.stdout}
+          #   ]
+          # if program.debug
+          #   options.logConfig.streams = [
+          #     {level: 'debug', stream: process.stdout}
+          #   ]
 
           importer = new Importer options
           importer.blackListedCustomAttributesForUpdate = opts.customAttributesForCreationOnly or []
@@ -137,19 +134,21 @@ module.exports = class
           importer.updatesOnly = true if opts.updatesOnly
           importer.dryRun = true if opts.dryRun
 
-          fs.readFile opts.csv, 'utf8', (err, content) ->
-            if err
-              console.error "Problems on reading file '#{opts.csv}': #{err}"
-              process.exit 2
-            else
-              importer.import(content)
-              .then (result) ->
-                console.log result
-                process.exit 0
-              .fail (err) ->
-                console.error err
-                process.exit 1
-              .done()
+          fs.readFileAsync opts.csv, 'utf8'
+          .then (content) ->
+            importer.import(content)
+            .then (result) ->
+              console.log result
+              process.exit 0
+            .catch (err) ->
+              console.error err
+              process.exit 1
+          .catch (err) ->
+            console.error "Problems on reading file '#{opts.csv}': #{err}"
+            process.exit 2
+        .catch (err) ->
+          console.error "Problems on getting client credentials from config files: #{err}"
+          process.exit 2
         .done()
 
 
@@ -163,9 +162,6 @@ module.exports = class
       .action (opts) =>
 
         credentialsConfig = ProjectCredentialsConfig.create()
-        .fail (err) ->
-          console.error "Problems on getting client credentials from config files: #{err}"
-          process.exit 2
         .then (credentials) =>
           options =
             config: credentials.enrichCredentials
@@ -175,21 +171,21 @@ module.exports = class
             timeout: program.timeout
             show_progress: true
             user_agent: "#{package_json.name} - State - #{package_json.version}"
-            logConfig:
-              streams: [
-                {level: 'warn', stream: process.stdout}
-              ]
+            # logConfig:
+            #   streams: [
+            #     {level: 'warn', stream: process.stdout}
+            #   ]
 
           options.host = program.sphereHost if program.sphereHost
 
-          if program.verbose
-            options.logConfig.streams = [
-              {level: 'info', stream: process.stdout}
-            ]
-          if program.debug
-            options.logConfig.streams = [
-              {level: 'debug', stream: process.stdout}
-            ]
+          # if program.verbose
+          #   options.logConfig.streams = [
+          #     {level: 'info', stream: process.stdout}
+          #   ]
+          # if program.debug
+          #   options.logConfig.streams = [
+          #     {level: 'debug', stream: process.stdout}
+          #   ]
 
           remove = opts.changeTo is 'delete'
           publish = switch opts.changeTo
@@ -208,7 +204,7 @@ module.exports = class
             .then (result) ->
               console.log result
               process.exit 0
-            .fail (err) ->
+            .catch (err) ->
               console.error err
               process.exit 1
             .done()
@@ -230,6 +226,9 @@ module.exports = class
                 process.exit 9
           else
             run options
+        .catch (err) ->
+          console.error "Problems on getting client credentials from config files: #{err}"
+          process.exit 2
         .done()
 
 
@@ -254,21 +253,21 @@ module.exports = class
           show_progress: true
           user_agent: "#{package_json.name} - Export - #{package_json.version}"
           queryString: opts.queryString
-          logConfig:
-            streams: [
-              {level: 'warn', stream: process.stdout}
-            ]
+          # logConfig:
+          #   streams: [
+          #     {level: 'warn', stream: process.stdout}
+          #   ]
 
         options.host = program.sphereHost if program.sphereHost
 
-        if program.verbose
-          options.logConfig.streams = [
-            {level: 'info', stream: process.stdout}
-          ]
-        if program.debug
-          options.logConfig.streams = [
-            {level: 'debug', stream: process.stdout}
-          ]
+        # if program.verbose
+        #   options.logConfig.streams = [
+        #     {level: 'info', stream: process.stdout}
+        #   ]
+        # if program.debug
+        #   options.logConfig.streams = [
+        #     {level: 'debug', stream: process.stdout}
+        #   ]
 
         exporter = new Exporter options
         if opts.json
@@ -276,24 +275,24 @@ module.exports = class
           .then (result) ->
             console.log result
             process.exit 0
-          .fail (err) ->
+          .catch (err) ->
             console.error err
             process.exit 1
           .done()
         else
-          fs.readFile opts.template, 'utf8', (err, content) ->
-            if err
-              console.error "Problems on reading template file '#{opts.template}': #{err}"
-              process.exit 2
-            else
+          fs.readFileAsync opts.template, 'utf8'
+          .then (content) ->
             exporter.export(content, opts.out)
             .then (result) ->
               console.log result
               process.exit 0
-            .fail (err) ->
+            .catch (err) ->
               console.error err
               process.exit 1
-            .done()
+          .catch (err) ->
+            console.error "Problems on reading template file '#{opts.template}': #{err}"
+            process.exit 2
+          .done()
 
 
     program
@@ -312,28 +311,28 @@ module.exports = class
           timeout: program.timeout
           show_progress: true
           user_agent: "#{package_json.name} - Template - #{package_json.version}"
-          logConfig:
-            streams: [
-              {level: 'warn', stream: process.stdout}
-            ]
+          # logConfig:
+          #   streams: [
+          #     {level: 'warn', stream: process.stdout}
+          #   ]
 
         options.host = program.sphereHost if program.sphereHost
 
-        if program.verbose
-          options.logConfig.streams = [
-            {level: 'info', stream: process.stdout}
-          ]
-        if program.debug
-          options.logConfig.streams = [
-            {level: 'debug', stream: process.stdout}
-          ]
+        # if program.verbose
+        #   options.logConfig.streams = [
+        #     {level: 'info', stream: process.stdout}
+        #   ]
+        # if program.debug
+        #   options.logConfig.streams = [
+        #     {level: 'debug', stream: process.stdout}
+        #   ]
 
         exporter = new Exporter options
         exporter.createTemplate(opts.languages, opts.out, opts.all)
         .then (result) ->
           console.log result
           process.exit 0
-        .fail (err) ->
+        .catch (err) ->
           console.error err
           process.exit 1
         .done()
