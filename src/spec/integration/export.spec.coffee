@@ -1,14 +1,13 @@
-fs = require 'fs'
-Q = require 'q'
 _ = require 'underscore'
-_.mixin require('sphere-node-utils')._u
-Export = require '../../lib/export'
+_.mixin require('underscore-mixins')
+Promise = require 'bluebird'
+fs = Promise.promisifyAll require('fs')
 Config = require '../../config'
 TestHelpers = require './testhelpers'
-
-jasmine.getEnv().defaultTimeoutInterval = 60000
+{Export} = require '../../main'
 
 describe 'Export integration tests', ->
+
   beforeEach (done) ->
     @export = new Export Config
     @client = @export.client
@@ -40,11 +39,11 @@ describe 'Export integration tests', ->
       slug:
         en: 'foo'
 
-    TestHelpers.setupProductType(@client, @productType, @product).then (result) ->
-      done()
-    .fail (err) ->
-      done(_.prettify err)
+    TestHelpers.setupProductType(@client, @productType, @product)
+    .then -> done()
+    .catch (err) -> done _.prettify(err)
     .done()
+  , 30000 # 30sec
 
 
   it 'should inform about a bad header in the template', (done) ->
@@ -61,6 +60,7 @@ describe 'Export integration tests', ->
       expect(err[1]).toBe "You need either the column 'variantId' or 'sku' to identify your variants!"
       done()
     .done()
+  , 20000 # 20sec
 
   it 'should inform that there are no products', (done) ->
     template =
@@ -95,3 +95,4 @@ describe 'Export integration tests', ->
     .fail (err) ->
       done(_.prettify err)
     .done()
+  , 20000 # 20sec

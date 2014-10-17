@@ -1,8 +1,6 @@
-_ = require('underscore')._
-Mapping = require('../main').Mapping
-Validator = require('../main').Validator
-Header = require '../lib/header'
+_ = require 'underscore'
 CONS = require '../lib/constants'
+{Header, Mapping, Validator} = require '../main'
 
 describe 'Mapping', ->
   beforeEach ->

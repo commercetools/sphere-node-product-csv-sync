@@ -1,6 +1,6 @@
-_ = require('underscore')._
-Import = require('../main').Import
+_ = require 'underscore'
 CONS = require '../lib/constants'
+{Import} = require '../main'
 
 describe 'Import', ->
   beforeEach ->

@@ -1,7 +1,6 @@
-_ = require('underscore')._
-Header = require '../lib/header'
-Validator = require '../lib/validator'
+_ = require 'underscore'
 CONS = require '../lib/constants'
+{Header, Validator} = require '../main'
 
 describe 'Header', ->
   beforeEach ->
