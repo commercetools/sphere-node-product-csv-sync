@@ -44,7 +44,7 @@
     "sphere-node-sdk": "1.0.0-rc3",
     "sphere-node-utils": "0.5.2",
     "optimist": "0.6.1",
-    "prompt": "0.2.12",
+    "prompt": "0.2.14",
     "underscore": "1.7.0",
     "underscore.string": "2.3.3",
     "underscore-mixins": "*"

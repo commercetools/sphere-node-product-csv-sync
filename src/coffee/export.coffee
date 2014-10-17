@@ -1,8 +1,8 @@
 _ = require 'underscore'
+Csv = require 'csv'
 Promise = require 'bluebird'
 fs = Promise.promisifyAll require('fs')
-Csv = require 'csv'
-prompt = require 'prompt'
+prompt = Promise.promisifyAll require('prompt')
 {SphereClient} = require 'sphere-node-sdk'
 Types = require './types'
 Categories = require './categories'
@@ -120,7 +120,8 @@ class Export
             message: 'Enter the number of the producttype.'
             validator: /\d+/
             warning: 'Please enter a valid number'
-          prompt.get property, (err, result) =>
+          prompt.getAsync property
+          .then (result) =>
             productType = productTypes[parseInt(result.number)]
             if productType
               console.log "Generating template for product type '#{productType.name}' (id: #{productType.id})."
