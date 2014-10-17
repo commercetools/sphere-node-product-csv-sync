@@ -1,9 +1,14 @@
-_ = require('underscore')._
-_s = require 'underscore.string'
-CONS = require '../lib/constants'
-GLOBALS = require '../lib/globals'
+_ = require 'underscore'
+_.mixin require('underscore.string').exports()
+CONS = require './constants'
+GLOBALS = require './globals'
 
+# TODO:
+# - JSDoc
+# - no services!!!
+# - utils only
 class Mapping
+
   constructor: (options = {}) ->
     @types = options.types
     @customerGroups = options.customerGroups

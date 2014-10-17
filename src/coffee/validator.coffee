@@ -1,19 +1,20 @@
-_ = require('underscore')._
-_s = require 'underscore.string'
+_ = require 'underscore'
+_.mixin require('underscore.string').exports()
+Promise = require 'bluebird'
 Csv = require 'csv'
-CONS = require '../lib/constants'
-GLOBALS = require '../lib/globals'
-Types = require '../lib/types'
-Categories = require '../lib/categories'
-CustomerGroups = require '../lib/customergroups'
-Taxes = require '../lib/taxes'
-Channels = require '../lib/channels'
-Mapping = require '../lib/mapping'
-Header = require '../lib/header'
-Q = require 'q'
-SphereClient = require 'sphere-node-client'
+{SphereClient} = require 'sphere-node-sdk'
+CONS = require './constants'
+GLOBALS = require './globals'
+Types = require './types'
+Categories = require './categories'
+CustomerGroups = require './customergroups'
+Taxes = require './taxes'
+Channels = require './channels'
+Mapping = require './mapping'
+Header = require './header'
 
 class Validator
+
   constructor: (options = {}) ->
     # TODO:
     # - move them to services folder
@@ -44,17 +45,15 @@ class Validator
   parse: (csvString) ->
     # TODO: use parser with streaming API
     # https://github.com/sphereio/sphere-node-product-csv-sync/issues/56
-    deferred = Q.defer()
-    Csv()
-    .on 'error', (error) -> deferred.reject error
-    .from.string(csvString, @csvOptions)
-    .to.array (data, count) =>
-      @header = new Header(data[0])
-      @map.header = @header
-      deferred.resolve
-        data: _.rest(data)
-        count: count
-    deferred.promise
+    new Promise (resolve, reject) =>
+      Csv().from.string(csvString, @csvOptions)
+      .on 'error', (error) -> reject error
+      .to.array (data, count) =>
+        @header = new Header(data[0])
+        @map.header = @header
+        resolve
+          data: _.rest(data)
+          count: count
 
   validate: (csvContent) ->
     @validateOffline csvContent
@@ -68,13 +67,12 @@ class Validator
     @buildProducts csvContent, variantHeader
 
   checkDelimiters: ->
-    allDelimiter = {
-      csvDelimiter: @csvOptions.delimiter,
-      csvQuote: @csvOptions.quote,
-      language: GLOBALS.DELIM_HEADER_LANGUAGE,
-      multiValue: GLOBALS.DELIM_MULTI_VALUE,
+    allDelimiter =
+      csvDelimiter: @csvOptions.delimiter
+      csvQuote: @csvOptions.quote
+      language: GLOBALS.DELIM_HEADER_LANGUAGE
+      multiValue: GLOBALS.DELIM_MULTI_VALUE
       categoryChildren: GLOBALS.DELIM_CATEGORY_CHILD
-    }
     delims = _.map allDelimiter, (delim, _) -> delim
     if _.size(delims) isnt _.size(_.uniq(delims))
       @errors.push "Your selected delimiter clash with each other: #{JSON.stringify(allDelimiter)}"
@@ -89,7 +87,7 @@ class Validator
     ]
     # TODO: too much parallel?
     # TODO: is it ok storing everything in memory?
-    Q.all(gets)
+    Promise.all(gets)
     .then ([productTypes, customerGroups, categories, taxes, channels]) =>
       @productTypes = productTypes.body.results
       @types.buildMaps @productTypes
@@ -98,15 +96,15 @@ class Validator
       @taxes.buildMaps taxes.body.results
       @channels.buildMaps channels.body.results
 
-      @valProducts @rawProducts
+      @valProducts @rawProducts # TODO: ???
       if _.size(@errors) is 0
-        @valProductTypes @productTypes
+        @valProductTypes @productTypes # TODO: ???
         if _.size(@errors) is 0
-          Q @rawProducts
+          Promise.resolve @rawProducts
         else
-          Q.reject @errors
+          Promise.reject @errors
       else
-        Q.reject @errors
+        Promise.reject @errors
 
 
   # TODO: Allow to define a column that defines the variant relationship.
@@ -139,8 +137,7 @@ class Validator
           console.warn "  #{attr.name}: type '#{attr.type.name} #{if attr.type.name is 'set' then 'of ' + attr.type.elementType.name  else ''}' - constraint '#{attr.attributeConstraint}' - #{if attr.isRequired then 'isRequired' else 'optional'}"
 
   valProducts: (products) ->
-    _.each products, (product) =>
-      @valProduct product
+    _.each products, (product) => @valProduct product
 
   valProduct: (raw) ->
     rawMaster = raw.master

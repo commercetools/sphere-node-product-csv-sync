@@ -5,12 +5,11 @@ CONS = require './constants'
 GLOBALS = require './globals'
 Validator = require './validator'
 
+# TODO:
+# - better organize subcommands / classes / helpers
+# - don't save partial results globally, instead pass them around to functions that need them
+# - JSDoc
 class Import
-
-  # TODO:
-  # - better organize subcommands / classes / helpers
-  # - don't save partial results globally, instead pass them around to functions that need them
-  # - JSDoc
 
   constructor: (options = {}) ->
     if options.config #for easier unit testing
