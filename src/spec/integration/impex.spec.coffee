@@ -1,14 +1,13 @@
-fs = require 'fs'
 _ = require 'underscore'
-Export = require '../../lib/export'
-Import = require '../../lib/import'
+_.mixin require('underscore-mixins')
+Promise = require 'bluebird'
+fs = Promise.promisifyAll require('fs')
+{Export, Import} = require '../../lib/main'
 Config = require '../../config'
-SphereClient = require 'sphere-node-client'
 TestHelpers = require './testhelpers'
 
-jasmine.getEnv().defaultTimeoutInterval = 60000
-
 describe 'Impex integration tests', ->
+
   beforeEach (done) ->
     @importer = new Import Config
     @exporter = new Export Config
@@ -24,13 +23,13 @@ describe 'Impex integration tests', ->
         { name: 'myMultiText', label: { name: 'myMultiText' }, type: { name: 'set', elementType: { name: 'text'} }, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
       ]
 
-    TestHelpers.setupProductType(@client, @productType).then (result) =>
+    TestHelpers.setupProductType(@client, @productType)
+    .then (result) =>
       @productType = result
       done()
-    .fail (err) ->
-      done(_.prettify err)
+    .catch (err) -> done _.prettify(err)
     .done()
-
+  , 30000 # 30sec
 
   it 'should import and re-export a simple product', (done) ->
     header = 'productType,name.en,slug.en,variantId,sku,prices,myAttrib.en,sfa,myMultiText'
@@ -61,20 +60,22 @@ describe 'Impex integration tests', ->
       expect(result[0]).toBe '[row 2] New product created.'
       expect(result[1]).toBe '[row 4] New product created.'
       file = '/tmp/impex.csv'
-      @exporter.export(csv, file).then (result) ->
+      @exporter.export(csv, file)
+      .then (result) ->
         console.log "export", result
         expect(result).toBe 'Export done.'
-        fs.readFile file, encoding: 'utf8', (err, content) ->
-          console.log "export file content", content
-          expect(content).toMatch header
-          expect(content).toMatch p1
-          expect(content).toMatch p2
-          done()
-    .fail (err) ->
-      done(_.prettify err)
+        fs.readFileAsync file, {encoding: 'utf8'}
+      .then (content) ->
+        console.log "export file content", content
+        expect(content).toMatch header
+        expect(content).toMatch p1
+        expect(content).toMatch p2
+        done()
+    .catch (err) -> done _.prettify(err)
     .done()
+  , 20000 # 20sec
 
-  it 'should import and reexport SEO attributes', (done) ->
+  it 'should import and re-export SEO attributes', (done) ->
     header = 'productType,variantId,name.en,description.en,slug.en,metaTitle.en,metaDescription.en,metaKeywords.en,myAttrib.en'
     p1 =
       """
@@ -93,14 +94,16 @@ describe 'Impex integration tests', ->
       expect(_.size result).toBe 1
       expect(result[0]).toBe '[row 2] New product created.'
       file = '/tmp/impex.csv'
-      @exporter.export(csv, file).then (result) ->
+      @exporter.export(csv, file)
+      .then (result) ->
         console.log "export", result
         expect(result).toBe 'Export done.'
-        fs.readFile file, encoding: 'utf8', (err, content) ->
-          console.log "export file content", content
-          expect(content).toMatch header
-          expect(content).toMatch p1
-          done()
-    .fail (err) ->
-      done(_.prettify err)
+        fs.readFileAsync file, {encoding: 'utf8'}
+      .then (content) ->
+        console.log "export file content", content
+        expect(content).toMatch header
+        expect(content).toMatch p1
+        done()
+    .catch (err) -> done _.prettify(err)
     .done()
+  , 20000 # 20sec

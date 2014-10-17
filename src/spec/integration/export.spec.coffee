@@ -4,7 +4,7 @@ Promise = require 'bluebird'
 fs = Promise.promisifyAll require('fs')
 Config = require '../../config'
 TestHelpers = require './testhelpers'
-{Export} = require '../../main'
+{Export} = require '../../lib/main'
 
 describe 'Export integration tests', ->
 
@@ -54,7 +54,7 @@ describe 'Export integration tests', ->
     @export.export(template, null)
     .then (result) ->
       done('Export should fail!')
-    .fail (err) ->
+    .catch (err) ->
       expect(_.size err).toBe 2
       expect(err[0]).toBe 'There are duplicate header entries!'
       expect(err[1]).toBe "You need either the column 'variantId' or 'sku' to identify your variants!"
@@ -71,9 +71,9 @@ describe 'Export integration tests', ->
     .then (result) ->
       expect(result).toBe 'No products found.'
       done()
-    .fail (err) ->
-      done(_.prettify err)
+    .catch (err) -> done _.prettify(err)
     .done()
+  , 20000 # 20sec
 
   it 'should export based on minimum template', (done) ->
     template =
@@ -89,10 +89,10 @@ describe 'Export integration tests', ->
     @export.export(template, file)
     .then (result) ->
       expect(result).toBe 'Export done.'
-      fs.readFile file, encoding: 'utf8', (err, content) ->
-        expect(content).toBe expectedCSV
-        done()
-    .fail (err) ->
-      done(_.prettify err)
+      fs.readFileAsync file, {encoding: 'utf8'}
+    .then (content) ->
+      expect(content).toBe expectedCSV
+      done()
+    .catch (err) -> done _.prettify(err)
     .done()
   , 20000 # 20sec

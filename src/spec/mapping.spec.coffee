@@ -1,6 +1,6 @@
 _ = require 'underscore'
 CONS = require '../lib/constants'
-{Header, Mapping, Validator} = require '../main'
+{Header, Mapping, Validator} = require '../lib/main'
 
 describe 'Mapping', ->
   beforeEach ->

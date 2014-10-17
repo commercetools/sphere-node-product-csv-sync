@@ -1,9 +1,10 @@
 _ = require 'underscore'
 Types = require '../lib/types'
 CONS = require '../lib/constants'
-{ExportMapping, Header} = require '../main'
+{ExportMapping, Header} = require '../lib/main'
 
 describe 'ExportMapping', ->
+
   beforeEach ->
     @exportMapping = new ExportMapping()
 

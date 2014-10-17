@@ -1,6 +1,6 @@
 _ = require 'underscore'
 CONS = require '../lib/constants'
-{Import} = require '../main'
+{Import} = require '../lib/main'
 
 describe 'Import', ->
   beforeEach ->
@@ -18,13 +18,14 @@ describe 'Import', ->
           project_key: 'foo'
           client_id: 'id'
           client_secret: 'secret'
-        logConfig:
-          streams: [
-            {level: 'warn', stream: process.stdout}
-          ]
+        # logConfig:
+        #   streams: [
+        #     {level: 'warn', stream: process.stdout}
+        #   ]
       expect(importer).toBeDefined()
-      expect(importer.client).toEqual importer.sync._client
+      expect(importer.client).toBeDefined()
       expect(importer.client._task._maxParallel).toBe 10
+      expect(importer.sync).toBeDefined()
 
   describe 'match on custom attribute', ->
     it 'should find match based on custom attribute', ->

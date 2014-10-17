@@ -158,7 +158,7 @@ class Import
       @customAttributeValue2index[attribute.value]
 
   createOrUpdate: (products, types) ->
-    Promise.all _.map products, (product) ->
+    Promise.all _.map products, (entry) =>
       existingProduct = @match(entry)
       if existingProduct?
         @update(entry.product, existingProduct, types, entry.header, entry.rowIndex)
@@ -225,14 +225,12 @@ class Import
         else
           @publishProduct(result.body, rowIndex)
           .then -> Promise.resolve "[row #{rowIndex}] Product updated."
-      .catch Errors.BadRequest, (err) =>
+      .catch (err) =>
         msg = "[row #{rowIndex}] Problem on updating product:\n#{_.prettify err}"
         if @continueOnProblems
           Promise.resolve "#{msg} - ignored!"
         else
           Promise.reject msg
-      .catch (err) ->
-        Promise.reject "[row #{rowIndex}] Error on updating product:\n#{_.prettify err}"
 
   create: (product, rowIndex) ->
     if @dryRun
@@ -244,14 +242,12 @@ class Import
       .then (result) =>
         @publishProduct(result.body, rowIndex)
         .then -> Promise.resolve "[row #{rowIndex}] New product created."
-      .catch Errors.BadRequest (err) =>
+      .catch (err) =>
         msg = "[row #{rowIndex}] Problem on creating new product:\n#{_.prettify err}"
         if @continueOnProblems
           Promise.resolve "#{msg} - ignored!"
         else
           Promise.reject msg
-      .catch (err) ->
-        Promise.reject "[row #{rowIndex}] Error on creating new product:\n#{_.prettify err}"
 
   publishProduct: (product, rowIndex, publish = true) ->
     action = if publish then 'publish' else 'unpublish'

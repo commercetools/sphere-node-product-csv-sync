@@ -1,9 +1,8 @@
 _ = require 'underscore'
-Import = require '../../lib/import'
+_.mixin require('underscore-mixins')
+{Import} = require '../../lib/main'
 Config = require '../../config'
 TestHelpers = require './testhelpers'
-
-jasmine.getEnv().defaultTimeoutInterval = 60000
 
 createImporter = ->
   im = new Import Config
@@ -11,6 +10,7 @@ createImporter = ->
   im
 
 describe 'Import integration test', ->
+
   beforeEach (done) ->
     @importer = createImporter()
     @client = @importer.client
@@ -44,13 +44,13 @@ describe 'Import integration test', ->
     .then (result) =>
       @productType = result
       @client.channels.ensure('retailerA', 'InventorySupply')
-    .then (result) =>
-      done()
-    .fail (err) ->
-      done(_.prettify err)
+    .then -> done()
+    .catch (err) -> done _.prettify(err)
     .done()
+  , 30000 # 30sec
 
   describe '#import', ->
+
     it 'should import a simple product', (done) ->
       csv =
         """
@@ -62,9 +62,9 @@ describe 'Import integration test', ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # sec
 
     it 'should import a product with prices', (done) ->
       csv =
@@ -87,9 +87,9 @@ describe 'Import integration test', ->
         expect(prices[2].channel.typeId).toBe 'channel'
         expect(prices[2].channel.id).toBeDefined()
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
     it 'should do nothing on 2nd import run', (done) ->
       csv =
@@ -107,9 +107,9 @@ describe 'Import integration test', ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
     it 'should update changes on 2nd import run', (done) ->
       csv =
@@ -132,9 +132,9 @@ describe 'Import integration test', ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
     it 'should handle all kind of attributes and constraints', (done) ->
       csv =
@@ -166,9 +166,9 @@ describe 'Import integration test', ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
     it 'should handle multiple products', (done) ->
       csv =
@@ -193,9 +193,9 @@ describe 'Import integration test', ->
         expect(result[1]).toBe '[row 4] Product update not necessary.'
         expect(result[2]).toBe '[row 5] Product update not necessary.'
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
     it 'should handle set of enums', (done) ->
       csv =
@@ -225,9 +225,9 @@ describe 'Import integration test', ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
     it 'should handle set of SameForAll enums with new variants', (done) ->
       csv =
@@ -267,9 +267,9 @@ describe 'Import integration test', ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
     it 'should remove a variant and change an SameForAll attribute at the same time', (done) ->
       csv =
@@ -298,9 +298,9 @@ describe 'Import integration test', ->
         p = result.body.results[0].masterData.staged
         expect(_.size p.variants).toBe 0
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
     it 'should not removeVariant if allowRemovalOfVariants is off', (done) ->
       csv =
@@ -330,9 +330,9 @@ describe 'Import integration test', ->
         p = result.body.results[0].masterData.staged
         expect(_.size p.variants).toBe 1
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
     it 'should execute SameForAll attribute change before addVariant', (done) ->
       csv =
@@ -356,9 +356,9 @@ describe 'Import integration test', ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
     it 'should do a partial update of product base attributes', (done) ->
       csv =
@@ -399,9 +399,9 @@ describe 'Import integration test', ->
         expect(p.slug.en).toBe 'my-product-x'
         expect(p.masterVariant.sku).toBe 'foo'
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
     it 'should do a partial update of localized attributes', (done) ->
       csv =
@@ -445,9 +445,9 @@ describe 'Import integration test', ->
         expect(attrib.value.de).toBeUndefined() # TODO: expecting 'german'
         expect(attrib.value.it).toBe 'ciao'
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
     it 'should do a partial update of custom attributes', (done) ->
       csv =
@@ -507,9 +507,9 @@ describe 'Import integration test', ->
         expect(ats[5]).toEqual { name: 'multiEnum', value: [{ key: 'x', label: 'X' }, { key: 'y', label: 'Y' }, { key: 'z', label: 'Z' }] }
         expect(ats[6]).toEqual { name: 'multiSamelEnum', value: [{ key: 'cc', label: { en: 'CC', 'de': 'Cc' } }] }
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
     it 'partial update should not overwrite name, prices and images', (done) ->
       csv =
@@ -543,9 +543,9 @@ describe 'Import integration test', ->
         expect(p.masterVariant.images[0].url).toBe '//example.com/foo.jpg'
         expect(p.variants[0].images[0].url).toBe '/example.com/bar.png'
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
     it 'should do a full update of SEO attribute', (done) ->
       csv =
@@ -576,9 +576,9 @@ describe 'Import integration test', ->
         expect(p.metaDescription.en).toBe 'b'
         expect(p.metaKeywords.en).toBe 'changed'
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
     xit 'should do a full update of multi language SEO attribute', (done) ->
       csv =
@@ -612,9 +612,9 @@ describe 'Import integration test', ->
         expect(p.metaDescription.en).toBe 'new'
         expect(p.metaKeywords.en).toBe 'z' # I would actually expect ''
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
 
     it 'should not update SEO attribute if not all 3 headers are present', (done) ->
@@ -646,9 +646,9 @@ describe 'Import integration test', ->
         expect(p.metaDescription.en).toBe 'b'
         expect(p.metaKeywords.en).toBe 'c'
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec
 
     it 'should do a partial update of prices based on SKUs', (done) ->
       csv =
@@ -682,6 +682,6 @@ describe 'Import integration test', ->
         expect(p.variants[0].sku).toBe 'sku2'
         expect(p.variants[0].prices[0].value).toEqual { centAmount: 80000, currencyCode: 'USD' }
         done()
-      .fail (err) ->
-        done(_.prettify err)
+      .catch (err) -> done _.prettify(err)
       .done()
+    , 20000 # 20sec

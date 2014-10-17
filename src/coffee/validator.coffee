@@ -161,7 +161,7 @@ class Validator
       not @isProduct row
 
   isProduct: (row, variantColumn) ->
-    hasProductTypeColumn = not _s.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)])
+    hasProductTypeColumn = not _.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)])
     if variantColumn is CONS.HEADER_VARIANT_ID
       hasProductTypeColumn and row[@header.toIndex(CONS.HEADER_VARIANT_ID)] is '1'
     else

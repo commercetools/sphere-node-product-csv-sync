@@ -1,6 +1,7 @@
 _ = require 'underscore'
+_.mixin require('underscore-mixins')
 CONS = require '../lib/constants'
-{Header, Validator} = require '../main'
+{Header, Validator} = require '../lib/main'
 
 describe 'Header', ->
   beforeEach ->
@@ -27,7 +28,7 @@ describe 'Header', ->
         expect(errors.length).toBe 1
         expect(errors[0]).toBe "Can't find necessary base header 'productType'!"
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)
 
     it 'should return error when no sku and not variantId header', (done) ->
       csv =
@@ -41,7 +42,7 @@ describe 'Header', ->
         expect(errors.length).toBe 1
         expect(errors[0]).toBe "You need either the column 'variantId' or 'sku' to identify your variants!"
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)
 
     it 'should return error on duplicate header', (done) ->
       csv =
@@ -55,7 +56,7 @@ describe 'Header', ->
         expect(errors.length).toBe 1
         expect(errors[0]).toBe "There are duplicate header entries!"
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)
 
   describe '#toIndex', ->
     it 'should create mapping', (done) ->
@@ -72,7 +73,7 @@ describe 'Header', ->
         expect(h2i['foo']).toBe 1
         expect(h2i['variantId']).toBe 2
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)
 
   describe '#_productTypeLanguageIndexes', ->
     beforeEach ->
@@ -96,7 +97,7 @@ describe 'Header', ->
         expect(langH2i['foo']['de']).toBe 2
         expect(langH2i['foo']['en']).toBe 1
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)
 
     it 'should provide access via productType', (done) ->
       @validator.parse @csv
@@ -106,7 +107,7 @@ describe 'Header', ->
           en: 1
         expect(@validator.header.productTypeAttributeToIndex(@productType, @productType.attributes[0])).toEqual expected
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)
 
   describe '#_languageToIndex', ->
     it 'should create mapping for language attributes', (done) ->
@@ -122,7 +123,7 @@ describe 'Header', ->
         expect(langH2i['a1']['de']).toBe 1
         expect(langH2i['a1']['it']).toBe 3
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)
 
   describe '#missingHeaderForProductType', ->
     it 'should give list of attributes that are not covered by headers', (done) ->
@@ -147,4 +148,4 @@ describe 'Header', ->
         expect(_.size missingHeaders).toBe 1
         expect(missingHeaders[0]).toEqual { name: 'a2', type: { name: 'set' } }
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)

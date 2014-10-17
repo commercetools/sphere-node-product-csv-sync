@@ -1,13 +1,13 @@
 _ = require 'underscore'
-Import = require '../../lib/import'
+_.mixin require('underscore-mixins')
+{Import} = require '../../lib/main'
 Config = require '../../config'
 TestHelpers = require './testhelpers'
-
-jasmine.getEnv().defaultTimeoutInterval = 60000
 
 performAllProducts = -> true
 
 describe 'State integration tests', ->
+
   beforeEach (done) ->
     @importer = new Import Config
     @client = @importer.client
@@ -20,15 +20,16 @@ describe 'State integration tests', ->
         { name: 'myStateAttrib', label: { name: 'myStateAttrib' }, type: { name: 'text'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
       ]
 
-    TestHelpers.setupProductType(@client, @productType).then (result) =>
+    TestHelpers.setupProductType(@client, @productType)
+    .then (result) =>
       @productType = result
       done()
-    .fail (err) ->
-      done(_.prettify err)
+    .catch (err) -> done _.prettify(err)
     .done()
+  , 30000 # 30sec
 
 
-  it 'should publish and unplublish products', (done) ->
+  it 'should publish and unpublish products', (done) ->
     csv =
       """
       productType,name.en,slug.en,variantId,sku,myStateAttrib
@@ -51,9 +52,9 @@ describe 'State integration tests', ->
       expect(result[0]).toBe '[row 0] Product unpublished.'
       expect(result[1]).toBe '[row 0] Product unpublished.'
       done()
-    .fail (err) ->
-      done(_.prettify err)
+    .catch (err) -> done _.prettify(err)
     .done()
+  , 20000 # 20sec
 
   it 'should only published products with hasStagedChanges', (done) ->
     csv =
@@ -90,9 +91,9 @@ describe 'State integration tests', ->
       expect(_.contains(result, '[row 0] Product published.')).toBe true
       expect(_.contains(result, '[row 0] Product is already published - no staged changes.')).toBe true
       done()
-    .fail (err) ->
-      done(_.prettify err)
+    .catch (err) -> done _.prettify(err)
     .done()
+  , 20000 # 20sec
 
   it 'should delete unplublished products', (done) ->
     csv =
@@ -112,6 +113,6 @@ describe 'State integration tests', ->
       expect(result[0]).toBe '[row 0] Product deleted.'
       expect(result[1]).toBe '[row 0] Product deleted.'
       done()
-    .fail (err) ->
-      done(_.prettify err)
+    .catch (err) -> done _.prettify(err)
     .done()
+  , 20000 # 20sec

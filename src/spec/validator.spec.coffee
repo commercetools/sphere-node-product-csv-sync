@@ -1,6 +1,7 @@
 _ = require 'underscore'
+_.mixin require('underscore-mixins')
 CONS =  require '../lib/constants'
-{Header, Validator} = require '../main'
+{Header, Validator} = require '../lib/main'
 
 describe 'Validator', ->
   beforeEach ->
@@ -16,7 +17,7 @@ describe 'Validator', ->
       .then (parsed) ->
         expect(parsed.count).toBe 1
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)
 
     it 'should store header', (done) ->
       csv =
@@ -29,7 +30,7 @@ describe 'Validator', ->
         expect(@validator.header).toBeDefined
         expect(@validator.header.rawHeader).toEqual ['myHeader']
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)
 
     it 'should pass everything but the header as content to callback', (done) ->
       csv =
@@ -44,7 +45,7 @@ describe 'Validator', ->
         expect(parsed.data[0]).toEqual ['row1']
         expect(parsed.data[1]).toEqual ['row2', 'foo']
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)
 
   describe '#checkDelimiters', ->
     it 'should work if all delimiters are different', ->
@@ -107,7 +108,7 @@ describe 'Validator', ->
         expect(@validator.rawProducts[1].variants.length).toBe 1
         expect(@validator.rawProducts[1].startRow).toBe 5
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)
 
     it 'should return error if row isnt a variant nor product', (done) ->
       csv =
@@ -127,7 +128,7 @@ describe 'Validator', ->
         expect(@validator.errors[1]).toBe '[row 5] Could not be identified as product or variant!'
         expect(@validator.errors[2]).toBe '[row 6] Could not be identified as product or variant!'
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)
 
     it 'should return error if first row isnt a product row', (done) ->
       csv =
@@ -141,7 +142,7 @@ describe 'Validator', ->
         expect(@validator.errors.length).toBe 1
         expect(@validator.errors[0]).toBe '[row 2] We need a product before starting with a variant!'
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)
 
     it 'should build products without variantId', (done) ->
       csv =
@@ -166,7 +167,7 @@ describe 'Validator', ->
         expect(@validator.rawProducts[1].variants[1]).toEqual ['', '456']
         expect(@validator.rawProducts[1].startRow).toBe 3
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)
 
   xdescribe '#valProduct', ->
     it 'should return no error', (done) ->
@@ -179,7 +180,7 @@ describe 'Validator', ->
       .then (parsed) =>
         @validator.valProduct parsed.data
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)
 
   describe '#validateOffline', ->
     it 'should return no error', (done) ->
@@ -193,4 +194,4 @@ describe 'Validator', ->
         @validator.validateOffline parsed.data
         expect(@validator.errors).toEqual []
         done()
-      .fail (e) -> done(e)
+      .catch (err) -> done _.prettify(err)
