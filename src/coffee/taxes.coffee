@@ -1,3 +1,5 @@
+_ = require 'underscore'
+
 # TODO:
 # - JSDoc
 # - make it util only

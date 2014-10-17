@@ -77,6 +77,7 @@ module.exports = class
       .option '--debug', 'give as many feedback as possible'
 
 
+    # TODO: validate required options
     program
       .command 'import'
       .description 'Import your products from CSV into your SPHERE.IO project.'
