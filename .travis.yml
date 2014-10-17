@@ -2,16 +2,17 @@ language: node_js
 branches:
   except:
     - latest
+    - refactoring
 node_js:
-- '0.10'
+  - '0.10'
 before_script:
-- npm install -g grunt-cli
-- ./create_config.sh
-- gem install cucumber aruba
+  - npm install -g grunt-cli
+  - ./create_config.sh
+  - gem install cucumber aruba
 script:
-- npm test
-- cucumber -t ~@wip
-- node lib/run import --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --csv data/minimum-header.csv
+  - npm test
+  - cucumber -t ~@wip
+  - node lib/run import --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --csv data/minimum-header.csv
 notifications:
   hipchat:
     rooms:
@@ -23,9 +24,6 @@ notifications:
     on_failure: change
 env:
   global:
-  - secure: kfU8iYr5dad4pMeKbPVlQqeR1Kn/NjLk5hTXHExenvT/Y6BPZWX8uy6jydC+793pZ12EVUIaBxKIQyzNPTJHbQecr3xxEdb02j9yOm58XYgJACvigCoyeo3COm6tN0o+epA/Wg7r4uAT4f30wq2PcB/FGcU5AMHm5osdpUZvpD4=
-  - secure: inEgeS1T8a0YHjBvTPM9Tb9DHakZuwR0Ulid/NdL3fGSyg/3Wm8dxxni0VwkoCGTjH6HQHCGTMuvq+QGOM67J8PMI8rrvdkwgNJ9T9j8wgLR3Xa8T916bB0Xd14dBxMebjK+0mDVCFkyM3nYwLqs4bsKRLlbQ6iF0skhNdGVJ/U=
-  - secure: EqIwvvy6VJBS5sFzdPG+6cY4iTSuXH5PYonv8M23LB/KJz8TKTiLJu7A+nbtEftzL1JtwKVNUG7KFH0G6t1TkGtbLoE3bjoxqkF9n89P4ctVlJGpm2Uf2PbF7HAsYKdI0mPSDc0RUl3QsbTr4zCp1DVmYxyhTpeECVi2+2GcRAs=
-branches:
-  except:
-  - latest
+    - secure: kfU8iYr5dad4pMeKbPVlQqeR1Kn/NjLk5hTXHExenvT/Y6BPZWX8uy6jydC+793pZ12EVUIaBxKIQyzNPTJHbQecr3xxEdb02j9yOm58XYgJACvigCoyeo3COm6tN0o+epA/Wg7r4uAT4f30wq2PcB/FGcU5AMHm5osdpUZvpD4=
+    - secure: inEgeS1T8a0YHjBvTPM9Tb9DHakZuwR0Ulid/NdL3fGSyg/3Wm8dxxni0VwkoCGTjH6HQHCGTMuvq+QGOM67J8PMI8rrvdkwgNJ9T9j8wgLR3Xa8T916bB0Xd14dBxMebjK+0mDVCFkyM3nYwLqs4bsKRLlbQ6iF0skhNdGVJ/U=
+    - secure: EqIwvvy6VJBS5sFzdPG+6cY4iTSuXH5PYonv8M23LB/KJz8TKTiLJu7A+nbtEftzL1JtwKVNUG7KFH0G6t1TkGtbLoE3bjoxqkF9n89P4ctVlJGpm2Uf2PbF7HAsYKdI0mPSDc0RUl3QsbTr4zCp1DVmYxyhTpeECVi2+2GcRAs=
