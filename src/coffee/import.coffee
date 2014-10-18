@@ -265,13 +265,11 @@ class Import
       @client.products.byId(product.id).update(data)
       .then (result) ->
         Promise.resolve "[row #{rowIndex}] Product #{action}ed."
-      .catch Errors.BadRequest, (err) =>
+      .catch (err) =>
         if @continueOnProblems
           Promise.resolve "[row #{rowIndex}] Product is already #{action}ed."
         else
           Promise.reject "[row #{rowIndex}] Problem on #{action}ing product:\n#{_.prettify err}"
-      .catch (err) ->
-        Promise.resolve "[row #{rowIndex}] Error on #{action}ing product:\n#{_.prettify err}"
 
   deleteProduct: (product, rowIndex) ->
     @client.products.byId(product.id).delete(product.version)
