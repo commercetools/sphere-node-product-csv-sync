@@ -60,16 +60,22 @@ class Import
           console.log "Mapping #{_.size rawProducts} product(s) ..."
           for rawProduct in rawProducts
             products.push @validator.map.mapProduct(rawProduct)
+
           if _.size(@validator.map.errors) isnt 0
-            Q.reject @validator.map.errors
+            Promise.reject @validator.map.errors
           else
-            console.log "Mapping done. Fetching existing product(s) ..."
+            console.log "Mapping done. About to process existing product(s) ..."
             @client.productProjections.staged().all().fetch()
-            .then (result) =>
-              existingProducts = result.body.results
-              console.log "Comparing against #{_.size existingProducts} existing product(s) ..."
+            .then (payload) =>
+              existingProducts = payload.body.results
+              # console.log "Comparing #{_.size existingProducts} out of #{payload.body.total} existing product(s) ..."
+              console.log "Comparing against #{payload.body.total} existing product(s) ..."
               @initMatcher existingProducts
               @createOrUpdate(products, @validator.types)
+            .then ->
+              console.log 'Finished processing products'
+              # TODO: resolve with a summary of the import
+              Promise.resolve()
 
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true
@@ -114,7 +120,7 @@ class Import
       variants = [product.masterVariant].concat(product.variants)
 
       _.each variants, (variant) =>
-        sku = @getSku variant
+        sku = variant.sku
         @sku2index[sku] = index if sku?
         @customAttributeValue2index[@getCustomAttributeValue variant] = index if @customAttributeNameToMatch?
 
@@ -122,9 +128,6 @@ class Import
     #console.log "customAttributeValue2index", @customAttributeValue2index
     #console.log "sku2index", @sku2index
     #console.log "slug2index", @slug2index
-
-  getSku: (variant) ->
-    variant.sku
 
   getCustomAttributeValue: (variant) ->
     variant.attributes or= []
@@ -134,13 +137,18 @@ class Import
 
   match: (entry) ->
     product = entry.product
+    # 1. match by id
     index = @id2index[product.id] if product.id?
     if not index
+      # 2. match by custom attribute
       index = @_matchOnCustomAttribute product
-      if not index
-        index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku?
-        if not index and (entry.header.has(CONS.HEADER_SLUG) or entry.header.hasLanguageForBaseAttribute(CONS.HEADER_SLUG))
-          index = @slug2index[product.slug[GLOBALS.DEFAULT_LANGUAGE]] if product.slug? and product.slug[GLOBALS.DEFAULT_LANGUAGE]?
+    if not index
+      # 3. match by sku
+      index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku?
+    if not index and (entry.header.has(CONS.HEADER_SLUG) or entry.header.hasLanguageForBaseAttribute(CONS.HEADER_SLUG))
+      # 4. match by slug (if header is present)
+      index = @slug2index[product.slug[GLOBALS.DEFAULT_LANGUAGE]] if product.slug? and product.slug[GLOBALS.DEFAULT_LANGUAGE]?
+
     return @existingProducts[index] if index > -1
 
   _matchOnCustomAttribute: (product) ->
@@ -218,19 +226,20 @@ class Import
       else
         Promise.resolve "[row #{rowIndex}] DRY-RUN - nothing to update."
     else
-      @client.products.byId(filtered.getUpdateId()).update(filtered.getUpdatePayload())
-      .then (result) =>
-        if result.statusCode is 304
-          Promise.resolve "[row #{rowIndex}] Product update not necessary."
-        else
+      if filtered.shouldUpdate()
+        @client.products.byId(filtered.getUpdateId()).update(filtered.getUpdatePayload())
+        .then (result) =>
           @publishProduct(result.body, rowIndex)
           .then -> Promise.resolve "[row #{rowIndex}] Product updated."
-      .catch (err) =>
-        msg = "[row #{rowIndex}] Problem on updating product:\n#{_.prettify err}"
-        if @continueOnProblems
-          Promise.resolve "#{msg} - ignored!"
-        else
-          Promise.reject msg
+        .catch (err) =>
+          msg = "[row #{rowIndex}] Problem on updating product:\n#{_.prettify err}\n#{_.prettify err.body}"
+          if @continueOnProblems
+            Promise.resolve "#{msg} - ignored!"
+          else
+            Promise.reject msg
+      else
+        Promise.resolve "[row #{rowIndex}] Product update not necessary."
+
 
   create: (product, rowIndex) ->
     if @dryRun
@@ -243,7 +252,7 @@ class Import
         @publishProduct(result.body, rowIndex)
         .then -> Promise.resolve "[row #{rowIndex}] New product created."
       .catch (err) =>
-        msg = "[row #{rowIndex}] Problem on creating new product:\n#{_.prettify err}"
+        msg = "[row #{rowIndex}] Problem on creating new product:\n#{_.prettify err}\n#{_.prettify err.body}"
         if @continueOnProblems
           Promise.resolve "#{msg} - ignored!"
         else
@@ -269,13 +278,13 @@ class Import
         if @continueOnProblems
           Promise.resolve "[row #{rowIndex}] Product is already #{action}ed."
         else
-          Promise.reject "[row #{rowIndex}] Problem on #{action}ing product:\n#{_.prettify err}"
+          Promise.reject "[row #{rowIndex}] Problem on #{action}ing product:\n#{_.prettify err}\n#{_.prettify err.body}"
 
   deleteProduct: (product, rowIndex) ->
     @client.products.byId(product.id).delete(product.version)
     .then ->
       Promise.resolve "[row #{rowIndex}] Product deleted."
     .catch (err) ->
-      Promise.reject "[row #{rowIndex}] Error on deleting product:\n#{_.prettify err}"
+      Promise.reject "[row #{rowIndex}] Error on deleting product:\n#{_.prettify err}\n#{_.prettify err.body}"
 
 module.exports = Import
