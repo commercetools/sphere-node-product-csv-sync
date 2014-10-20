@@ -1,6 +1,7 @@
 _ = require 'underscore'
 Promise = require 'bluebird'
 {SphereClient, ProductSync, Errors} = require 'sphere-node-sdk'
+{Repeater} = require 'sphere-node-utils'
 CONS = require './constants'
 GLOBALS = require './globals'
 Validator = require './validator'
@@ -16,6 +17,7 @@ class Import
       @client = new SphereClient options
       @client.setMaxParallel 10
       @sync = new ProductSync
+      @repeater = new Repeater attempts: 3
 
     @validator = new Validator options
 
@@ -73,9 +75,8 @@ class Import
               @initMatcher existingProducts
               @createOrUpdate(products, @validator.types)
             .then ->
-              console.log 'Finished processing products'
               # TODO: resolve with a summary of the import
-              Promise.resolve()
+              Promise.resolve 'Finished processing products'
 
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true
@@ -167,11 +168,19 @@ class Import
 
   createOrUpdate: (products, types) ->
     Promise.all _.map products, (entry) =>
-      existingProduct = @match(entry)
-      if existingProduct?
-        @update(entry.product, existingProduct, types, entry.header, entry.rowIndex)
-      else
-        @create(entry.product, entry.rowIndex)
+      @repeater.execute =>
+        existingProduct = @match(entry)
+        if existingProduct?
+          @update(entry.product, existingProduct, types, entry.header, entry.rowIndex)
+        else
+          @create(entry.product, entry.rowIndex)
+      , (e) =>
+        if e.code is 504
+          console.warn 'Got a timeout, will retry again...'
+          Promise.resolve() # will retry in case of Gateway Timeout
+        else
+          Promise.reject e
+
 
   _isBlackListedForUpdate: (attributeName) ->
     if _.isEmpty @blackListedCustomAttributesForUpdate
