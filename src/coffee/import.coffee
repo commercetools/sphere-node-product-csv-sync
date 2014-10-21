@@ -74,9 +74,10 @@ class Import
               console.log "Comparing against #{payload.body.total} existing product(s) ..."
               @initMatcher existingProducts
               @createOrUpdate(products, @validator.types)
-            .then ->
+            .then (result) ->
               # TODO: resolve with a summary of the import
-              Promise.resolve 'Finished processing products'
+              console.log "Finished processing #{_.size result} products"
+              Promise.resolve result
 
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true
@@ -90,6 +91,7 @@ class Import
 
       if _.size(filteredProducts) is 0
         # Q 'Nothing to do.'
+        console.log 'Nothing to do'
         Promise.resolve()
       else
         posts = _.map filteredProducts, (product) =>
@@ -102,8 +104,6 @@ class Import
         action = 'Deleting' if remove
         console.log "#{action} #{_.size posts} product(s) ..."
         Promise.all(posts)
-    , {accumulate: false}
-
 
   initMatcher: (existingProducts) ->
     @existingProducts = existingProducts

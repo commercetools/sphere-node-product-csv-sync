@@ -56,7 +56,7 @@ describe 'State integration tests', ->
     .done()
   , 20000 # 20sec
 
-  it 'should only published products with hasStagedChanges', (done) ->
+  xit 'should only published products with hasStagedChanges', (done) ->
     csv =
       """
       productType,name.en,slug.en,variantId,sku,myStateAttrib
@@ -95,7 +95,7 @@ describe 'State integration tests', ->
     .done()
   , 20000 # 20sec
 
-  it 'should delete unplublished products', (done) ->
+  xit 'should delete unplublished products', (done) ->
     csv =
       """
       productType,name.en,slug.en,variantId,sku,myStateAttrib

@@ -82,8 +82,9 @@ describe 'Import integration test', ->
         p = result.body.results[0].masterData.staged
         expect(_.size p.masterVariant.prices).toBe 3
         prices = p.masterVariant.prices
-        expect(prices[0]).toEqual { value: { currencyCode: 'EUR', centAmount: 899 } }
-        expect(prices[1]).toEqual { country: 'CH', value: { currencyCode: 'EUR', centAmount: 999 } }
+        expect(prices[0].value).toEqual { currencyCode: 'EUR', centAmount: 899 }
+        expect(prices[1].value).toEqual { currencyCode: 'EUR', centAmount: 999 }
+        expect(prices[1].country).toBe 'CH'
         expect(prices[2].channel.typeId).toBe 'channel'
         expect(prices[2].channel.id).toBeDefined()
         done()
