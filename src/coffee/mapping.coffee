@@ -150,6 +150,7 @@ class Mapping
       when CONS.ATTRIBUTE_TYPE_LTEXT then @mapLocalizedAttrib rawVariant, attribute.name, languageHeader2Index
       when CONS.ATTRIBUTE_TYPE_NUMBER then @mapNumber rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
+      when CONS.ATTRIBUTE_TYPE_REFERENCE then @mapReference rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       else rawVariant[@header.toIndex attribute.name] # works for text, enum and lenum
 
   # TODO: support set of money and number attributes!
@@ -221,6 +222,10 @@ class Mapping
     money =
       currencyCode: matchedMoney[1]
       centAmount: parseInt matchedMoney[2]
+
+  mapReference: (rawReference, attribName, rowIndex) ->
+    ref =
+      id: rawReference
 
   mapNumber: (rawNumber, attribName, rowIndex) ->
     return unless @isValidValue(rawNumber)

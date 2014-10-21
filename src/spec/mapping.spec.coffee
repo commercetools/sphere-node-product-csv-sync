@@ -369,6 +369,10 @@ describe 'Mapping', ->
       expect(@validator.map.errors.length).toBe 1
       expect(@validator.map.errors[0]).toBe "[row 4:myAttrib] The number '9.99' isn't valid!"
 
+  describe '#mapReference', ->
+    it 'should map a single reference', ->
+      expect(@validator.map.mapReference('123-456')).toBe { id: '123-456' }
+
   describe '#mapProduct', ->
     it 'should map a product', ->
       productType =
