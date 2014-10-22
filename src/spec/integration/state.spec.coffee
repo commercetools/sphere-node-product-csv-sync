@@ -53,7 +53,7 @@ describe 'State integration tests', ->
     .done()
   , 50000 # 50sec
 
-  xit 'should only published products with hasStagedChanges', (done) ->
+  it 'should only published products with hasStagedChanges', (done) ->
     csv =
       """
       productType,name.en,slug.en,variantId,sku,#{TEXT_ATTRIBUTE_NONE}
@@ -77,6 +77,7 @@ describe 'State integration tests', ->
         #{@productType.name},myProduct2,my-slug2,1,sku2,baz
         """
       im = new Import Config
+      im.validator.suppressMissingHeaderWarning = true
       im.import(csv)
     .then (result) =>
       expect(_.size result).toBe 2
@@ -92,7 +93,7 @@ describe 'State integration tests', ->
     .done()
   , 50000 # 50sec
 
-  xit 'should delete unplublished products', (done) ->
+  it 'should delete unplublished products', (done) ->
     csv =
       """
       productType,name.en,slug.en,variantId,sku,#{TEXT_ATTRIBUTE_NONE}
