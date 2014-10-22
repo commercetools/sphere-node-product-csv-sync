@@ -2,11 +2,15 @@ _ = require 'underscore'
 _.mixin require('underscore-mixins')
 Promise = require 'bluebird'
 
+exports.uniqueId = (prefix) ->
+  _.uniqueId "#{prefix}#{new Date().getTime()}_"
+
 ###
  * You may omit the product in this case it resolves the created product type.
  * Otherwise the created product is resolved.
 ###
 exports.setupProductType = (client, productType, product) ->
+  console.log 'About to cleanup products...'
   client.productProjections
   .sort('id')
   .where('published = "true"')
@@ -24,15 +28,22 @@ exports.setupProductType = (client, productType, product) ->
     client.products.perPage(30).process (payload) ->
       Promise.map payload.body.results, (existingProduct) ->
         client.products.byId(existingProduct.id).delete(existingProduct.version)
-  .then -> client.productTypes.all().fetch()
   .then (result) ->
-    Promise.map result.body.results, (productType) ->
-      client.productTypes.byId(productType.id).delete(productType.version)
-  .then -> client.productTypes.create(productType)
+    console.log "Deleted #{_.size result} products, about to ensure productType"
+    # ensure the productType exists, otherwise create it
+    client.productTypes.where("name = \"#{productType.name}\"").perPage(1).fetch()
   .then (result) ->
-    if product?
-      product.productType.id = result.body.id
-      client.products.create(product).then (result) ->
-        Promise.resolve result.body
+    if _.size(result.body.results) > 0
+      console.log "ProductType #{productType.name} already exists"
+      Promise.resolve(_.first(result.body.results))
     else
-      Promise.resolve result.body
+      console.log "Ensuring productType #{productType.name}"
+      client.productTypes.create(productType)
+      .then (result) -> Promise.resolve(result.body)
+  .then (pt) ->
+    if product?
+      product.productType.id = pt.id
+      client.products.create(product)
+      .then (result) -> Promise.resolve result.body # returns product
+    else
+      Promise.resolve pt # returns productType
