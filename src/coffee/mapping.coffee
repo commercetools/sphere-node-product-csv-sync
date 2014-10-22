@@ -144,7 +144,7 @@ class Mapping
 
   mapAttribute: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
     value = @mapValue rawVariant, attribute, languageHeader2Index, rowIndex
-    return unless value
+    return undefined if not value or _.isEmpty(value)
     attribute =
       name: attribute.name
       value: value
@@ -229,6 +229,7 @@ class Mapping
       centAmount: parseInt matchedMoney[2]
 
   mapReference: (rawReference, attribName, rowIndex) ->
+    return undefined unless rawReference
     ref =
       id: rawReference
 

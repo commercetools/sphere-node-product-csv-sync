@@ -6,21 +6,19 @@ fs = Promise.promisifyAll require('fs')
 Config = require '../../config'
 TestHelpers = require './testhelpers'
 
+TEXT_ATTRIBUTE_NONE = 'attr-text-n'
+LTEXT_ATTRIBUTE_COMBINATION_UNIQUE = 'attr-ltext-cu'
+SET_TEXT_ATTRIBUTE_NONE = 'attr-set-text-n'
+
 describe 'Impex integration tests', ->
 
   beforeEach (done) ->
     @importer = new Import Config
+    @importer.validator.suppressMissingHeaderWarning = true
     @exporter = new Export Config
     @client = @importer.client
 
-    @productType =
-      name: 'myImpexType'
-      description: 'foobar'
-      attributes: [
-        { name: 'myAttrib', label: { name: 'myAttrib' }, type: { name: 'ltext'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
-        { name: 'sfa', label: { name: 'sfa' }, type: { name: 'text'}, attributeConstraint: 'SameForAll', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
-        { name: 'myMultiText', label: { name: 'myMultiText' }, type: { name: 'set', elementType: { name: 'text'} }, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
-      ]
+    @productType = TestHelpers.mockProductType()
 
     TestHelpers.setupProductType(@client, @productType)
     .then (result) =>
@@ -31,7 +29,7 @@ describe 'Impex integration tests', ->
   , 60000 # 60sec
 
   it 'should import and re-export a simple product', (done) ->
-    header = 'productType,name.en,slug.en,variantId,sku,prices,myAttrib.en,sfa,myMultiText'
+    header = "productType,name.en,slug.en,variantId,sku,prices,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{TEXT_ATTRIBUTE_NONE},#{SET_TEXT_ATTRIBUTE_NONE}"
     p1 =
       """
       #{@productType.name},myProduct1,my-slug1,1,sku1,FR-EUR 999;CHF 1099,some Text,foo
@@ -75,7 +73,7 @@ describe 'Impex integration tests', ->
   , 50000 # 50sec
 
   it 'should import and re-export SEO attributes', (done) ->
-    header = 'productType,variantId,name.en,description.en,slug.en,metaTitle.en,metaDescription.en,metaKeywords.en,myAttrib.en'
+    header = "productType,variantId,name.en,description.en,slug.en,metaTitle.en,metaDescription.en,metaKeywords.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en"
     p1 =
       """
       #{@productType.name},1,seoName,seoDescription,seoSlug,seoMetaTitle,seoMetaDescription,seoMetaKeywords,foo
