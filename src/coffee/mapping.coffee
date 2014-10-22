@@ -149,6 +149,7 @@ class Mapping
       name: attribute.name
       value: value
 
+  # TODO: support boolean attributes
   mapValue: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
     switch attribute.type.name
       when CONS.ATTRIBUTE_TYPE_SET then @mapSetAttribute rawVariant, attribute.name, attribute.type.elementType, languageHeader2Index
