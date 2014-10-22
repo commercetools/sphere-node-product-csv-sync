@@ -28,7 +28,7 @@ describe 'Import integration test', ->
     ]
 
     @productType =
-      name: 'myType'
+      name: 'myImportType'
       description: 'foobar'
       attributes: [
         { name: 'descN', label: { de: 'descN' }, type: { name: 'ltext'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
@@ -47,7 +47,7 @@ describe 'Import integration test', ->
     .then -> done()
     .catch (err) -> done _.prettify(err)
     .done()
-  , 30000 # 30sec
+  , 50000 # 50sec
 
   describe '#import', ->
 
@@ -64,7 +64,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # sec
+    , 50000 # 50sec
 
     it 'should import a product with prices', (done) ->
       csv =
@@ -72,6 +72,7 @@ describe 'Import integration test', ->
         productType,name,variantId,slug,prices
         #{@productType.id},myProduct,1,slug,EUR 899;CH-EUR 999;CH-USD 77777700 #retailerA
         """
+
       @importer.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -90,7 +91,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
     it 'should do nothing on 2nd import run', (done) ->
       csv =
@@ -110,7 +111,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
     it 'should update changes on 2nd import run', (done) ->
       csv =
@@ -135,12 +136,12 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
     it 'should handle all kind of attributes and constraints', (done) ->
       csv =
         """
-        productType,name,variantId,slug,descN,descU,descUC1,descUC2,descS
+        productType,name,variantId,slug,descN.en,descU,descUC1,descUC2,descS
         #{@productType.id},myProduct1,1,slugi,,text1,foo,bar,same
         ,,2,slug,free,text2,foo,baz,same
         ,,3,slug,,text3,boo,baz,sameDifferentWhichWillBeIgnoredAsItIsDefined
@@ -156,7 +157,7 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         csv =
           """
-          productType,name,variantId,slug,descN,descU,descCU1,descCU2,descS
+          productType,name,variantId,slug,descN.en,descU,descCU1,descCU2,descS
           #{@productType.id},myProduct1,1,slugi,,text4,boo,bar,STILL_SAME
           ,,2,slug,free,text2,foo,baz,STILL_SAME
           ,,3,slug,CHANGED,text3,boo,baz,STILL_SAME
@@ -169,7 +170,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
     it 'should handle multiple products', (done) ->
       csv =
@@ -196,7 +197,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
     it 'should handle set of enums', (done) ->
       csv =
@@ -228,7 +229,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
     it 'should handle set of SameForAll enums with new variants', (done) ->
       csv =
@@ -270,7 +271,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
     it 'should remove a variant and change an SameForAll attribute at the same time', (done) ->
       csv =
@@ -301,7 +302,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
     it 'should not removeVariant if allowRemovalOfVariants is off', (done) ->
       csv =
@@ -333,7 +334,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
     it 'should execute SameForAll attribute change before addVariant', (done) ->
       csv =
@@ -359,7 +360,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
     it 'should do a partial update of product base attributes', (done) ->
       csv =
@@ -402,7 +403,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
     it 'should do a partial update of localized attributes', (done) ->
       csv =
@@ -448,7 +449,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
     it 'should do a partial update of custom attributes', (done) ->
       csv =
@@ -510,7 +511,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
     it 'partial update should not overwrite name, prices and images', (done) ->
       csv =
@@ -546,7 +547,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
     it 'should do a full update of SEO attribute', (done) ->
       csv =
@@ -579,13 +580,13 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
-    xit 'should do a full update of multi language SEO attribute', (done) ->
+    it 'should do a full update of multi language SEO attribute', (done) ->
       csv =
         """
         productType,variantId,sku,name,metaTitle.de,metaDescription.de,metaKeywords.de,metaTitle.en,metaDescription.en,metaKeywords.en
-        #{@productType.id},1,a111,mySeoProdcut,a,b,c,x,y,z
+        #{@productType.id},1,a111,mySeoProduct,metaTitleDe,metaDescDe,metaKeyDe,metaTitleEn,metaDescEn,metaKeyEn
         """
       @importer.import(csv)
       .then (result) =>
@@ -594,7 +595,7 @@ describe 'Import integration test', ->
         csv =
           """
           productType,variantId,sku,name,metaTitle.de,metaDescription.de,metaKeywords.de,metaTitle.en,metaDescription.en,metaKeywords.en
-          #{@productType.id},1,a111,mySeoProdcut,,b,changed,x,new,
+          #{@productType.id},1,a111,mySeoProduct,,newMetaDescDe,newMetaKeyDe,newMetaTitleEn,newMetaDescEn
           """
         im = createImporter()
         im.import(csv)
@@ -605,17 +606,17 @@ describe 'Import integration test', ->
       .then (result) ->
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0].masterData.staged
-        expect(p.name.en).toBe 'mySeoProdcut'
-        expect(p.metaTitle.de).toBe 'a' # I would actually expect ''
-        expect(p.metaDescription.de).toBe 'b'
-        expect(p.metaKeywords.de).toBe 'changed'
-        expect(p.metaTitle.en).toBe 'x'
-        expect(p.metaDescription.en).toBe 'new'
-        expect(p.metaKeywords.en).toBe 'z' # I would actually expect ''
+        expect(p.name.en).toBe 'mySeoProduct'
+        expect(p.metaTitle.de).not.toBeDefined()
+        expect(p.metaDescription.de).toBe 'newMetaDescDe'
+        expect(p.metaKeywords.de).toBe 'newMetaKeyDe'
+        expect(p.metaTitle.en).toBe 'newMetaTitleEn'
+        expect(p.metaDescription.en).toBe 'newMetaDescEn'
+        expect(p.metaKeywords.en).not.toBeDefined()
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
 
     it 'should not update SEO attribute if not all 3 headers are present', (done) ->
@@ -649,7 +650,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec
 
     it 'should do a partial update of prices based on SKUs', (done) ->
       csv =
@@ -685,4 +686,4 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 20000 # 20sec
+    , 50000 # 50sec

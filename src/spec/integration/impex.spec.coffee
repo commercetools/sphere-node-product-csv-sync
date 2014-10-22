@@ -13,9 +13,8 @@ describe 'Impex integration tests', ->
     @exporter = new Export Config
     @client = @importer.client
 
-    unique = new Date().getTime()
     @productType =
-      name: "myImpexType#{unique}"
+      name: 'myImpexType'
       description: 'foobar'
       attributes: [
         { name: 'myAttrib', label: { name: 'myAttrib' }, type: { name: 'ltext'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
@@ -29,7 +28,7 @@ describe 'Impex integration tests', ->
       done()
     .catch (err) -> done _.prettify(err)
     .done()
-  , 30000 # 30sec
+  , 60000 # 60sec
 
   it 'should import and re-export a simple product', (done) ->
     header = 'productType,name.en,slug.en,variantId,sku,prices,myAttrib.en,sfa,myMultiText'
@@ -73,7 +72,7 @@ describe 'Impex integration tests', ->
         done()
     .catch (err) -> done _.prettify(err)
     .done()
-  , 20000 # 20sec
+  , 50000 # 50sec
 
   it 'should import and re-export SEO attributes', (done) ->
     header = 'productType,variantId,name.en,description.en,slug.en,metaTitle.en,metaDescription.en,metaKeywords.en,myAttrib.en'
@@ -106,4 +105,4 @@ describe 'Impex integration tests', ->
         done()
     .catch (err) -> done _.prettify(err)
     .done()
-  , 20000 # 20sec
+  , 50000 # 50sec

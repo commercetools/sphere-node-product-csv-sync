@@ -12,9 +12,8 @@ describe 'State integration tests', ->
     @importer = new Import Config
     @client = @importer.client
 
-    unique = new Date().getTime()
     @productType =
-      name: "myStateType#{unique}"
+      name: 'myStateType'
       description: 'foobar'
       attributes: [
         { name: 'myStateAttrib', label: { name: 'myStateAttrib' }, type: { name: 'text'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
@@ -26,7 +25,7 @@ describe 'State integration tests', ->
       done()
     .catch (err) -> done _.prettify(err)
     .done()
-  , 30000 # 30sec
+  , 50000 # 50sec
 
 
   it 'should publish and unpublish products', (done) ->
@@ -54,9 +53,9 @@ describe 'State integration tests', ->
       done()
     .catch (err) -> done _.prettify(err)
     .done()
-  , 20000 # 20sec
+  , 50000 # 50sec
 
-  xit 'should only published products with hasStagedChanges', (done) ->
+  it 'should only published products with hasStagedChanges', (done) ->
     csv =
       """
       productType,name.en,slug.en,variantId,sku,myStateAttrib
@@ -93,9 +92,9 @@ describe 'State integration tests', ->
       done()
     .catch (err) -> done _.prettify(err)
     .done()
-  , 20000 # 20sec
+  , 50000 # 50sec
 
-  xit 'should delete unplublished products', (done) ->
+  it 'should delete unplublished products', (done) ->
     csv =
       """
       productType,name.en,slug.en,variantId,sku,myStateAttrib
@@ -115,4 +114,4 @@ describe 'State integration tests', ->
       done()
     .catch (err) -> done _.prettify(err)
     .done()
-  , 20000 # 20sec
+  , 50000 # 50sec
