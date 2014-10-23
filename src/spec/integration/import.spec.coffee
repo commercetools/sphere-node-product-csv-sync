@@ -34,7 +34,7 @@ describe 'Import integration test', ->
     .then -> done()
     .catch (err) -> done _.prettify(err)
     .done()
-  , 50000 # 50sec
+  , 30000 # 30sec
 
   describe '#import', ->
 
@@ -51,7 +51,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'should import a product with prices', (done) ->
       csv =
@@ -78,7 +78,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'should do nothing on 2nd import run', (done) ->
       csv =
@@ -98,7 +98,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'should update changes on 2nd import run', (done) ->
       csv =
@@ -123,7 +123,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'should handle all kind of attributes and constraints', (done) ->
       csv =
@@ -157,7 +157,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'should handle multiple products', (done) ->
       csv =
@@ -184,7 +184,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'should handle set of enums', (done) ->
       csv =
@@ -216,7 +216,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'should handle set of SameForAll enums with new variants', (done) ->
       csv =
@@ -258,7 +258,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'should remove a variant and change an SameForAll attribute at the same time', (done) ->
       csv =
@@ -289,7 +289,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'should not removeVariant if allowRemovalOfVariants is off', (done) ->
       csv =
@@ -321,7 +321,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'should execute SameForAll attribute change before addVariant', (done) ->
       csv =
@@ -348,7 +348,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'should do a partial update of product base attributes', (done) ->
       csv =
@@ -391,7 +391,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'should do a partial update of localized attributes', (done) ->
       csv =
@@ -437,7 +437,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'should do a partial update of custom attributes', (done) ->
       csv =
@@ -497,7 +497,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'partial update should not overwrite name, prices and images', (done) ->
       csv =
@@ -533,7 +533,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'should do a full update of SEO attribute', (done) ->
       csv =
@@ -566,7 +566,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'should do a full update of multi language SEO attribute', (done) ->
       csv =
@@ -602,7 +602,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
 
     it 'should not update SEO attribute if not all 3 headers are present', (done) ->
@@ -636,7 +636,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
 
     it 'should do a partial update of prices based on SKUs', (done) ->
       csv =
@@ -672,4 +672,4 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
       .done()
-    , 50000 # 50sec
+    , 30000 # 30sec
