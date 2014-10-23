@@ -98,7 +98,7 @@ module.exports = class
         GLOBALS.DEFAULT_LANGUAGE = opts.language
         GLOBALS.DELIM_MULTI_VALUE = opts.multiValueDelimiter ? GLOBALS.DELIM_MULTI_VALUE
 
-        credentialsConfig = ProjectCredentialsConfig.create()
+        ProjectCredentialsConfig.create()
         .then (credentials) ->
           options =
             config: credentials.enrichCredentials
@@ -162,7 +162,7 @@ module.exports = class
       .option '--continueOnProblems', "When a there is a problem on changing a product's state (400er response), ignore it and continue with the next products"
       .action (opts) =>
 
-        credentialsConfig = ProjectCredentialsConfig.create()
+        ProjectCredentialsConfig.create()
         .then (credentials) =>
           options =
             config: credentials.enrichCredentials
