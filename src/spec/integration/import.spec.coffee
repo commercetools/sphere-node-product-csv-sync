@@ -25,30 +25,7 @@ describe 'Import integration test', ->
     @importer.validator.suppressMissingHeaderWarning = true
     @client = @importer.client
 
-    values = [
-      { key: 'x', label: 'X' }
-      { key: 'y', label: 'Y' }
-      { key: 'z', label: 'Z' }
-    ]
-
-    lvalues = [
-      { key: 'aa', label: { en: 'AA', de: 'Aa' } }
-      { key: 'bb', label: { en: 'BB', de: 'mäßig heiß bügeln' } }
-      { key: 'cc', label: { en: 'CC', de: 'Cc' } }
-    ]
-
     @productType = TestHelpers.mockProductType()
-      # name: 'myImportType'
-      # description: 'foobar'
-      # attributes: [
-      #   { name: 'descN', label: { de: 'descN' }, type: { name: 'ltext'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
-      #   { name: 'descU', label: { de: 'descU' }, type: { name: 'text'}, attributeConstraint: 'Unique', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
-      #   { name: 'descCU1', label: { de: 'descCU1' }, type: { name: 'text'}, attributeConstraint: 'CombinationUnique', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
-      #   { name: 'descCU2', label: { de: 'descCU2' }, type: { name: 'text'}, attributeConstraint: 'CombinationUnique', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
-      #   { name: 'descS', label: { de: 'descS' }, type: { name: 'text'}, attributeConstraint: 'SameForAll', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
-      #   { name: 'multiEnum', label: { de: 'multiEnum' }, type: { name: 'set', elementType: { name: 'enum', values: values } }, attributeConstraint: 'None', isRequired: false, isSearchable: false }
-      #   { name: 'multiSamelEnum', label: { de: 'multiSamelEnum' }, type: { name: 'set', elementType: { name: 'lenum', values: lvalues } }, attributeConstraint: 'SameForAll', isRequired: false, isSearchable: false }
-      # ]
 
     TestHelpers.setupProductType(@client, @productType)
     .then (result) =>
@@ -522,7 +499,7 @@ describe 'Import integration test', ->
       .done()
     , 50000 # 50sec
 
-    xit 'partial update should not overwrite name, prices and images', (done) ->
+    it 'partial update should not overwrite name, prices and images', (done) ->
       csv =
         """
         productType,name,slug,variantId,prices,images
@@ -558,11 +535,11 @@ describe 'Import integration test', ->
       .done()
     , 50000 # 50sec
 
-    xit 'should do a full update of SEO attribute', (done) ->
+    it 'should do a full update of SEO attribute', (done) ->
       csv =
         """
         productType,variantId,sku,name,metaTitle,metaDescription,metaKeywords
-        #{@productType.id},1,a111,mySeoProdcut,a,b,c
+        #{@productType.id},1,a111,mySeoProduct,a,b,c
         """
       @importer.import(csv)
       .then (result) =>
@@ -571,7 +548,7 @@ describe 'Import integration test', ->
         csv =
           """
           productType,variantId,sku,name,metaTitle,metaDescription,metaKeywords
-          #{@productType.id},1,a111,mySeoProdcut,,b,changed
+          #{@productType.id},1,a111,mySeoProduct,,b,changed
           """
         im = createImporter()
         im.import(csv)
@@ -582,7 +559,7 @@ describe 'Import integration test', ->
       .then (result) ->
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0].masterData.staged
-        expect(p.name.en).toBe 'mySeoProdcut'
+        expect(p.name.en).toBe 'mySeoProduct'
         expect(p.metaTitle.en).toBe 'a' # I would actually expect ''
         expect(p.metaDescription.en).toBe 'b'
         expect(p.metaKeywords.en).toBe 'changed'
@@ -591,7 +568,7 @@ describe 'Import integration test', ->
       .done()
     , 50000 # 50sec
 
-    xit 'should do a full update of multi language SEO attribute', (done) ->
+    it 'should do a full update of multi language SEO attribute', (done) ->
       csv =
         """
         productType,variantId,sku,name,metaTitle.de,metaDescription.de,metaKeywords.de,metaTitle.en,metaDescription.en,metaKeywords.en
@@ -628,7 +605,7 @@ describe 'Import integration test', ->
     , 50000 # 50sec
 
 
-    xit 'should not update SEO attribute if not all 3 headers are present', (done) ->
+    it 'should not update SEO attribute if not all 3 headers are present', (done) ->
       csv =
         """
         productType,variantId,sku,name,metaTitle,metaDescription,metaKeywords
@@ -661,7 +638,7 @@ describe 'Import integration test', ->
       .done()
     , 50000 # 50sec
 
-    xit 'should do a partial update of prices based on SKUs', (done) ->
+    it 'should do a partial update of prices based on SKUs', (done) ->
       csv =
         """
         productType,name,sku,variantId,prices
