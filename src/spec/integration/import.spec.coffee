@@ -283,12 +283,12 @@ describe 'Import integration test', ->
       .done()
     , 50000 # 50sec
 
-    xit 'should remove a variant and change an SameForAll attribute at the same time', (done) ->
+    it 'should remove a variant and change an SameForAll attribute at the same time', (done) ->
       csv =
         """
-        productType,name,variantId,slug,descU,descCU1,descS
-        #{@productType.id},myProduct-1,1,slug-1,a,b,SAMESAME
-        ,,2,slug-2,b,a,
+        productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
+        #{@productType.id},myProduct-1,1,slug-1,foo,10,enum1
+        ,,2,slug-2,bar,20,
         """
       @importer.import(csv)
       .then (result) =>
@@ -296,8 +296,8 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,name,variantId,slug,descU,descCU1,descS
-          #{@productType.id},myProduct-1,1,slug-1,a,b,SAMESAME_BUTDIFFERENT
+          productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
+          #{@productType.id},myProduct-1,1,slug-1,foo,10,enum1
           """
         im = createImporter()
         im.import(csv)
@@ -314,12 +314,12 @@ describe 'Import integration test', ->
       .done()
     , 50000 # 50sec
 
-    xit 'should not removeVariant if allowRemovalOfVariants is off', (done) ->
+    it 'should not removeVariant if allowRemovalOfVariants is off', (done) ->
       csv =
         """
-        productType,name,variantId,slug,descU,descCU1
-        #{@productType.id},myProduct-1,1,slug-1,a,b
-        ,,2,slug-2,b,a,
+        productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
+        #{@productType.id},myProduct-1,1,slug-1,foo,10,enum1
+        ,,2,slug-2,bar,20,
         """
       @importer.import(csv)
       .then (result) =>
@@ -327,8 +327,8 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,name,variantId,slug,descU,descCU1
-          #{@productType.id},myProduct-1,1,slug-1,a,b
+          productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
+          #{@productType.id},myProduct-1,1,slug-1,foo,10,enum1
           """
         im = createImporter()
         im.allowRemovalOfVariants = false
@@ -346,11 +346,12 @@ describe 'Import integration test', ->
       .done()
     , 50000 # 50sec
 
-    xit 'should execute SameForAll attribute change before addVariant', (done) ->
+    it 'should execute SameForAll attribute change before addVariant', (done) ->
       csv =
         """
-        productType,name,variantId,slug,descU,descCU1,descS
-        #{@productType.id},myProduct-1,1,slug-1,a,b,SAMESAME
+        productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
+        #{@productType.id},myProduct-1,1,slug-1,foo,10,enum1
+        ,,2,slug-2,bar,20,
         """
       @importer.import(csv)
       .then (result) =>
@@ -358,9 +359,9 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,name,variantId,slug,descU,descCU1,descS
-          #{@productType.id},myProduct-1,1,slug-1,a,b,SAMESAME_BUTDIFFERENT
-          ,,2,slug-2,b,a,WE_WILL_IGNORE_THIS
+          productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
+          #{@productType.id},myProduct-1,1,slug-1,foo,10,enum2
+          ,,2,slug-2,bar,20,enum1
           """
         im = createImporter()
         im.import(csv)
@@ -372,7 +373,7 @@ describe 'Import integration test', ->
       .done()
     , 50000 # 50sec
 
-    xit 'should do a partial update of product base attributes', (done) ->
+    it 'should do a partial update of product base attributes', (done) ->
       csv =
         """
         productType,name.en,description.en,slug.en,variantId
@@ -415,10 +416,10 @@ describe 'Import integration test', ->
       .done()
     , 50000 # 50sec
 
-    xit 'should do a partial update of localized attributes', (done) ->
+    it 'should do a partial update of localized attributes', (done) ->
       csv =
         """
-        productType,variantId,sku,name,description.en,description.de,description.fr,descN.en,descN.de,descN.xit
+        productType,variantId,sku,name,description.en,description.de,description.fr,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.de,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.it
         #{@productType.id},1,someSKU,myProductY,foo bar,bla bla,bon jour,english,german,italian
         """
       @importer.import(csv)
@@ -437,7 +438,7 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         csv =
           """
-          productType,variantId,sku,description.de,description.fr,descN.en,descN.xit
+          productType,variantId,sku,description.de,description.fr,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.it
           #{@productType.id},1,someSKU,"Hallo Welt",bon jour,english,ciao
           """
         im = createImporter()
@@ -452,21 +453,21 @@ describe 'Import integration test', ->
         expect(p.description.en).toBeUndefined() # TODO: expecting 'foo bar'
         expect(p.description.de).toBe 'Hallo Welt'
         attrib = _.find p.masterVariant.attributes, (a) ->
-          a.name = 'descN'
+          a.name = LTEXT_ATTRIBUTE_COMBINATION_UNIQUE
         expect(attrib.value.en).toBe 'english'
         expect(attrib.value.de).toBeUndefined() # TODO: expecting 'german'
-        expect(attrib.value.xit).toBe 'ciao'
+        expect(attrib.value.it).toBe 'ciao'
         done()
       .catch (err) -> done _.prettify(err)
       .done()
     , 50000 # 50sec
 
-    xit 'should do a partial update of custom attributes', (done) ->
+    it 'should do a partial update of custom attributes', (done) ->
       csv =
         """
-        productType,name,slug,variantId,descN,descU,descCU1,descCU2,descS,multiEnum,multiSamelEnum,sku
-        #{@productType.id},x,my-slug,1,a,b,c,d,S,x,aa;bb,myPersonalSKU1
-        ,,,2,b,c,d,e,S,x;y;z,,myPersonalSKU2
+        productType,name,slug,variantId,#{TEXT_ATTRIBUTE_NONE},#{SET_ATTRIBUTE_TEXT_UNIQUE},#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL},#{SET_ATTRIBUTE_LENUM_SAME_FOR_ALL},sku
+        #{@productType.id},x,my-slug,1,hello,foo1;bar1,June,10,enum1,lenum1;lenum2,myPersonalSKU1
+        ,,,2,hello,foo2;bar2,October,20,,,myPersonalSKU2
         """
       @importer.import(csv)
       .then (result) =>
@@ -485,9 +486,9 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         csv =
         """
-        productType,name,slug,variantId,multiSamelEnum,sku
-        #{@productType.id},x,my-slug,1,cc,myPersonalSKU3
-        ,,,2,,myPersonalSKU2
+        productType,name,slug,variantId,#{SET_ATTRIBUTE_LENUM_SAME_FOR_ALL},#{SET_ATTRIBUTE_TEXT_UNIQUE},sku
+        #{@productType.id},x,my-slug,1,lenum2,unique,myPersonalSKU3
+        ,,,2,,still-unique,myPersonalSKU2
         """
         im = createImporter()
         im.import(csv)
@@ -503,21 +504,19 @@ describe 'Import integration test', ->
         expect(p.masterVariant.sku).toBe 'myPersonalSKU3'
         expect(p.variants[0].sku).toBe 'myPersonalSKU2'
         ats = p.masterVariant.attributes
-        expect(ats[0]).toEqual { name: 'descN', value: { en: 'a' } }
-        expect(ats[1]).toEqual { name: 'descU', value: 'b' }
-        expect(ats[2]).toEqual { name: 'descCU1', value: 'c' }
-        expect(ats[3]).toEqual { name: 'descCU2', value: 'd' }
-        expect(ats[4]).toEqual { name: 'descS', value: 'S' }
-        expect(ats[5]).toEqual { name: 'multiEnum', value: [{ key: 'x', label: 'X' }] }
-        expect(ats[6]).toEqual { name: 'multiSamelEnum', value: [{ key: 'cc', label: { en: 'CC', 'de': 'Cc' } }] }
+        expect(ats[0]).toEqual { name: TEXT_ATTRIBUTE_NONE, value: 'hello' }
+        expect(ats[1]).toEqual { name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['unique'] }
+        expect(ats[2]).toEqual { name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'June'} }
+        expect(ats[3]).toEqual { name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10 }
+        expect(ats[4]).toEqual { name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum1', label: 'Enum1'} }
+        expect(ats[5]).toEqual { name: SET_ATTRIBUTE_LENUM_SAME_FOR_ALL, value: [{key: 'lenum2', label: { en : 'Enum2' }}] }
         ats = p.variants[0].attributes
-        expect(ats[0]).toEqual { name: 'descN', value: { en: 'b' } }
-        expect(ats[1]).toEqual { name: 'descU', value: 'c' }
-        expect(ats[2]).toEqual { name: 'descCU1', value: 'd' }
-        expect(ats[3]).toEqual { name: 'descCU2', value: 'e' }
-        expect(ats[4]).toEqual { name: 'descS', value: 'S' }
-        expect(ats[5]).toEqual { name: 'multiEnum', value: [{ key: 'x', label: 'X' }, { key: 'y', label: 'Y' }, { key: 'z', label: 'Z' }] }
-        expect(ats[6]).toEqual { name: 'multiSamelEnum', value: [{ key: 'cc', label: { en: 'CC', 'de': 'Cc' } }] }
+        expect(ats[0]).toEqual { name: TEXT_ATTRIBUTE_NONE, value: 'hello' }
+        expect(ats[1]).toEqual { name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['still-unique'] }
+        expect(ats[2]).toEqual { name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'October'} }
+        expect(ats[3]).toEqual { name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 20 }
+        expect(ats[4]).toEqual { name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum1', label: 'Enum1'} }
+        expect(ats[5]).toEqual { name: SET_ATTRIBUTE_LENUM_SAME_FOR_ALL, value: [{key: 'lenum2', label: { en : 'Enum2' }}] }
         done()
       .catch (err) -> done _.prettify(err)
       .done()

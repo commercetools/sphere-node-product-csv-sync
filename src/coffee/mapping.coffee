@@ -31,6 +31,7 @@ class Mapping
       product: product
       rowIndex: raw.startRow
       header: @header
+    data
 
   mapBaseProduct: (rawMaster, productType, rowIndex) ->
     product =
@@ -144,10 +145,11 @@ class Mapping
 
   mapAttribute: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
     value = @mapValue rawVariant, attribute, languageHeader2Index, rowIndex
-    return undefined if not value or _.isEmpty(value)
+    return undefined if _.isUndefined(value) or (_.isObject(value) and _.isEmpty(value))
     attribute =
       name: attribute.name
       value: value
+    attribute
 
   # TODO: support boolean attributes
   mapValue: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
@@ -240,8 +242,8 @@ class Mapping
     unless matchedNumber
       @errors.push "[row #{rowIndex}:#{attribName}] The number '#{rawNumber}' isn't valid!"
       return
-
     parseInt matchedNumber[0]
+
 
   # "a.en,a.de,a.it"
   # "hi,Hallo,ciao"
