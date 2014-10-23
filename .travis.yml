@@ -11,7 +11,7 @@ before_script:
 script:
   - npm test
   - cucumber -t ~@wip
-  - ./bin/product-csv-sync import --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --csv data/minimum-header.csv
+  - ./bin/product-csv-sync import --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --csv data/minimum-header.csv --suppressMissingHeaderWarning
   - ./bin/product-csv-sync template --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --out data/template_sample.csv --all
   - ./bin/product-csv-sync export --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --template data/template_sample.csv --out data/exported.csv
 notifications:
