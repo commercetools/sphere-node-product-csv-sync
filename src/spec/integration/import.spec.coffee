@@ -45,9 +45,15 @@ describe 'Import integration test', ->
         #{@productType.id},myProduct,1,slug
         """
       @importer.import(csv)
-      .then (result) ->
+      .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: 'myProduct'
+        expect(p.slug).toEqual en: 'slug'
         done()
       .catch (err) -> done _.prettify(err)
       .done()
@@ -64,10 +70,10 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
-        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
       .then (result) ->
         expect(_.size result.body.results).toBe 1
-        p = result.body.results[0].masterData.staged
+        p = result.body.results[0]
         expect(_.size p.masterVariant.prices).toBe 3
         prices = p.masterVariant.prices
         expect(prices[0].value).toEqual { currencyCode: 'EUR', centAmount: 899 }
@@ -90,6 +96,7 @@ describe 'Import integration test', ->
       .then (result) ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
+
         im = createImporter()
         im.import(csv)
       .then (result) ->
@@ -117,9 +124,15 @@ describe 'Import integration test', ->
           """
         im = createImporter()
         im.import(csv)
-      .then (result) ->
+      .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: 'CHANGED'
+        expect(p.slug).toEqual en: 'sluguniqe'
         done()
       .catch (err) -> done _.prettify(err)
       .done()
@@ -151,9 +164,28 @@ describe 'Import integration test', ->
           """
         im = createImporter()
         im.import(csv)
-      .then (result) ->
+      .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.masterVariant.attributes[0]).toEqual {name: TEXT_ATTRIBUTE_NONE, value: 'bar'}
+        expect(p.masterVariant.attributes[1]).toEqual {name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['uno', 'due']}
+        expect(p.masterVariant.attributes[2]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'CU1'}}
+        expect(p.masterVariant.attributes[3]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10}
+        expect(p.masterVariant.attributes[4]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
+        expect(p.variants[0].attributes[0]).toEqual {name: TEXT_ATTRIBUTE_NONE, value: 'bar'}
+        expect(p.variants[0].attributes[1]).toEqual {name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['tre', 'quattro']}
+        expect(p.variants[0].attributes[2]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'CU2'}}
+        expect(p.variants[0].attributes[3]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10}
+        expect(p.variants[0].attributes[4]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
+        expect(p.variants[1].attributes[0]).toEqual {name: TEXT_ATTRIBUTE_NONE, value: 'bar'}
+        expect(p.variants[1].attributes[1]).toEqual {name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['cinque', 'sei']}
+        expect(p.variants[1].attributes[2]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'CU3'}}
+        expect(p.variants[1].attributes[3]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10}
+        expect(p.variants[1].attributes[4]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
         done()
       .catch (err) -> done _.prettify(err)
       .done()
@@ -176,11 +208,21 @@ describe 'Import integration test', ->
         expect(result[2]).toBe '[row 5] New product created.'
         im = createImporter()
         im.import(csv)
-      .then (result) ->
+      .then (result) =>
         expect(_.size result).toBe 3
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         expect(result[1]).toBe '[row 4] Product update not necessary.'
         expect(result[2]).toBe '[row 5] Product update not necessary.'
+
+        @client.productProjections.staged(true)
+        .where("productType(id=\"#{@productType.id}\")")
+        .sort("name.en")
+        .fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 3
+        expect(result.body.results[0].name).toEqual {en: 'myProduct1'}
+        expect(result.body.results[1].name).toEqual {en: 'myProduct2'}
+        expect(result.body.results[2].name).toEqual {en: 'myProduct3'}
         done()
       .catch (err) -> done _.prettify(err)
       .done()
@@ -210,9 +252,17 @@ describe 'Import integration test', ->
           """
         im = createImporter()
         im.import(csv)
-      .then (result) ->
+      .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
+
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.masterVariant.attributes[0]).toEqual {name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['bar']}
+        expect(p.masterVariant.attributes[1]).toEqual {name: SET_ATTRIBUTE_ENUM_NONE, value: [{key: 'enum1', label: 'Enum1'}]}
+        expect(p.masterVariant.attributes[2]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 100}
         done()
       .catch (err) -> done _.prettify(err)
       .done()
@@ -252,9 +302,20 @@ describe 'Import integration test', ->
           """
         im = createImporter()
         im.import(csv)
-      .then (result) ->
+      .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.masterVariant.attributes[0]).toEqual {name: TEXT_ATTRIBUTE_NONE, value: 'foo'}
+        expect(p.masterVariant.attributes[1]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'fooEn1'}}
+        expect(p.masterVariant.attributes[2]).toEqual {name: SET_ATTRIBUTE_LENUM_SAME_FOR_ALL, value: [{key: 'lenum1', label: {en: 'Enum1'}}, {key: 'lenum2', label: {en: 'Enum2'}}]}
+        _.each result.body.results[0].variants, (v, i) ->
+          expect(v.attributes[0]).toEqual {name: TEXT_ATTRIBUTE_NONE, value: 'foo'}
+          expect(v.attributes[1]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: "fooEn#{i+2}"}}
+          expect(v.attributes[2]).toEqual {name: SET_ATTRIBUTE_LENUM_SAME_FOR_ALL, value: [{key: 'lenum1', label: {en: 'Enum1'}}, {key: 'lenum2', label: {en: 'Enum2'}}]}
         done()
       .catch (err) -> done _.prettify(err)
       .done()
@@ -281,11 +342,14 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
       .then (result) ->
         expect(_.size result.body.results).toBe 1
-        p = result.body.results[0].masterData.staged
-        expect(_.size p.variants).toBe 0
+        p = result.body.results[0]
+        expect(p.variants).toEqual []
+        expect(p.masterVariant.attributes[0]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'foo'}}
+        expect(p.masterVariant.attributes[1]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10}
+        expect(p.masterVariant.attributes[2]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum1', label: 'Enum1'}}
         done()
       .catch (err) -> done _.prettify(err)
       .done()
@@ -313,10 +377,11 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product update not necessary.'
-        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
       .then (result) ->
         expect(_.size result.body.results).toBe 1
-        p = result.body.results[0].masterData.staged
+        p = result.body.results[0]
         expect(_.size p.variants).toBe 1
         done()
       .catch (err) -> done _.prettify(err)
@@ -342,9 +407,21 @@ describe 'Import integration test', ->
           """
         im = createImporter()
         im.import(csv)
-      .then (result) ->
+      .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual {en: 'myProduct-1'}
+        expect(p.slug).toEqual {en: 'slug-1'}
+        expect(p.masterVariant.attributes[0]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'foo'}}
+        expect(p.masterVariant.attributes[1]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10}
+        expect(p.masterVariant.attributes[2]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
+        expect(p.variants[0].attributes[0]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'bar'}}
+        expect(p.variants[0].attributes[1]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 20}
+        expect(p.variants[0].attributes[2]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
         done()
       .catch (err) -> done _.prettify(err)
       .done()
@@ -380,10 +457,11 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
       .then (result) ->
         expect(_.size result.body.results).toBe 1
-        p = result.body.results[0].masterData.staged
+        p = result.body.results[0]
         expect(p.name.en).toBe 'XYZ'
         expect(p.description.en).toBe 'foo bar'
         expect(p.slug.en).toBe 'my-product-x'
@@ -423,17 +501,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
       .then (result) ->
         expect(_.size result.body.results).toBe 1
-        p = result.body.results[0].masterData.staged
-        expect(p.description.en).toBeUndefined() # TODO: expecting 'foo bar'
-        expect(p.description.de).toBe 'Hallo Welt'
-        attrib = _.find p.masterVariant.attributes, (a) ->
-          a.name = LTEXT_ATTRIBUTE_COMBINATION_UNIQUE
-        expect(attrib.value.en).toBe 'english'
-        expect(attrib.value.de).toBeUndefined() # TODO: expecting 'german'
-        expect(attrib.value.it).toBe 'ciao'
+        p = result.body.results[0]
+        # TODO: expecting 'foo bar'
+        expect(p.description).toEqual {en: undefined, de: 'Hallo Welt', fr: 'bon jour'}
+        # TODO: expecting {de: 'german'}
+        expect(p.masterVariant.attributes[0]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'english', de: undefined, it: 'ciao'}}
         done()
       .catch (err) -> done _.prettify(err)
       .done()
@@ -472,28 +548,26 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
       .then (result) ->
         expect(_.size result.body.results).toBe 1
-        p = result.body.results[0].masterData.staged
+        p = result.body.results[0]
         expect(_.size p.variants).toBe 1
-        expect(p.name.en).toBe 'x'
+        expect(p.name).toEqual {en: 'x'}
         expect(p.masterVariant.sku).toBe 'myPersonalSKU3'
+        expect(p.masterVariant.attributes[0]).toEqual { name: TEXT_ATTRIBUTE_NONE, value: 'hello' }
+        expect(p.masterVariant.attributes[1]).toEqual { name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['unique'] }
+        expect(p.masterVariant.attributes[2]).toEqual { name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'June'} }
+        expect(p.masterVariant.attributes[3]).toEqual { name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10 }
+        expect(p.masterVariant.attributes[4]).toEqual { name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum1', label: 'Enum1'} }
+        expect(p.masterVariant.attributes[5]).toEqual { name: SET_ATTRIBUTE_LENUM_SAME_FOR_ALL, value: [{key: 'lenum2', label: { en : 'Enum2' }}] }
         expect(p.variants[0].sku).toBe 'myPersonalSKU2'
-        ats = p.masterVariant.attributes
-        expect(ats[0]).toEqual { name: TEXT_ATTRIBUTE_NONE, value: 'hello' }
-        expect(ats[1]).toEqual { name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['unique'] }
-        expect(ats[2]).toEqual { name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'June'} }
-        expect(ats[3]).toEqual { name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10 }
-        expect(ats[4]).toEqual { name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum1', label: 'Enum1'} }
-        expect(ats[5]).toEqual { name: SET_ATTRIBUTE_LENUM_SAME_FOR_ALL, value: [{key: 'lenum2', label: { en : 'Enum2' }}] }
-        ats = p.variants[0].attributes
-        expect(ats[0]).toEqual { name: TEXT_ATTRIBUTE_NONE, value: 'hello' }
-        expect(ats[1]).toEqual { name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['still-unique'] }
-        expect(ats[2]).toEqual { name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'October'} }
-        expect(ats[3]).toEqual { name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 20 }
-        expect(ats[4]).toEqual { name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum1', label: 'Enum1'} }
-        expect(ats[5]).toEqual { name: SET_ATTRIBUTE_LENUM_SAME_FOR_ALL, value: [{key: 'lenum2', label: { en : 'Enum2' }}] }
+        expect(p.variants[0].attributes[0]).toEqual { name: TEXT_ATTRIBUTE_NONE, value: 'hello' }
+        expect(p.variants[0].attributes[1]).toEqual { name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['still-unique'] }
+        expect(p.variants[0].attributes[2]).toEqual { name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'October'} }
+        expect(p.variants[0].attributes[3]).toEqual { name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 20 }
+        expect(p.variants[0].attributes[4]).toEqual { name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum1', label: 'Enum1'} }
+        expect(p.variants[0].attributes[5]).toEqual { name: SET_ATTRIBUTE_LENUM_SAME_FOR_ALL, value: [{key: 'lenum2', label: { en : 'Enum2' }}] }
         done()
       .catch (err) -> done _.prettify(err)
       .done()
@@ -521,14 +595,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product update not necessary.'
-        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
       .then (result) ->
         expect(_.size result.body.results).toBe 1
-        p = result.body.results[0].masterData.staged
-        expect(p.name.en).toBe 'y'
+        p = result.body.results[0]
+        expect(p.name).toEqual {en: 'y'}
         expect(p.masterVariant.prices[0].value).toEqual { centAmount: 999, currencyCode: 'EUR' }
-        expect(p.variants[0].prices[0].value).toEqual { centAmount: 70000, currencyCode: 'USD' }
         expect(p.masterVariant.images[0].url).toBe '//example.com/foo.jpg'
+        expect(p.variants[0].prices[0].value).toEqual { centAmount: 70000, currencyCode: 'USD' }
         expect(p.variants[0].images[0].url).toBe '/example.com/bar.png'
         done()
       .catch (err) -> done _.prettify(err)
@@ -555,14 +630,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
       .then (result) ->
         expect(_.size result.body.results).toBe 1
-        p = result.body.results[0].masterData.staged
-        expect(p.name.en).toBe 'mySeoProduct'
-        expect(p.metaTitle.en).toBe 'a' # I would actually expect ''
-        expect(p.metaDescription.en).toBe 'b'
-        expect(p.metaKeywords.en).toBe 'changed'
+        p = result.body.results[0]
+        expect(p.name).toEqual {en: 'mySeoProduct'}
+        # TODO: expecting metaTitle to be undefined
+        expect(p.metaTitle).toEqual {en: 'a'}
+        expect(p.metaDescription).toEqual {en: 'b'}
+        expect(p.metaKeywords).toEqual {en: 'changed'}
         done()
       .catch (err) -> done _.prettify(err)
       .done()
@@ -588,17 +664,14 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
       .then (result) ->
         expect(_.size result.body.results).toBe 1
-        p = result.body.results[0].masterData.staged
-        expect(p.name.en).toBe 'mySeoProduct'
-        expect(p.metaTitle.de).not.toBeDefined()
-        expect(p.metaDescription.de).toBe 'newMetaDescDe'
-        expect(p.metaKeywords.de).toBe 'newMetaKeyDe'
-        expect(p.metaTitle.en).toBe 'newMetaTitleEn'
-        expect(p.metaDescription.en).toBe 'newMetaDescEn'
-        expect(p.metaKeywords.en).not.toBeDefined()
+        p = result.body.results[0]
+        expect(p.name).toEqual {en: 'mySeoProduct'}
+        expect(p.metaTitle).toEqual {en: 'newMetaTitleEn'}
+        expect(p.metaDescription).toEqual {en: 'newMetaDescEn', de: 'newMetaDescDe'}
+        expect(p.metaKeywords).toEqual {de: 'newMetaKeyDe'}
         done()
       .catch (err) -> done _.prettify(err)
       .done()
@@ -625,14 +698,14 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product update not necessary.'
-        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
       .then (result) ->
         expect(_.size result.body.results).toBe 1
-        p = result.body.results[0].masterData.staged
-        expect(p.name.en).toBe 'mySeoProdcut'
-        expect(p.metaTitle.en).toBe 'a'
-        expect(p.metaDescription.en).toBe 'b'
-        expect(p.metaKeywords.en).toBe 'c'
+        p = result.body.results[0]
+        expect(p.name).toEqual {en: 'mySeoProdcut'}
+        expect(p.metaTitle).toEqual {en: 'a'}
+        expect(p.metaDescription).toEqual {en: 'b'}
+        expect(p.metaKeywords).toEqual {en: 'c'}
         done()
       .catch (err) -> done _.prettify(err)
       .done()
@@ -660,11 +733,11 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.products.where("productType(id=\"#{@productType.id}\")").fetch()
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
       .then (result) ->
         expect(_.size result.body.results).toBe 1
-        p = result.body.results[0].masterData.staged
-        expect(p.name.en).toBe 'xyz'
+        p = result.body.results[0]
+        expect(p.name).toEqual {en: 'xyz'}
         expect(p.masterVariant.sku).toBe 'sku1'
         expect(p.masterVariant.prices[0].value).toEqual { centAmount: 1999, currencyCode: 'EUR' }
         expect(p.variants[0].sku).toBe 'sku2'
