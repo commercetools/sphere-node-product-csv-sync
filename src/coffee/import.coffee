@@ -91,7 +91,6 @@ class Import
 
       if _.size(filteredProducts) is 0
         # Q 'Nothing to do.'
-        console.log 'Nothing to do'
         Promise.resolve()
       else
         posts = _.map filteredProducts, (product) =>
@@ -104,6 +103,14 @@ class Import
         action = 'Deleting' if remove
         console.log "#{action} #{_.size posts} product(s) ..."
         Promise.all(posts)
+    .then (result) ->
+      filteredResult = _.filter result, (r) -> r
+      # TODO: resolve with a summary of the import
+      console.log "Finished processing #{_.size filteredResult} products"
+      if _.size(filteredResult) is 0
+        Promise.resolve 'Nothing to do'
+      else
+        Promise.resolve filteredResult
 
   initMatcher: (existingProducts) ->
     @existingProducts = existingProducts

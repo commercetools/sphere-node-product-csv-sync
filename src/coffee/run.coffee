@@ -164,8 +164,9 @@ module.exports = class
       .description 'Allows to publish, unpublish or delete (all) products of your SPHERE.IO project.'
       .option '--changeTo <publish,unpublish,delete>', 'publish unpublished products / unpublish published products / delete unpublished products'
       .option '--csv <file>', 'processes products defined in a CSV file by either "sku" or "id". Otherwise all products are processed.'
+      .option '--continueOnProblems', 'When a there is a problem on changing a product\'s state (400er response), ignore it and continue with the next products'
+      .option '--forceDelete', 'whether to force deletion without asking for confirmation', false
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo <state>'
-      .option '--continueOnProblems', "When a there is a problem on changing a product's state (400er response), ignore it and continue with the next products"
       .action (opts) =>
 
         return _subCommandHelp('state') unless program.projectKey
@@ -219,20 +220,23 @@ module.exports = class
             .done()
 
           if remove
-            prompt.start()
-            property =
-              name: 'ask'
-              message: 'Do you really want to delete products?'
-              validator: /y[es]*|n[o]?/
-              warning: 'Please answer with yes or no'
-              default: 'no'
+            if opts.forceDelete
+              run options
+            else
+              prompt.start()
+              property =
+                name: 'ask'
+                message: 'Do you really want to delete products?'
+                validator: /y[es]*|n[o]?/
+                warning: 'Please answer with yes or no'
+                default: 'no'
 
-            prompt.get property, (err, result) ->
-              if _.isString(result.ask) and result.ask.match(/y(es){0,1}/i)
-                run options
-              else
-                console.log 'Cancelled.'
-                process.exit 9
+              prompt.get property, (err, result) ->
+                if _.isString(result.ask) and result.ask.match(/y(es){0,1}/i)
+                  run options
+                else
+                  console.log 'Aborted.'
+                  process.exit 9
           else
             run options
         .catch (err) ->
