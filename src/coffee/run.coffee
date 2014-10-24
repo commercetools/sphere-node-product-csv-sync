@@ -65,6 +65,10 @@ module.exports = class
 
   @run: (argv) ->
 
+    _subCommandHelp = (cmd) ->
+      program.emit(cmd, null, ['--help'])
+      process.exit 1
+
     program
       .version package_json.version
       .usage '[globals] [sub-command] [options]'
@@ -97,6 +101,8 @@ module.exports = class
       .action (opts) ->
         GLOBALS.DEFAULT_LANGUAGE = opts.language
         GLOBALS.DELIM_MULTI_VALUE = opts.multiValueDelimiter ? GLOBALS.DELIM_MULTI_VALUE
+
+        return _subCommandHelp('import') unless program.projectKey
 
         ProjectCredentialsConfig.create()
         .then (credentials) ->
@@ -149,7 +155,7 @@ module.exports = class
             process.exit 2
         .catch (err) ->
           console.error "Problems on getting client credentials from config files: #{err}"
-          process.exit 2
+          _subCommandHelp('import')
         .done()
 
 
@@ -161,6 +167,8 @@ module.exports = class
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo <state>'
       .option '--continueOnProblems', "When a there is a problem on changing a product's state (400er response), ignore it and continue with the next products"
       .action (opts) =>
+
+        return _subCommandHelp('state') unless program.projectKey
 
         ProjectCredentialsConfig.create()
         .then (credentials) =>
@@ -229,7 +237,7 @@ module.exports = class
             run options
         .catch (err) ->
           console.error "Problems on getting client credentials from config files: #{err}"
-          process.exit 2
+          _subCommandHelp('state')
         .done()
 
 
@@ -245,56 +253,62 @@ module.exports = class
       .action (opts) ->
         GLOBALS.DEFAULT_LANGUAGE = opts.language
 
-        options =
-          config:
-            project_key: program.projectKey
-            client_id: program.clientId
-            client_secret: program.clientSecret
-          timeout: program.timeout
-          show_progress: true
-          user_agent: "#{package_json.name} - Export - #{package_json.version}"
-          queryString: opts.queryString
-          # logConfig:
-          #   streams: [
-          #     {level: 'warn', stream: process.stdout}
+        return _subCommandHelp('export') unless program.projectKey
+
+        ProjectCredentialsConfig.create()
+        .then (credentials) =>
+          options =
+            config:
+              project_key: program.projectKey
+              client_id: program.clientId
+              client_secret: program.clientSecret
+            timeout: program.timeout
+            show_progress: true
+            user_agent: "#{package_json.name} - Export - #{package_json.version}"
+            queryString: opts.queryString
+            # logConfig:
+            #   streams: [
+            #     {level: 'warn', stream: process.stdout}
+            #   ]
+
+          options.host = program.sphereHost if program.sphereHost
+
+          # if program.verbose
+          #   options.logConfig.streams = [
+          #     {level: 'info', stream: process.stdout}
+          #   ]
+          # if program.debug
+          #   options.logConfig.streams = [
+          #     {level: 'debug', stream: process.stdout}
           #   ]
 
-        options.host = program.sphereHost if program.sphereHost
-
-        # if program.verbose
-        #   options.logConfig.streams = [
-        #     {level: 'info', stream: process.stdout}
-        #   ]
-        # if program.debug
-        #   options.logConfig.streams = [
-        #     {level: 'debug', stream: process.stdout}
-        #   ]
-
-        exporter = new Exporter options
-        if opts.json
-          exporter.exportAsJson(opts.json)
-          .then (result) ->
-            console.log result
-            process.exit 0
-          .catch (err) ->
-            console.error err
-            process.exit 1
-          .done()
-        else
-          fs.readFileAsync opts.template, 'utf8'
-          .then (content) ->
-            exporter.export(content, opts.out)
+          exporter = new Exporter options
+          if opts.json
+            exporter.exportAsJson(opts.json)
             .then (result) ->
               console.log result
               process.exit 0
             .catch (err) ->
               console.error err
               process.exit 1
-          .catch (err) ->
-            console.error "Problems on reading template file '#{opts.template}': #{err}"
-            process.exit 2
-          .done()
-
+            .done()
+          else
+            fs.readFileAsync opts.template, 'utf8'
+            .then (content) ->
+              exporter.export(content, opts.out)
+              .then (result) ->
+                console.log result
+                process.exit 0
+              .catch (err) ->
+                console.error err
+                process.exit 1
+            .catch (err) ->
+              console.error "Problems on reading template file '#{opts.template}': #{err}"
+              process.exit 2
+        .catch (err) ->
+          console.error "Problems on getting client credentials from config files: #{err}"
+          _subCommandHelp('export')
+        .done()
 
     program
       .command 'template'
@@ -304,38 +318,46 @@ module.exports = class
       .option '--all', 'Generates one template for all product types - if not given you will be ask which product type to use'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --out <file>'
       .action (opts) ->
-        options =
-          config:
-            project_key: program.projectKey
-            client_id: program.clientId
-            client_secret: program.clientSecret
-          timeout: program.timeout
-          show_progress: true
-          user_agent: "#{package_json.name} - Template - #{package_json.version}"
-          # logConfig:
-          #   streams: [
-          #     {level: 'warn', stream: process.stdout}
+
+        return _subCommandHelp('template') unless program.projectKey
+
+        ProjectCredentialsConfig.create()
+        .then (credentials) =>
+          options =
+            config:
+              project_key: program.projectKey
+              client_id: program.clientId
+              client_secret: program.clientSecret
+            timeout: program.timeout
+            show_progress: true
+            user_agent: "#{package_json.name} - Template - #{package_json.version}"
+            # logConfig:
+            #   streams: [
+            #     {level: 'warn', stream: process.stdout}
+            #   ]
+
+          options.host = program.sphereHost if program.sphereHost
+
+          # if program.verbose
+          #   options.logConfig.streams = [
+          #     {level: 'info', stream: process.stdout}
+          #   ]
+          # if program.debug
+          #   options.logConfig.streams = [
+          #     {level: 'debug', stream: process.stdout}
           #   ]
 
-        options.host = program.sphereHost if program.sphereHost
-
-        # if program.verbose
-        #   options.logConfig.streams = [
-        #     {level: 'info', stream: process.stdout}
-        #   ]
-        # if program.debug
-        #   options.logConfig.streams = [
-        #     {level: 'debug', stream: process.stdout}
-        #   ]
-
-        exporter = new Exporter options
-        exporter.createTemplate(opts.languages, opts.out, opts.all)
-        .then (result) ->
-          console.log result
-          process.exit 0
+          exporter = new Exporter options
+          exporter.createTemplate(opts.languages, opts.out, opts.all)
+          .then (result) ->
+            console.log result
+            process.exit 0
+          .catch (err) ->
+            console.error err
+            process.exit 1
         .catch (err) ->
-          console.error err
-          process.exit 1
+          console.error "Problems on getting client credentials from config files: #{err}"
+          _subCommandHelp('template')
         .done()
 
     program.parse argv
