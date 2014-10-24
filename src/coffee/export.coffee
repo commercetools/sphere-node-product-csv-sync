@@ -1,27 +1,31 @@
 _ = require 'underscore'
-fs = require 'fs'
 Csv = require 'csv'
-Types = require '../lib/types'
-Categories = require '../lib/categories'
-Channels = require '../lib/channels'
-CustomerGroups = require '../lib/customergroups'
-Header = require '../lib/header'
-Taxes = require '../lib/taxes'
-ExportMapping = require '../lib/exportmapping'
-Q = require 'q'
-prompt = require 'prompt'
-SphereClient = require 'sphere-node-client'
+Promise = require 'bluebird'
+fs = Promise.promisifyAll require('fs')
+prompt = Promise.promisifyAll require('prompt')
+{SphereClient} = require 'sphere-node-sdk'
+Types = require './types'
+Categories = require './categories'
+Channels = require './channels'
+CustomerGroups = require './customergroups'
+Header = require './header'
+Taxes = require './taxes'
+ExportMapping = require './exportmapping'
 
+# TODO:
+# - JSDoc
 class Export
 
   constructor: (options = {}) ->
     @queryString = options.queryString
+    @client = new SphereClient options
+
+    # TODO: using single mapping util instead of services
     @typesService = new Types()
     @categoryService = new Categories()
     @channelService = new Channels()
     @customerGroupService = new CustomerGroups()
     @taxService = new Taxes()
-    @client = new SphereClient options
 
   _initMapping: (header) ->
     options =
@@ -34,11 +38,11 @@ class Export
     new ExportMapping(options)
 
   export: (templateContent, outputFile, staged = true) ->
-    deferred = Q.defer()
-    @_parse(templateContent).then (header) =>
+    @_parse(templateContent)
+    .then (header) =>
       errors = header.validate()
       unless _.size(errors) is 0
-        deferred.reject errors
+        Promise.reject errors
       else
         header.toIndex()
         header.toLanguageIndex()
@@ -51,11 +55,14 @@ class Export
           @taxService.getAll @client
           @client.productProjections.staged(staged).all().fetch()
         ]
-        Q.all(data)
+        # TODO:
+        # - use process to export products in batches
+        # - use streams to write data chunks
+        Promise.all(data)
         .then ([productTypes, categories, channels, customerGroups, taxes, products]) =>
           console.log "Number of product types: #{productTypes.body.total}."
           if products.body.total is 0
-            deferred.resolve 'No products found.'
+            Promise.resolve 'No products found.'
           else
             console.log "Number of products: #{products.body.total}."
             @typesService.buildMaps productTypes.body.results
@@ -68,50 +75,42 @@ class Export
             csv = [ header.rawHeader ]
             for product in products.body.results
               csv = csv.concat exportMapping.mapProduct(product, productTypes.body.results)
-            @_saveCSV(outputFile, csv).then ->
-              deferred.resolve 'Export done.'
-    .fail (err) ->
-      deferred.reject err
-    .done()
 
-    deferred.promise
+            @_saveCSV(outputFile, csv)
+            .then -> Promise.resolve 'Export done.'
 
   exportAsJson: (outputFile) ->
-    deferred = Q.defer()
+    # TODO:
+    # - use process to export products in batches
+    # - use streams to write data chunks
     @client.products.all().fetch()
     .then (result) =>
       products = result.body.results
       if _.size(products) is 0
-        deferred.resolve 'No products found.'
+        Promise.resolve 'No products found.'
       else
         console.log "Number of products: #{_.size products}."
         @_saveJSON(outputFile, products)
-        .then ->
-          deferred.resolve 'Export done.'
-    .fail (err) ->
-      deferred.reject err
-    .done()
-
-    deferred.promise
+        .then -> Promise.resolve 'Export done.'
 
   createTemplate: (languages, outputFile, allProductTypes = false) ->
-    deferred = Q.defer()
     @typesService.getAll(@client)
     .then (result) =>
       productTypes = result.body.results
       if _.size(productTypes) is 0
-        deferred.reject 'Can not find any product type.'
+        Promise.reject 'Can not find any product type.'
       else
         idsAndNames = _.map productTypes, (productType) ->
           productType.name
 
         if allProductTypes
           allHeaders = []
+          exportMapping = new ExportMapping()
           _.each productTypes, (productType) ->
-            allHeaders = allHeaders.concat new ExportMapping().createTemplate(productType, languages)
+            allHeaders = allHeaders.concat exportMapping.createTemplate(productType, languages)
           csv = _.uniq allHeaders
-          @_saveCSV(outputFile, [csv]).then ->
-            deferred.resolve 'Template for all product types generated.'
+          @_saveCSV(outputFile, [csv])
+          .then -> Promise.resolve 'Template for all product types generated.'
         else
           _.each idsAndNames, (entry, index) ->
             console.log '  %d) %s', index, entry
@@ -121,46 +120,34 @@ class Export
             message: 'Enter the number of the producttype.'
             validator: /\d+/
             warning: 'Please enter a valid number'
-          prompt.get property, (err, result) =>
+          prompt.getAsync property
+          .then (result) =>
             productType = productTypes[parseInt(result.number)]
             if productType
               console.log "Generating template for product type '#{productType.name}' (id: #{productType.id})."
               process.stdin.destroy()
               csv = new ExportMapping().createTemplate(productType, languages)
               @_saveCSV(outputFile, [csv])
-              .then ->
-                deferred.resolve 'Template generated.'
+              .then -> Promise.resolve 'Template generated.'
             else
-              deferred.reject 'Please re-run and select a valid number.'
-    .fail (err) ->
-      deferred.reject err
-    .done()
-
-    deferred.promise
+              Promise.reject 'Please re-run and select a valid number.'
 
   _saveCSV: (file, content) ->
-    deferred = Q.defer()
-    Csv().from(content).to.path(file, encoding: 'utf8')
-    .on 'error', (err) ->
-      deferred.reject err
-    .on 'close', (count) ->
-      deferred.resolve count
-    deferred.promise
+    new Promise (resolve, reject) ->
+      Csv().from(content)
+      .to.path file, {encoding: 'utf8'}
+      .on 'error', (err) -> reject err
+      .on 'close', (count) -> resolve count
 
   _saveJSON: (file, content) ->
-    deferred = Q.defer()
-    fs.writeFile file, JSON.stringify(content, null, 2), {encoding: 'utf8'}, (err) ->
-      deferred.reject err if err
-      deferred.resolve true
-    deferred.promise
+    fs.writeFileAsync file, JSON.stringify(content, null, 2), {encoding: 'utf8'}
 
   _parse: (csvString) ->
-    deferred = Q.defer()
-    Csv().from.string(csvString)
-    .to.array (data, count) ->
-      header = new Header(data[0])
-      deferred.resolve header
-    deferred.promise
-
+    new Promise (resolve, reject) ->
+      Csv().from.string(csvString)
+      .to.array (data, count) ->
+        header = new Header(data[0])
+        resolve header
+      .on 'error', (err) -> reject err
 
 module.exports = Export

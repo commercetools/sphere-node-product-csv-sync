@@ -3,15 +3,18 @@ branches:
   except:
     - latest
 node_js:
-- '0.10'
+  - '0.10'
 before_script:
-- npm install -g grunt-cli
-- ./create_config.sh
-- gem install cucumber aruba
+  - npm install -g grunt-cli
+  - ./create_config.sh
+  - gem install cucumber aruba
 script:
-- npm test
-- cucumber -t ~@wip
-- node lib/run import --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --csv data/minimum-header.csv
+  - npm test
+  - cucumber -t ~@wip
+  - ./bin/product-csv-sync import --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --csv data/minimum-header.csv --suppressMissingHeaderWarning
+  - ./bin/product-csv-sync template --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --out data/template_sample.csv --all
+  - ./bin/product-csv-sync export --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --template data/template_sample.csv --out data/exported.csv
+  - ./bin/product-csv-sync state --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --changeTo delete --forceDelete
 notifications:
   hipchat:
     rooms:
@@ -23,9 +26,6 @@ notifications:
     on_failure: change
 env:
   global:
-  - secure: kfU8iYr5dad4pMeKbPVlQqeR1Kn/NjLk5hTXHExenvT/Y6BPZWX8uy6jydC+793pZ12EVUIaBxKIQyzNPTJHbQecr3xxEdb02j9yOm58XYgJACvigCoyeo3COm6tN0o+epA/Wg7r4uAT4f30wq2PcB/FGcU5AMHm5osdpUZvpD4=
-  - secure: inEgeS1T8a0YHjBvTPM9Tb9DHakZuwR0Ulid/NdL3fGSyg/3Wm8dxxni0VwkoCGTjH6HQHCGTMuvq+QGOM67J8PMI8rrvdkwgNJ9T9j8wgLR3Xa8T916bB0Xd14dBxMebjK+0mDVCFkyM3nYwLqs4bsKRLlbQ6iF0skhNdGVJ/U=
-  - secure: EqIwvvy6VJBS5sFzdPG+6cY4iTSuXH5PYonv8M23LB/KJz8TKTiLJu7A+nbtEftzL1JtwKVNUG7KFH0G6t1TkGtbLoE3bjoxqkF9n89P4ctVlJGpm2Uf2PbF7HAsYKdI0mPSDc0RUl3QsbTr4zCp1DVmYxyhTpeECVi2+2GcRAs=
-branches:
-  except:
-  - latest
+    - secure: GStZeS8lCr5AbseJ7HrKwAA9pw6UbkVN0l6vZynKgbuYQSQmWBNuLrtWi08ykkpKMKNsHIlh6+wPSgcxiJ7kX7E+o1EA4VJPqKqzi2ITmri4jHukQAMD0RvcD62wBJJi7juZiMd40CsXklOPFCYy/x7jBupw0L8bV8OVGq2JKNI=
+    - secure: VqPJV184aJL2aCJB/KH953YMSRHJhWcYS9ySn6TLbZI6jDD+ul/DIhk0hlMNp1JlkTAuXocwJWZH00R1WUexamEdGO8l/Gv06soNFSKM0klsQxkNvmISfTqSXWZGckOtqScTuOzStCEXk/uT6Vo5cycsxYkZBTPBXEn4J5SB0po=
+    - secure: szr8OjiKyPinz/k8sFmutIURoMEI75KeVA7h6hgVb03zxCfLbPP991TPwdfNyqIaBWucjI11yY2AeDJsK7cmaYdYRHktFGoRdiLAU0sCKfHuyxIXPSHYq4krY0rIyCMtpsYad/hfZ5yNTX5B6l7gTxTjFpPmCKXaDRYwdk57uB4=

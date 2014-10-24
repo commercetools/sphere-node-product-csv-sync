@@ -1,9 +1,14 @@
-_ = require('underscore')._
-_s = require 'underscore.string'
-CONS = require '../lib/constants'
-GLOBALS = require '../lib/globals'
+_ = require 'underscore'
+_.mixin require('underscore.string').exports()
+CONS = require './constants'
+GLOBALS = require './globals'
 
+# TODO:
+# - JSDoc
+# - no services!!!
+# - utils only
 class Mapping
+
   constructor: (options = {}) ->
     @types = options.types
     @customerGroups = options.customerGroups
@@ -26,6 +31,7 @@ class Mapping
       product: product
       rowIndex: raw.startRow
       header: @header
+    data
 
   mapBaseProduct: (rawMaster, productType, rowIndex) ->
     product =
@@ -49,7 +55,7 @@ class Mapping
     unless product.slug
       product.slug = {}
       if product.name? and product.name[GLOBALS.DEFAULT_LANGUAGE]?
-        product.slug[GLOBALS.DEFAULT_LANGUAGE] = @ensureValidSlug(_s.slugify product.name[GLOBALS.DEFAULT_LANGUAGE], rowIndex)
+        product.slug[GLOBALS.DEFAULT_LANGUAGE] = @ensureValidSlug(_.slugify product.name[GLOBALS.DEFAULT_LANGUAGE], rowIndex)
 
     product
 
@@ -139,17 +145,20 @@ class Mapping
 
   mapAttribute: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
     value = @mapValue rawVariant, attribute, languageHeader2Index, rowIndex
-    return unless value
+    return undefined if _.isUndefined(value) or (_.isObject(value) and _.isEmpty(value))
     attribute =
       name: attribute.name
       value: value
+    attribute
 
+  # TODO: support boolean attributes
   mapValue: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
     switch attribute.type.name
       when CONS.ATTRIBUTE_TYPE_SET then @mapSetAttribute rawVariant, attribute.name, attribute.type.elementType, languageHeader2Index
       when CONS.ATTRIBUTE_TYPE_LTEXT then @mapLocalizedAttrib rawVariant, attribute.name, languageHeader2Index
       when CONS.ATTRIBUTE_TYPE_NUMBER then @mapNumber rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
+      when CONS.ATTRIBUTE_TYPE_REFERENCE then @mapReference rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       else rawVariant[@header.toIndex attribute.name] # works for text, enum and lenum
 
   # TODO: support set of money and number attributes!
@@ -222,14 +231,19 @@ class Mapping
       currencyCode: matchedMoney[1]
       centAmount: parseInt matchedMoney[2]
 
+  mapReference: (rawReference, attribName, rowIndex) ->
+    return undefined unless rawReference
+    ref =
+      id: rawReference
+
   mapNumber: (rawNumber, attribName, rowIndex) ->
     return unless @isValidValue(rawNumber)
     matchedNumber = CONS.REGEX_NUMBER.exec rawNumber
     unless matchedNumber
       @errors.push "[row #{rowIndex}:#{attribName}] The number '#{rawNumber}' isn't valid!"
       return
-
     parseInt matchedNumber[0]
+
 
   # "a.en,a.de,a.it"
   # "hi,Hallo,ciao"

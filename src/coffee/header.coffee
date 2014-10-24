@@ -1,8 +1,12 @@
-_ = require('underscore')._
+_ = require 'underscore'
 CONS = require '../lib/constants'
 GLOBALS = require '../lib/globals'
 
+# TODO:
+# - JSDoc
+# - put it under utils
 class Header
+
   constructor: (@rawHeader) ->
 
   # checks some basic rules for the header row

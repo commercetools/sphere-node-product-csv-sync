@@ -1,7 +1,6 @@
-_ = require('underscore')._
-CONS = require '../lib/constants'
-Q = require 'q'
-
+# TODO:
+# - JSDoc
+# - make it util only
 class Channels
   constructor: ->
     @key2id = {}

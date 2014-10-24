@@ -1,7 +1,9 @@
-_ = require('underscore')._
-CONS = require '../lib/constants'
-Q = require 'q'
+_ = require 'underscore'
+CONS = require './constants'
 
+# TODO:
+# - JSDoc
+# - make it util only
 class Types
   constructor: ->
     @id2index = {}

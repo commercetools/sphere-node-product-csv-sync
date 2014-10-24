@@ -1,37 +1,35 @@
 _ = require 'underscore'
-Import = require '../../lib/import'
+_.mixin require('underscore-mixins')
+{Import} = require '../../lib/main'
 Config = require '../../config'
 TestHelpers = require './testhelpers'
 
-jasmine.getEnv().defaultTimeoutInterval = 60000
-
 performAllProducts = -> true
 
+TEXT_ATTRIBUTE_NONE = 'attr-text-n'
+
 describe 'State integration tests', ->
+
   beforeEach (done) ->
     @importer = new Import Config
+    @importer.validator.suppressMissingHeaderWarning = true
     @client = @importer.client
 
-    unique = new Date().getTime()
-    @productType =
-      name: "myStateType#{unique}"
-      description: 'foobar'
-      attributes: [
-        { name: 'myStateAttrib', label: { name: 'myStateAttrib' }, type: { name: 'text'}, attributeConstraint: 'None', isRequired: false, isSearchable: false, inputHint: 'SingleLine' }
-      ]
+    @productType = TestHelpers.mockProductType()
 
-    TestHelpers.setupProductType(@client, @productType).then (result) =>
+    TestHelpers.setupProductType(@client, @productType)
+    .then (result) =>
       @productType = result
       done()
-    .fail (err) ->
-      done(_.prettify err)
+    .catch (err) -> done _.prettify(err)
     .done()
+  , 50000 # 50sec
 
 
-  it 'should publish and unplublish products', (done) ->
+  it 'should publish and unpublish products', (done) ->
     csv =
       """
-      productType,name.en,slug.en,variantId,sku,myStateAttrib
+      productType,name.en,slug.en,variantId,sku,#{TEXT_ATTRIBUTE_NONE}
       #{@productType.name},myProduct1,my-slug1,1,sku1,foo
       #{@productType.name},myProduct2,my-slug2,1,sku2,bar
       """
@@ -51,14 +49,14 @@ describe 'State integration tests', ->
       expect(result[0]).toBe '[row 0] Product unpublished.'
       expect(result[1]).toBe '[row 0] Product unpublished.'
       done()
-    .fail (err) ->
-      done(_.prettify err)
+    .catch (err) -> done _.prettify(err)
     .done()
+  , 50000 # 50sec
 
   it 'should only published products with hasStagedChanges', (done) ->
     csv =
       """
-      productType,name.en,slug.en,variantId,sku,myStateAttrib
+      productType,name.en,slug.en,variantId,sku,#{TEXT_ATTRIBUTE_NONE}
       #{@productType.name},myProduct1,my-slug1,1,sku1,foo
       #{@productType.name},myProduct2,my-slug2,1,sku2,bar
       """
@@ -74,11 +72,12 @@ describe 'State integration tests', ->
       expect(result[1]).toBe '[row 0] Product published.'
       csv =
         """
-        productType,name.en,slug.en,variantId,sku,myStateAttrib
+        productType,name.en,slug.en,variantId,sku,#{TEXT_ATTRIBUTE_NONE}
         #{@productType.name},myProduct1,my-slug1,1,sku1,foo
         #{@productType.name},myProduct2,my-slug2,1,sku2,baz
         """
       im = new Import Config
+      im.validator.suppressMissingHeaderWarning = true
       im.import(csv)
     .then (result) =>
       expect(_.size result).toBe 2
@@ -90,14 +89,14 @@ describe 'State integration tests', ->
       expect(_.contains(result, '[row 0] Product published.')).toBe true
       expect(_.contains(result, '[row 0] Product is already published - no staged changes.')).toBe true
       done()
-    .fail (err) ->
-      done(_.prettify err)
+    .catch (err) -> done _.prettify(err)
     .done()
+  , 50000 # 50sec
 
   it 'should delete unplublished products', (done) ->
     csv =
       """
-      productType,name.en,slug.en,variantId,sku,myStateAttrib
+      productType,name.en,slug.en,variantId,sku,#{TEXT_ATTRIBUTE_NONE}
       #{@productType.name},myProduct1,my-slug1,1,sku1,foo
       #{@productType.name},myProduct2,my-slug2,1,sku2,bar
       """
@@ -112,6 +111,6 @@ describe 'State integration tests', ->
       expect(result[0]).toBe '[row 0] Product deleted.'
       expect(result[1]).toBe '[row 0] Product deleted.'
       done()
-    .fail (err) ->
-      done(_.prettify err)
+    .catch (err) -> done _.prettify(err)
     .done()
+  , 50000 # 50sec

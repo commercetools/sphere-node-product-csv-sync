@@ -1,8 +1,6 @@
-_ = require('underscore')._
-Mapping = require('../main').Mapping
-Validator = require('../main').Validator
-Header = require '../lib/header'
+_ = require 'underscore'
 CONS = require '../lib/constants'
+{Header, Mapping, Validator} = require '../lib/main'
 
 describe 'Mapping', ->
   beforeEach ->
@@ -368,6 +366,10 @@ describe 'Mapping', ->
       expect(number).toBeUndefined()
       expect(@validator.map.errors.length).toBe 1
       expect(@validator.map.errors[0]).toBe "[row 4:myAttrib] The number '9.99' isn't valid!"
+
+  describe '#mapReference', ->
+    it 'should map a single reference', ->
+      expect(@validator.map.mapReference('123-456')).toEqual { id: '123-456' }
 
   describe '#mapProduct', ->
     it 'should map a product', ->

@@ -1,7 +1,7 @@
-_ = require('underscore')._
-Validator = require('../main').Validator
-Header = require '../lib/header'
+_ = require 'underscore'
+_.mixin require('underscore-mixins')
 CONS =  require '../lib/constants'
+{Header, Validator} = require '../lib/main'
 
 describe 'Validator', ->
   beforeEach ->
@@ -13,9 +13,11 @@ describe 'Validator', ->
 
   describe '#parse', ->
     it 'should parse string', (done) ->
-      @validator.parse 'foo', (data, count) ->
-        expect(count).toBe 1
+      @validator.parse 'foo'
+      .then (parsed) ->
+        expect(parsed.count).toBe 1
         done()
+      .catch (err) -> done _.prettify(err)
 
     it 'should store header', (done) ->
       csv =
@@ -23,10 +25,12 @@ describe 'Validator', ->
         myHeader
         row1
         """
-      @validator.parse csv, =>
+      @validator.parse csv
+      .then =>
         expect(@validator.header).toBeDefined
         expect(@validator.header.rawHeader).toEqual ['myHeader']
         done()
+      .catch (err) -> done _.prettify(err)
 
     it 'should pass everything but the header as content to callback', (done) ->
       csv =
@@ -35,11 +39,13 @@ describe 'Validator', ->
         row1
         row2,foo
         """
-      @validator.parse csv, (content) ->
-        expect(content.length).toBe 2
-        expect(content[0]).toEqual ['row1']
-        expect(content[1]).toEqual ['row2', 'foo']
+      @validator.parse csv
+      .then (parsed) ->
+        expect(parsed.data.length).toBe 2
+        expect(parsed.data[0]).toEqual ['row1']
+        expect(parsed.data[1]).toEqual ['row2', 'foo']
         done()
+      .catch (err) -> done _.prettify(err)
 
   describe '#checkDelimiters', ->
     it 'should work if all delimiters are different', ->
@@ -90,8 +96,9 @@ describe 'Validator', ->
         bar,n2,1
         ,,2
         """
-      @validator.parse csv, (content) =>
-        @validator.buildProducts content, CONS.HEADER_VARIANT_ID
+      @validator.parse csv
+      .then (parsed) =>
+        @validator.buildProducts parsed.data, CONS.HEADER_VARIANT_ID
         expect(@validator.errors.length).toBe 0
         expect(@validator.rawProducts.length).toBe 2
         expect(@validator.rawProducts[0].master).toEqual ['foo', 'n1', '1']
@@ -101,6 +108,7 @@ describe 'Validator', ->
         expect(@validator.rawProducts[1].variants.length).toBe 1
         expect(@validator.rawProducts[1].startRow).toBe 5
         done()
+      .catch (err) -> done _.prettify(err)
 
     it 'should return error if row isnt a variant nor product', (done) ->
       csv =
@@ -112,13 +120,15 @@ describe 'Validator', ->
         ,,foo
         ,,
         """
-      @validator.parse csv, (content) =>
-        @validator.buildProducts content, CONS.HEADER_VARIANT_ID
+      @validator.parse csv
+      .then (parsed) =>
+        @validator.buildProducts parsed.data, CONS.HEADER_VARIANT_ID
         expect(@validator.errors.length).toBe 3
         expect(@validator.errors[0]).toBe '[row 3] Could not be identified as product or variant!'
         expect(@validator.errors[1]).toBe '[row 5] Could not be identified as product or variant!'
         expect(@validator.errors[2]).toBe '[row 6] Could not be identified as product or variant!'
         done()
+      .catch (err) -> done _.prettify(err)
 
     it 'should return error if first row isnt a product row', (done) ->
       csv =
@@ -126,11 +136,13 @@ describe 'Validator', ->
         productType,name,variantId
         foo,,2
         """
-      @validator.parse csv, (content) =>
-        @validator.buildProducts content, CONS.HEADER_VARIANT_ID
+      @validator.parse csv
+      .then (parsed) =>
+        @validator.buildProducts parsed.data, CONS.HEADER_VARIANT_ID
         expect(@validator.errors.length).toBe 1
         expect(@validator.errors[0]).toBe '[row 2] We need a product before starting with a variant!'
         done()
+      .catch (err) -> done _.prettify(err)
 
     it 'should build products without variantId', (done) ->
       csv =
@@ -141,8 +153,9 @@ describe 'Validator', ->
         ,345
         ,456
         """
-      @validator.parse csv, (content) =>
-        @validator.buildProducts content
+      @validator.parse csv
+      .then (parsed) =>
+        @validator.buildProducts parsed.data
         expect(@validator.errors.length).toBe 0
         expect(@validator.rawProducts.length).toBe 2
         expect(@validator.rawProducts[0].master).toEqual ['foo', '123']
@@ -154,24 +167,31 @@ describe 'Validator', ->
         expect(@validator.rawProducts[1].variants[1]).toEqual ['', '456']
         expect(@validator.rawProducts[1].startRow).toBe 3
         done()
+      .catch (err) -> done _.prettify(err)
 
-  describe '#valProduct', ->
-    it 'should return no error', ->
+  xdescribe '#valProduct', ->
+    it 'should return no error', (done) ->
       csv =
         """
         productType,name,variantId
         foo,bar,bla
         """
-      @validator.parse csv, (content) ->
-        #@validator.valProduct content
+      @validator.parse csv
+      .then (parsed) =>
+        @validator.valProduct parsed.data
+        done()
+      .catch (err) -> done _.prettify(err)
 
   describe '#validateOffline', ->
-    it 'should return no error', ->
+    it 'should return no error', (done) ->
       csv =
         """
         productType,name,variantId
         foo,bar,1
         """
-      @validator.parse csv, (content) =>
-        @validator.validateOffline content
+      @validator.parse csv
+      .then (parsed) =>
+        @validator.validateOffline parsed.data
         expect(@validator.errors).toEqual []
+        done()
+      .catch (err) -> done _.prettify(err)

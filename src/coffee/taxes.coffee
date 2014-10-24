@@ -1,7 +1,8 @@
-_ = require('underscore')._
-Q = require 'q'
+_ = require 'underscore'
 
-
+# TODO:
+# - JSDoc
+# - make it util only
 class Taxes
   constructor: ->
     @name2id = {}

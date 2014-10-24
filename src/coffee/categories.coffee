@@ -1,9 +1,9 @@
-_ = require('underscore')._
-CONS = require '../lib/constants'
+_ = require 'underscore'
 GLOBALS = require '../lib/globals'
-Q = require 'q'
 
-
+# TODO:
+# - JSDoc
+# - make it util only
 class Categories
   constructor: ->
     @id2index = {}
@@ -23,7 +23,7 @@ class Categories
       if _.has @name2id, name
         @duplicateNames.push name
       @name2id[name] = id
-    
+
     for category, index in categories
       fqName = ''
       if category.ancestors

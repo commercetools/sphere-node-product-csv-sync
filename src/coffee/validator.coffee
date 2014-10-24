@@ -1,20 +1,24 @@
-_ = require('underscore')._
-_s = require 'underscore.string'
+_ = require 'underscore'
+_.mixin require('underscore.string').exports()
+Promise = require 'bluebird'
 Csv = require 'csv'
-CONS = require '../lib/constants'
-GLOBALS = require '../lib/globals'
-Types = require '../lib/types'
-Categories = require '../lib/categories'
-CustomerGroups = require '../lib/customergroups'
-Taxes = require '../lib/taxes'
-Channels = require '../lib/channels'
-Mapping = require '../lib/mapping'
-Header = require '../lib/header'
-Q = require 'q'
-SphereClient = require 'sphere-node-client'
+{SphereClient} = require 'sphere-node-sdk'
+CONS = require './constants'
+GLOBALS = require './globals'
+Types = require './types'
+Categories = require './categories'
+CustomerGroups = require './customergroups'
+Taxes = require './taxes'
+Channels = require './channels'
+Mapping = require './mapping'
+Header = require './header'
 
 class Validator
+
   constructor: (options = {}) ->
+    # TODO:
+    # - move them to services folder
+    # - can we simplify those?
     @types = new Types()
     @customerGroups = new CustomerGroups()
     @categories = new Categories()
@@ -27,6 +31,9 @@ class Validator
     options.channels = @channels
     options.validator = @
     @map = new Mapping options
+    # TODO:
+    # - pass only correct options, not all classes
+    # - avoid creating a new instance of the client, since it should be created from Import class
     @client = new SphereClient options if options.config
     @rawProducts = []
     @errors = []
@@ -35,12 +42,18 @@ class Validator
       delimiter: options.csvDelimiter or ','
       quote: options.csvQuote or '"'
 
-  parse: (csvString, callback) ->
-    Csv().from.string(csvString, @csvOptions)
-    .to.array (data, count) =>
-      @header = new Header(data[0])
-      @map.header = @header
-      callback _.rest(data), count
+  parse: (csvString) ->
+    # TODO: use parser with streaming API
+    # https://github.com/sphereio/sphere-node-product-csv-sync/issues/56
+    new Promise (resolve, reject) =>
+      Csv().from.string(csvString, @csvOptions)
+      .on 'error', (error) -> reject error
+      .to.array (data, count) =>
+        @header = new Header(data[0])
+        @map.header = @header
+        resolve
+          data: _.rest(data)
+          count: count
 
   validate: (csvContent) ->
     @validateOffline csvContent
@@ -54,19 +67,17 @@ class Validator
     @buildProducts csvContent, variantHeader
 
   checkDelimiters: ->
-    allDelimiter = {
-      csvDelimiter: @csvOptions.delimiter,
-      csvQuote: @csvOptions.quote,
-      language: GLOBALS.DELIM_HEADER_LANGUAGE,
-      multiValue: GLOBALS.DELIM_MULTI_VALUE,
+    allDelimiter =
+      csvDelimiter: @csvOptions.delimiter
+      csvQuote: @csvOptions.quote
+      language: GLOBALS.DELIM_HEADER_LANGUAGE
+      multiValue: GLOBALS.DELIM_MULTI_VALUE
       categoryChildren: GLOBALS.DELIM_CATEGORY_CHILD
-    }
     delims = _.map allDelimiter, (delim, _) -> delim
     if _.size(delims) isnt _.size(_.uniq(delims))
       @errors.push "Your selected delimiter clash with each other: #{JSON.stringify(allDelimiter)}"
 
   validateOnline: ->
-    deferred = Q.defer()
     gets = [
       @types.getAll @client
       @customerGroups.getAll @client
@@ -74,28 +85,26 @@ class Validator
       @taxes.getAll @client
       @channels.getAll @client
     ]
-    Q.all(gets)
+    # TODO: too much parallel?
+    # TODO: is it ok storing everything in memory?
+    Promise.all(gets)
     .then ([productTypes, customerGroups, categories, taxes, channels]) =>
       @productTypes = productTypes.body.results
-      @types.buildMaps productTypes.body.results
+      @types.buildMaps @productTypes
       @customerGroups.buildMaps customerGroups.body.results
       @categories.buildMaps categories.body.results
       @taxes.buildMaps taxes.body.results
       @channels.buildMaps channels.body.results
 
-      @valProducts @rawProducts
+      @valProducts @rawProducts # TODO: ???
       if _.size(@errors) is 0
-        @valProductTypes @productTypes
+        @valProductTypes @productTypes # TODO: ???
         if _.size(@errors) is 0
-          deferred.resolve @rawProducts
+          Promise.resolve @rawProducts
         else
-          deferred.reject @errors
+          Promise.reject @errors
       else
-        deferred.reject @errors
-    .fail (err) ->
-      deferred.reject err
-
-    deferred.promise
+        Promise.reject @errors
 
 
   # TODO: Allow to define a column that defines the variant relationship.
@@ -128,8 +137,7 @@ class Validator
           console.warn "  #{attr.name}: type '#{attr.type.name} #{if attr.type.name is 'set' then 'of ' + attr.type.elementType.name  else ''}' - constraint '#{attr.attributeConstraint}' - #{if attr.isRequired then 'isRequired' else 'optional'}"
 
   valProducts: (products) ->
-    _.each products, (product) =>
-      @valProduct product
+    _.each products, (product) => @valProduct product
 
   valProduct: (raw) ->
     rawMaster = raw.master
@@ -153,7 +161,7 @@ class Validator
       not @isProduct row
 
   isProduct: (row, variantColumn) ->
-    hasProductTypeColumn = not _s.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)])
+    hasProductTypeColumn = not _.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)])
     if variantColumn is CONS.HEADER_VARIANT_ID
       hasProductTypeColumn and row[@header.toIndex(CONS.HEADER_VARIANT_ID)] is '1'
     else
