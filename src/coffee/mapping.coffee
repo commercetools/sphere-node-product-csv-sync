@@ -157,6 +157,7 @@ class Mapping
       when CONS.ATTRIBUTE_TYPE_SET then @mapSetAttribute rawVariant, attribute.name, attribute.type.elementType, languageHeader2Index
       when CONS.ATTRIBUTE_TYPE_LTEXT then @mapLocalizedAttrib rawVariant, attribute.name, languageHeader2Index
       when CONS.ATTRIBUTE_TYPE_NUMBER then @mapNumber rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
+      when CONS.ATTRIBUTE_TYPE_BOOLEAN then @mapBoolean rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       when CONS.ATTRIBUTE_TYPE_REFERENCE then @mapReference rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       else rawVariant[@header.toIndex attribute.name] # works for text, enum and lenum
@@ -244,6 +245,14 @@ class Mapping
       return
     parseInt matchedNumber[0]
 
+  mapBoolean: (rawBoolean, attribName, rowIndex) ->
+    if _.isUndefined(rawBoolean) or (_.isString(rawBoolean) and _.isEmpty(rawBoolean))
+      return
+    b = JSON.parse(rawBoolean.toLowerCase())
+    if not _.isBoolean b
+      @errors.push "[row #{rowIndex}:#{attribName}] The value '#{rawNumber}' isn't a valid boolen!"
+      return
+    b
 
   # "a.en,a.de,a.it"
   # "hi,Hallo,ciao"

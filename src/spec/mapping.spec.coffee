@@ -367,6 +367,21 @@ describe 'Mapping', ->
       expect(@validator.map.errors.length).toBe 1
       expect(@validator.map.errors[0]).toBe "[row 4:myAttrib] The number '9.99' isn't valid!"
 
+  describe '#mapBoolean', ->
+    it 'should map true', ->
+      expect(@validator.map.mapBoolean('true')).toBe true
+
+    it 'should map case insensitive', ->
+      expect(@validator.map.mapBoolean('false')).toBe false
+      expect(@validator.map.mapBoolean('False')).toBe false
+      expect(@validator.map.mapBoolean('False')).toBe false
+
+    it 'should map the empty string', ->
+      expect(@validator.map.mapBoolean('')).toBeUndefined()
+
+    it 'should map undefined', ->
+      expect(@validator.map.mapBoolean()).toBeUndefined()
+
   describe '#mapReference', ->
     it 'should map a single reference', ->
       expect(@validator.map.mapReference('123-456')).toEqual { id: '123-456' }
