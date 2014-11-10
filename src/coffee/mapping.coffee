@@ -145,7 +145,7 @@ class Mapping
 
   mapAttribute: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
     value = @mapValue rawVariant, attribute, languageHeader2Index, rowIndex
-    return undefined if _.isUndefined(value) or (_.isObject(value) and _.isEmpty(value)) or _.isEmpty(value)
+    return undefined if _.isUndefined(value) or (_.isObject(value) and _.isEmpty(value)) or (_.isString(value) and _.isEmpty(value))
     attribute =
       name: attribute.name
       value: value
