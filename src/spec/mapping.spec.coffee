@@ -223,6 +223,36 @@ describe 'Mapping', ->
         ]
       expect(attribute).toEqual expectedAttribute
 
+    it 'should validate attribute value (undefined)', ->
+      productTypeAttribute =
+        name: 'foo'
+        type:
+          name: 'text'
+      @map.header = new Header [ 'foo', 'bar' ]
+      attribute = @map.mapAttribute [ undefined, 'blabla' ], productTypeAttribute
+
+      expect(attribute).not.toBeDefined()
+
+    it 'should validate attribute value (empty object)', ->
+      productTypeAttribute =
+        name: 'foo'
+        type:
+          name: 'text'
+      @map.header = new Header [ 'foo', 'bar' ]
+      attribute = @map.mapAttribute [ {}, 'blabla' ], productTypeAttribute
+
+      expect(attribute).not.toBeDefined()
+
+    it 'should validate attribute value (empty string)', ->
+      productTypeAttribute =
+        name: 'foo'
+        type:
+          name: 'text'
+      @map.header = new Header [ 'foo', 'bar' ]
+      attribute = @map.mapAttribute [ '', 'blabla' ], productTypeAttribute
+
+      expect(attribute).not.toBeDefined()
+
   describe '#mapPrices', ->
     it 'should map single simple price', ->
       prices = @map.mapPrices 'EUR 999'
