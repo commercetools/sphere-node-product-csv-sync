@@ -742,9 +742,9 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          variantId,sku,prices,productType
-          1,#{@newProductSku+1},EUR 1999,#{@productType.name}
-          2,#{@newProductSku+2},USD 80000
+          productType,sku,prices
+          #{@productType.name},#{@newProductSku+1},EUR 1999
+          #{@productType.name},#{@newProductSku+2},USD 80000
           """
         im = createImporter()
         im.import(csv)
