@@ -23,7 +23,7 @@ class Import
 
     # TODO: define globale options variable object
     @publishProducts = false
-    @continueOnProblems = false
+    @continueOnProblems = options.continueOnProblems
     @allowRemovalOfVariants = false
     @syncSeoAttributes = true
     @updatesOnly = false

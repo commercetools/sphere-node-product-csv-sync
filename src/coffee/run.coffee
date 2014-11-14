@@ -121,6 +121,7 @@ module.exports = class
             csvDelimiter: opts.csvDelimiter
 
           options.host = program.sphereHost if program.sphereHost
+          options.continueOnProblems = opts.continueOnProblems or false
 
           # if program.verbose
           #   options.logConfig.streams = [
@@ -133,7 +134,6 @@ module.exports = class
 
           importer = new Importer options
           importer.blackListedCustomAttributesForUpdate = opts.customAttributesForCreationOnly or []
-          importer.continueOnProblems = opts.continueOnProblems
           importer.validator.suppressMissingHeaderWarning = opts.suppressMissingHeaderWarning
           importer.allowRemovalOfVariants = opts.allowRemovalOfVariants
           importer.syncSeoAttributes = false if opts.ignoreSeoAttributes

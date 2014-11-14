@@ -15,6 +15,7 @@ class Mapping
     @categories = options.categories
     @taxes = options.taxes
     @channels = options.channels
+    @continueOnProblems = options.continueOnProblems
     @errors = []
 
   mapProduct: (raw, productType) ->
@@ -95,7 +96,11 @@ class Mapping
       if cat.id
         categories.push cat
       else
-        @errors.push "[row #{rowIndex}:#{CONS.HEADER_CATEGORIES}] Can not find category for '#{rawCategory}'!"
+        msg = "[row #{rowIndex}:#{CONS.HEADER_CATEGORIES}] Can not find category for '#{rawCategory}'!"
+        if @continueOnProblems
+          console.log msg
+        else
+          @errors.push "[row #{rowIndex}:#{CONS.HEADER_CATEGORIES}] Can not find category for '#{rawCategory}'!"
 
     categories
 
