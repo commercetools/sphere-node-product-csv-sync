@@ -98,7 +98,7 @@ class Mapping
       else
         msg = "[row #{rowIndex}:#{CONS.HEADER_CATEGORIES}] Can not find category for '#{rawCategory}'!"
         if @continueOnProblems
-          console.log msg
+          console.warn msg
         else
           @errors.push "[row #{rowIndex}:#{CONS.HEADER_CATEGORIES}] Can not find category for '#{rawCategory}'!"
 
