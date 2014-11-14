@@ -235,7 +235,7 @@ module.exports = class
                 if _.isString(result.ask) and result.ask.match(/y(es){0,1}/i)
                   run options
                 else
-                  console.log 'Aborted.'
+                  console.error 'Aborted.'
                   process.exit 9
           else
             run options
