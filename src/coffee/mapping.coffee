@@ -254,7 +254,7 @@ class Mapping
       return
     b = JSON.parse(rawBoolean.toLowerCase())
     if not _.isBoolean b
-      @errors.push "[row #{rowIndex}:#{attribName}] The value '#{rawNumber}' isn't a valid boolen!"
+      @errors.push "[row #{rowIndex}:#{attribName}] The value '#{rawBoolean}' isn't a valid boolean!"
       return
     b
 
