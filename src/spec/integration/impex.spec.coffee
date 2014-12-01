@@ -15,7 +15,7 @@ describe 'Impex integration tests', ->
   beforeEach (done) ->
     @importer = new Import Config
     @importer.validator.suppressMissingHeaderWarning = true
-    @exporter = new Export Config
+    @exporter = new Export client: Config
     @client = @importer.client
 
     @productType = TestHelpers.mockProductType()

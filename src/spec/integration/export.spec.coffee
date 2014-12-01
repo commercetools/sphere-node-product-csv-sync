@@ -9,7 +9,7 @@ TestHelpers = require './testhelpers'
 describe 'Export integration tests', ->
 
   beforeEach (done) ->
-    @export = new Export Config
+    @export = new Export client: Config
     @client = @export.client
 
     values = [
