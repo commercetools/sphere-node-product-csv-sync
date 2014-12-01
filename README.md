@@ -334,12 +334,14 @@ productType,name.en,varianId
 
   Options:
 
-    -h, --help             output usage information
-    -t, --template <file>  CSV file containing your header that defines what you want to export
-    -o, --out <file>       Path to the file the exporter will write the resulting CSV in
-    -j, --json <file>      Path to the JSON file the exporter will write the resulting products
-    -q, --queryString      Query string to specify the sub-set of products to export. Please note that the query must be URL encoded!
-    -l, --language [lang]  Language used on export for category names (default is en)
+    -h, --help                 output usage information
+    -t, --template <file>      CSV file containing your header that defines what you want to export
+    -o, --out <file>           Path to the file the exporter will write the resulting CSV in
+    -j, --json <file>          Path to the JSON file the exporter will write the resulting products
+    -q, --queryString <query>  Query string to specify the sub-set of products to export
+    -l, --language [lang]      Language used on export for category names (default is en)
+    --queryType <type>         Whether to do a query or a search request
+    --queryEncoded             Whether the given query string is already encoded or not
 ```
 
 #### Export as JSON
@@ -354,15 +356,10 @@ node lib/run.js export --projectKey <project_key> --clientId <client_id> --clien
 
 #### Export certain products only
 
-You can define the subset of products to export via the `queryString` parameter. The following parameter keys are of interest:
-- limit: Defines the number of products to export. `0` means all and is the default.
-- staged: `false` will export published products. `true` will export the staged products, which is the default.
-- sort: Allows to sort the result set.
-- where: Restrict the products to export using predicates.
+You can define the subset of products to export via the `queryString` parameter, which corresponds of the `where` predicate of the HTTP API.
 
-Please refer to the [API documentation of SPHERE.IO](http://commercetools.de/dev/http-api.html#query-features) for further information regarding the predicates.
+> Please refer to the [API documentation of SPHERE.IO](http://dev.sphere.io/http-api.html#predicates) for further information regarding the predicates.
 
-> Please note that you have to provide the queryString URL encoded!
 
 ##### Example
 

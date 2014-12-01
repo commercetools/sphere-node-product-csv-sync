@@ -17,8 +17,11 @@ ExportMapping = require './exportmapping'
 class Export
 
   constructor: (options = {}) ->
-    @queryString = options.queryString
-    @client = new SphereClient options
+    @queryOptions =
+      queryString: options.export?.queryString?.trim()
+      queryType: options.export?.queryType
+      isQueryEncoded: options.export?.isQueryEncoded
+    @client = new SphereClient options.client
 
     # TODO: using single mapping util instead of services
     @typesService = new Types()
@@ -47,13 +50,15 @@ class Export
         header.toIndex()
         header.toLanguageIndex()
         exportMapping = @_initMapping(header)
+        productsService = @client.productProjections.staged(staged).all()
+        productsService.byQueryString(@queryOptions.queryString, @queryOptions.isQueryEncoded) if @queryOptions.queryString
         data = [
           @typesService.getAll @client
           @categoryService.getAll @client
           @channelService.getAll @client
           @customerGroupService.getAll @client
           @taxService.getAll @client
-          @client.productProjections.staged(staged).all().fetch()
+          if @queryOptions.queryType is 'search' then productsService.search() else productsService.fetch()
         ]
         # TODO:
         # - use process to export products in batches

@@ -251,8 +251,10 @@ module.exports = class
       .option '-t, --template <file>', 'CSV file containing your header that defines what you want to export'
       .option '-o, --out <file>', 'Path to the file the exporter will write the resulting CSV in'
       .option '-j, --json <file>', 'Path to the JSON file the exporter will write the resulting products'
-      .option '-q, --queryString', 'Query string to specify the sub-set of products to export. Please note that the query must be URL encoded!', 'staged=true'
+      .option '-q, --queryString <query>', 'Query string to specify the sub-set of products to export'
       .option '-l, --language [lang]', 'Language used on export for category names (default is en)', 'en'
+      .option '--queryType <type>', 'Whether to do a query or a search request', 'query'
+      .option '--queryEncoded', 'Whether the given query string is already encoded or not', false
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) ->
         GLOBALS.DEFAULT_LANGUAGE = opts.language
@@ -260,31 +262,21 @@ module.exports = class
         return _subCommandHelp('export') unless program.projectKey
 
         ProjectCredentialsConfig.create()
-        .then (credentials) =>
+        .then (credentials) ->
           options =
-            config:
-              project_key: program.projectKey
-              client_id: program.clientId
-              client_secret: program.clientSecret
-            timeout: program.timeout
-            show_progress: true
-            user_agent: "#{package_json.name} - Export - #{package_json.version}"
-            queryString: opts.queryString
-            # logConfig:
-            #   streams: [
-            #     {level: 'warn', stream: process.stdout}
-            #   ]
-
-          options.host = program.sphereHost if program.sphereHost
-
-          # if program.verbose
-          #   options.logConfig.streams = [
-          #     {level: 'info', stream: process.stdout}
-          #   ]
-          # if program.debug
-          #   options.logConfig.streams = [
-          #     {level: 'debug', stream: process.stdout}
-          #   ]
+            client:
+              config: credentials.enrichCredentials
+                project_key: program.projectKey
+                client_id: program.clientId
+                client_secret: program.clientSecret
+              timeout: program.timeout
+              user_agent: "#{package_json.name} - Export - #{package_json.version}"
+            export:
+              show_progress: true
+              queryString: opts.queryString
+              queryType: opts.queryType
+              isQueryEncoded: opts.queryEncoded or false
+          options.client.host = program.sphereHost if program.sphereHost
 
           exporter = new Exporter options
           if opts.json
