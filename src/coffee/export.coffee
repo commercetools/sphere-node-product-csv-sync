@@ -50,8 +50,11 @@ class Export
         header.toIndex()
         header.toLanguageIndex()
         exportMapping = @_initMapping(header)
-        productsService = @client.productProjections.staged(staged).all()
-        productsService.byQueryString(@queryOptions.queryString, @queryOptions.isQueryEncoded) if @queryOptions.queryString
+        productsService = @client.productProjections
+        if @queryOptions.queryString
+          productsService.byQueryString(@queryOptions.queryString, @queryOptions.isQueryEncoded)
+        else
+          productsService.all().staged(staged)
         data = [
           @typesService.getAll @client
           @categoryService.getAll @client
