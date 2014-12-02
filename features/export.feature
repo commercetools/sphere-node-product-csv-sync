@@ -16,7 +16,7 @@ Feature: Export products
     Then the exit status should be 0
     And the output should contain:
     """
-    Number of products: 1.
+    Number of fetched products: 1/1.
     """
 
   Scenario: Export products by query (encoded)
@@ -24,7 +24,7 @@ Feature: Export products
     Then the exit status should be 0
     And the output should contain:
     """
-    Number of products: 1.
+    Number of fetched products: 1/1.
     """
 
   Scenario: Export products by search
@@ -32,5 +32,5 @@ Feature: Export products
     Then the exit status should be 0
     And the output should contain:
     """
-    Number of products: 3.
+    Number of fetched products: 3/3.
     """
