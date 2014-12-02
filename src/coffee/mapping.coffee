@@ -242,7 +242,7 @@ class Mapping
       id: rawReference
 
   mapInteger: (rawNumber, attribName, rowIndex) ->
-    @mapNumber rawNumber, attribName, rowIndex, CONS.REGEX_INTEGER
+    parseInt @mapNumber rawNumber, attribName, rowIndex, CONS.REGEX_INTEGER
 
   mapNumber: (rawNumber, attribName, rowIndex, regEx = CONS.REGEX_FLOAT) ->
     return unless @isValidValue(rawNumber)
@@ -250,7 +250,7 @@ class Mapping
     unless matchedNumber
       @errors.push "[row #{rowIndex}:#{attribName}] The number '#{rawNumber}' isn't valid!"
       return
-    parseInt matchedNumber[0]
+    parseFloat matchedNumber[0]
 
   mapBoolean: (rawBoolean, attribName, rowIndex) ->
     if _.isUndefined(rawBoolean) or (_.isString(rawBoolean) and _.isEmpty(rawBoolean))

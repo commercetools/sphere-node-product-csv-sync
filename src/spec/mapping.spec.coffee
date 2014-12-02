@@ -405,11 +405,10 @@ describe 'Mapping', ->
 
   describe '#mapInteger', ->
     it 'should map integer', ->
-      expect(@validator.map.mapNumber('11')).toBe 11
+      expect(@validator.map.mapInteger('11')).toBe 11
 
     it 'should not map floats', ->
-      number = @validator.map.mapNumber '-0.1', 'foo', 7
-      expect(number).toBeUndefined()
+      number = @validator.map.mapInteger '-0.1', 'foo', 7
       expect(@validator.map.errors.length).toBe 1
       expect(@validator.map.errors[0]).toBe "[row 7:foo] The number '-0.1' isn't valid!"
 
