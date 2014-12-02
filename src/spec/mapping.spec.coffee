@@ -385,17 +385,33 @@ describe 'Mapping', ->
       expect(prices[2]).toEqual expectedPrice
 
   describe '#mapNumber', ->
-    it 'should map number', ->
+    it 'should map integer', ->
       expect(@validator.map.mapNumber('0')).toBe 0
 
-    it 'should map negative number', ->
+    it 'should map negative integer', ->
       expect(@validator.map.mapNumber('-100')).toBe -100
 
+    it 'should map float', ->
+      expect(@validator.map.mapNumber('0.99')).toBe 0.99
+
+    it 'should map negative float', ->
+      expect(@validator.map.mapNumber('-13.3333')).toBe -13.3333
+
     it 'should fail when input is not a valid number', ->
-      number = @validator.map.mapNumber '9.99', 'myAttrib', 4
+      number = @validator.map.mapNumber '-10e5', 'myAttrib', 4
       expect(number).toBeUndefined()
       expect(@validator.map.errors.length).toBe 1
-      expect(@validator.map.errors[0]).toBe "[row 4:myAttrib] The number '9.99' isn't valid!"
+      expect(@validator.map.errors[0]).toBe "[row 4:myAttrib] The number '-10e5' isn't valid!"
+
+  describe '#mapInteger', ->
+    it 'should map integer', ->
+      expect(@validator.map.mapNumber('11')).toBe 11
+
+    it 'should not map floats', ->
+      number = @validator.map.mapNumber '-0.1', 'foo', 7
+      expect(number).toBeUndefined()
+      expect(@validator.map.errors.length).toBe 1
+      expect(@validator.map.errors[0]).toBe "[row 7:foo] The number '-0.1' isn't valid!"
 
   describe '#mapBoolean', ->
     it 'should map true', ->

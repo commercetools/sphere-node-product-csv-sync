@@ -38,7 +38,8 @@ constants =
 
   REGEX_PRICE: new RegExp /^(([A-Za-z]{2})-|)([A-Z]{3}) (-?\d+)( (\w*)|)(#(\w+)|)$/
   REGEX_MONEY: new RegExp /^([A-Z]{3}) (-?\d+)$/
-  REGEX_NUMBER: new RegExp /^-?\d+$/
+  REGEX_INTEGER: new ReqExp /^-?\d+$/
+  REGEX_FLOAT: new RegExp /^-?\d+(\.\d+)?$/
 
 
 for name, value of constants
