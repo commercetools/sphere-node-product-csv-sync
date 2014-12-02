@@ -121,7 +121,7 @@ class Mapping
   mapVariant: (rawVariant, variantId, productType, rowIndex, product) ->
     if variantId > 2
       vId = @mapInteger rawVariant[@header.toIndex CONS.HEADER_VARIANT_ID], CONS.HEADER_VARIANT_ID, rowIndex
-      if vId?
+      if vId? and not _.isNaN vId
         variantId = vId
       else
         # we have no valid variant id - mapInteger already mentioned this as error
@@ -242,7 +242,7 @@ class Mapping
       id: rawReference
 
   mapInteger: (rawNumber, attribName, rowIndex) ->
-    parseInt @mapNumber rawNumber, attribName, rowIndex, CONS.REGEX_INTEGER
+    parseInt @mapNumber(rawNumber, attribName, rowIndex, CONS.REGEX_INTEGER)
 
   mapNumber: (rawNumber, attribName, rowIndex, regEx = CONS.REGEX_FLOAT) ->
     return unless @isValidValue(rawNumber)
