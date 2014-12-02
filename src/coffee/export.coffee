@@ -69,7 +69,7 @@ class Export
           if products.body.total is 0
             Promise.resolve 'No products found.'
           else
-            console.log "Number of products: #{products.body.total}."
+            console.log "Number of fetched products: #{products.body.count}."
             @typesService.buildMaps productTypes.body.results
             @categoryService.buildMaps categories.body.results
             @channelService.buildMaps channels.body.results
