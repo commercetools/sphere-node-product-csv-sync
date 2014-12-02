@@ -244,7 +244,7 @@ class Mapping
   mapInteger: (rawNumber, attribName, rowIndex) ->
     @mapNumber rawNumber, attribName, rowIndex, CONS.REGEX_INTEGER
 
-  mapNumber: (rawNumber, attribName, rowIndex, regEx=CONS.REGEX_FLOAT) ->
+  mapNumber: (rawNumber, attribName, rowIndex, regEx = CONS.REGEX_FLOAT) ->
     return unless @isValidValue(rawNumber)
     matchedNumber = regEx.exec rawNumber
     unless matchedNumber

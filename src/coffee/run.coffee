@@ -318,7 +318,7 @@ module.exports = class
         return _subCommandHelp('template') unless program.projectKey
 
         ProjectCredentialsConfig.create()
-        .then (credentials) =>
+        .then (credentials) ->
           options =
             config:
               project_key: program.projectKey

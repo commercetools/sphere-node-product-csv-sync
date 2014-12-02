@@ -181,7 +181,7 @@ class Import
           @update(entry.product, existingProduct, types, entry.header, entry.rowIndex)
         else
           @create(entry.product, entry.rowIndex)
-      , (e) =>
+      , (e) ->
         if e.code is 504
           console.warn 'Got a timeout, will retry again...'
           Promise.resolve() # will retry in case of Gateway Timeout
