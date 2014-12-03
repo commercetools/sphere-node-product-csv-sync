@@ -70,13 +70,18 @@ class Import
             @client.productProjections.staged().all().fetch()
             .then (payload) =>
               existingProducts = payload.body.results
-              # console.log "Comparing #{_.size existingProducts} out of #{payload.body.total} existing product(s) ..."
               console.log "Comparing against #{payload.body.total} existing product(s) ..."
               @initMatcher existingProducts
-              @createOrUpdate(products, @validator.types)
+              productsToUpdate =
+              if @validator.updateVariantsOnly
+                @mapVariantsBasedOnSKUs existingProducts, products
+              else
+                products
+              console.log "Processing #{_.size productsToUpdate} product(s) ..."
+              @createOrUpdate(productsToUpdate, @validator.types)
             .then (result) ->
               # TODO: resolve with a summary of the import
-              console.log "Finished processing #{_.size result} products"
+              console.log "Finished processing #{_.size result} product(s)"
               Promise.resolve result
 
   changeState: (publish = true, remove = false, filterFunction) ->
@@ -117,25 +122,53 @@ class Import
     @id2index = {}
     @customAttributeValue2index = {}
     @sku2index = {}
+    @sku2variantInfo = {}
     @slug2index = {}
-    for product, index in existingProducts
-      @id2index[product.id] = index
+    _.each existingProducts, (product, productIndex) =>
+      @id2index[product.id] = productIndex
       if product.slug?
         slug = product.slug[GLOBALS.DEFAULT_LANGUAGE]
-        @slug2index[slug] = index if slug?
+        @slug2index[slug] = productIndex if slug?
 
       product.variants or= []
       variants = [product.masterVariant].concat(product.variants)
 
-      _.each variants, (variant) =>
+      _.each variants, (variant, variantIndex) =>
         sku = variant.sku
-        @sku2index[sku] = index if sku?
-        @customAttributeValue2index[@getCustomAttributeValue variant] = index if @customAttributeNameToMatch?
+        if sku?
+          @sku2index[sku] = productIndex
+          @sku2variantInfo[sku] =
+            index: variantIndex - 1 # we reduce by one because of the masterVariant
+            id: variant.id
+        @customAttributeValue2index[@getCustomAttributeValue variant] = productIndex if @customAttributeNameToMatch?
 
     #console.log "id2index", @id2index
     #console.log "customAttributeValue2index", @customAttributeValue2index
     #console.log "sku2index", @sku2index
     #console.log "slug2index", @slug2index
+    #console.log "sku2variantInfo", @sku2variantInfo
+
+  mapVariantsBasedOnSKUs: (existingProducts, products) ->
+    console.log "Mapping variants for #{_.size products} product type(s) ..."
+    productsToUpdate = {}
+    _.each products, (entry) =>
+      _.each entry.product.variants, (variant) =>
+        productIndex = @sku2index[variant.sku]
+        if productIndex?
+          existingProduct = productsToUpdate[productIndex]?.product or _.deepClone existingProducts[productIndex]
+          variantInfo = @sku2variantInfo[variant.sku]
+          variant.id = variantInfo.id
+          if variant.id is 1
+            existingProduct.masterVariant = variant
+          else
+            existingProduct.variants[variantInfo.index] = variant
+          productsToUpdate[productIndex] =
+            product: existingProduct
+            header: entry.header
+            rowIndex: entry.rowIndex
+        else
+          console.warn "Ignoring variant as no match by SKU found for: ", variant
+    _.map productsToUpdate
 
   getCustomAttributeValue: (variant) ->
     variant.attributes or= []

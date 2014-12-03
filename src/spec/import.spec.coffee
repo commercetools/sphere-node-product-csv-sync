@@ -61,3 +61,53 @@ describe 'Import', ->
           hasLanguageForBaseAttribute: -> false
 
       expect(match).toBe product
+
+  describe 'mapVariantsBasedOnSKUs', ->
+    beforeEach ->
+      @header = {}
+    it 'should map masterVariant', ->
+      existingProducts = [
+        { masterVariant: { id: 1, sku: "mySKU" }, variants: [] }
+      ]
+      @importer.initMatcher existingProducts
+      entry =
+        product:
+          variants: [
+            { sku: "mySKU", attributes: [ { foo: 'bar' } ] }
+          ]
+      productsToUpdate = @importer.mapVariantsBasedOnSKUs existingProducts, [entry]
+      expect(_.size productsToUpdate).toBe 1
+      product = productsToUpdate[0].product
+      expect(product.masterVariant).toBeDefined()
+      expect(product.masterVariant.id).toBe 1
+      expect(product.masterVariant.sku).toBe 'mySKU'
+      expect(_.size product.variants).toBe 0
+      expect(product.masterVariant.attributes).toEqual [{ foo: 'bar' }]
+
+    it 'should map several variants into one product', ->
+      existingProducts = [
+        { masterVariant: { id: 1, sku: "mySKU" }, variants: [] }
+        { masterVariant: { id: 1, sku: "mySKU1" }, variants: [
+          { id: 2, sku: "mySKU2", attributes: [ { foo: 'bar' } ] }
+          { id: 4, sku: "mySKU4", attributes: [ { foo: 'baz' } ] }
+        ] }
+      ]
+      @importer.initMatcher existingProducts
+      entry =
+        product:
+          variants: [
+            { sku: "mySKU4", attributes: [ { foo: 'bar4' } ] }
+            { sku: "mySKU2", attributes: [ { foo: 'bar2' } ] }
+            { sku: "mySKU3", attributes: [ { foo: 'bar3' } ] }
+          ]
+      productsToUpdate = @importer.mapVariantsBasedOnSKUs existingProducts, [entry]
+      expect(_.size productsToUpdate).toBe 1
+      product = productsToUpdate[0].product
+      expect(product.masterVariant.id).toBe 1
+      expect(product.masterVariant.sku).toBe 'mySKU1'
+      expect(_.size product.variants).toBe 2
+      expect(product.variants[0].id).toBe 2
+      expect(product.variants[0].sku).toBe 'mySKU2'
+      expect(product.variants[0].attributes).toEqual [ { foo: 'bar2' } ]
+      expect(product.variants[1].id).toBe 4
+      expect(product.variants[1].attributes).toEqual [ { foo: 'bar4' } ]

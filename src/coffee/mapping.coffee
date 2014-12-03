@@ -119,7 +119,7 @@ class Mapping
       id: @taxes.name2id[rawTax]
 
   mapVariant: (rawVariant, variantId, productType, rowIndex, product) ->
-    if variantId > 2
+    if variantId > 2 and @header.has(CONS.HEADER_VARIANT_ID)
       vId = @mapInteger rawVariant[@header.toIndex CONS.HEADER_VARIANT_ID], CONS.HEADER_VARIANT_ID, rowIndex
       if vId? and not _.isNaN vId
         variantId = vId
