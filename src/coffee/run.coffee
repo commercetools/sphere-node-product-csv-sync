@@ -320,10 +320,11 @@ module.exports = class
         ProjectCredentialsConfig.create()
         .then (credentials) ->
           options =
-            config:
-              project_key: program.projectKey
-              client_id: program.clientId
-              client_secret: program.clientSecret
+            client:
+              config: credentials.enrichCredentials
+                project_key: program.projectKey
+                client_id: program.clientId
+                client_secret: program.clientSecret
             timeout: program.timeout
             show_progress: true
             user_agent: "#{package_json.name} - Template - #{package_json.version}"
