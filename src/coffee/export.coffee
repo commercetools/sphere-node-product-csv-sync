@@ -41,7 +41,7 @@ class Export
     new ExportMapping(options)
 
   # return the correct product service in case query string is used or not
-  _getProductService: ->
+  _getProductService: (staged = true) ->
     productsService = @client.productProjections
     if @queryOptions.queryString
       productsService.byQueryString(@queryOptions.queryString, @queryOptions.isQueryEncoded)
@@ -68,7 +68,7 @@ class Export
           @channelService.getAll @client
           @customerGroupService.getAll @client
           @taxService.getAll @client
-          @_getProductService()
+          @_getProductService(staged)
         ]
         # TODO:
         # - use process to export products in batches
