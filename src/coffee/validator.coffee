@@ -120,13 +120,16 @@ class Validator
       if @updateVariantsOnly
         # we build one product per product type
         productType = row[@header.toIndex CONS.HEADER_PRODUCT_TYPE]
-        unless _.has @productType2variantContainer, productType
-          @productType2variantContainer[productType] =
-            master: _.deepClone row
-            startRow: rowIndex
-            variants: []
-          @rawProducts.push @productType2variantContainer[productType]
-        @productType2variantContainer[productType].variants.push row
+        if productType
+          unless _.has @productType2variantContainer, productType
+            @productType2variantContainer[productType] =
+              master: _.deepClone row
+              startRow: rowIndex
+              variants: []
+            @rawProducts.push @productType2variantContainer[productType]
+          @productType2variantContainer[productType].variants.push row
+        else
+          @errors.push "[row #{rowIndex}] Please provide a product type!"
       else
         # we build the product on the fly when we identify a new one
         if @isProduct row, variantColumn
@@ -137,10 +140,10 @@ class Validator
           @rawProducts.push product
         else if @isVariant row, variantColumn
           product = _.last @rawProducts
-          unless product
+          if product
+            product.variants.push row
+          else
             @errors.push "[row #{rowIndex}] We need a product before starting with a variant!"
-            return
-          product.variants.push row
         else
           @errors.push "[row #{rowIndex}] Could not be identified as product or variant!"
 
