@@ -40,6 +40,18 @@ class Export
       header: header
     new ExportMapping(options)
 
+  # return the correct product service in case query string is used or not
+  _getProductService: ->
+    productsService = @client.productProjections
+    if @queryOptions.queryString
+      productsService.byQueryString(@queryOptions.queryString, @queryOptions.isQueryEncoded)
+      if @queryOptions.queryType is 'search'
+        productsService.search()
+      else
+        productsService.fetch()
+    else
+      productsService.all().staged(staged).fetch()
+
   export: (templateContent, outputFile, staged = true) ->
     @_parse(templateContent)
     .then (header) =>
@@ -50,18 +62,13 @@ class Export
         header.toIndex()
         header.toLanguageIndex()
         exportMapping = @_initMapping(header)
-        productsService = @client.productProjections
-        if @queryOptions.queryString
-          productsService.byQueryString(@queryOptions.queryString, @queryOptions.isQueryEncoded)
-        else
-          productsService.all().staged(staged)
         data = [
           @typesService.getAll @client
           @categoryService.getAll @client
           @channelService.getAll @client
           @customerGroupService.getAll @client
           @taxService.getAll @client
-          if @queryOptions.queryType is 'search' then productsService.search() else productsService.fetch()
+          @_getProductService()
         ]
         # TODO:
         # - use process to export products in batches
@@ -91,13 +98,13 @@ class Export
     # TODO:
     # - use process to export products in batches
     # - use streams to write data chunks
-    @client.products.all().fetch()
+    @_getProductService()
     .then (result) =>
       products = result.body.results
       if _.size(products) is 0
         Promise.resolve 'No products found.'
       else
-        console.log "Number of products: #{_.size products}."
+        console.log "Number of fetched products: #{result.body.count}/#{result.body.total}."
         @_saveJSON(outputFile, products)
         .then -> Promise.resolve 'Export done.'
 
