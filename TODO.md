@@ -7,7 +7,7 @@
 - add option to re-index after import (new endpoint necessary)
 
 ### Ideas
-- allow to define slug of category instead of id or tree path
+- allow to define slug of category/externalId instead of id or tree path
 
 ### Questions
 - How to handle attributes that are called like base attributes?
