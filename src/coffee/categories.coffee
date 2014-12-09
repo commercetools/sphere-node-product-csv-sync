@@ -27,7 +27,7 @@ class Categories
     _.each categories, (category, index) =>
       fqName = ''
       if category.ancestors
-        _.each category.ancestors, (ancestor) =>
+        _.each category.ancestors, (anchestor) =>
           cat = categories[@id2index[anchestor.id]]
           name = cat.name[GLOBALS.DEFAULT_LANGUAGE]
           fqName = "#{fqName}#{name}#{GLOBALS.DELIM_CATEGORY_CHILD}"
