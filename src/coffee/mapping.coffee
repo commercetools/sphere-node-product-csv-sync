@@ -24,9 +24,8 @@ class Mapping
 
     product = @mapBaseProduct raw.master, productType, rowIndex
     product.masterVariant = @mapVariant raw.master, 1, productType, rowIndex, product
-    for rawVariant, index in raw.variants
-      rowIndex += 1
-      product.variants.push @mapVariant rawVariant, index + 2, productType, rowIndex, product
+    _.each raw.variants, (entry, index) =>
+      product.variants.push @mapVariant entry.variant, index + 2, productType, entry.rowIndex, product
 
     data =
       product: product
@@ -119,7 +118,7 @@ class Mapping
       id: @taxes.name2id[rawTax]
 
   mapVariant: (rawVariant, variantId, productType, rowIndex, product) ->
-    if variantId > 2
+    if variantId > 2 and @header.has(CONS.HEADER_VARIANT_ID)
       vId = @mapInteger rawVariant[@header.toIndex CONS.HEADER_VARIANT_ID], CONS.HEADER_VARIANT_ID, rowIndex
       if vId? and not _.isNaN vId
         variantId = vId

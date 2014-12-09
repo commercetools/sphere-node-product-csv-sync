@@ -64,6 +64,9 @@ class Validator
     @checkDelimiters()
 
     variantHeader = CONS.HEADER_VARIANT_ID if @header.has(CONS.HEADER_VARIANT_ID)
+    if @header.has(CONS.HEADER_SKU) and not variantHeader?
+      variantHeader = CONS.HEADER_SKU
+      @updateVariantsOnly = true
     @buildProducts csvContent, variantHeader
 
   checkDelimiters: ->
@@ -110,22 +113,43 @@ class Validator
   # TODO: Allow to define a column that defines the variant relationship.
   # If the value is the same, they belong to the same product
   buildProducts: (content, variantColumn) ->
+    if @updateVariantsOnly
+      @productType2variantContainer = {}
     _.each content, (row, index) =>
       rowIndex = index + 2 # Excel et all start counting at 1 and we already popped the header
-      if @isProduct row, variantColumn
-        product =
-          master: row
-          startRow: rowIndex
-          variants: []
-        @rawProducts.push product
-      else if @isVariant row, variantColumn
-        product = _.last @rawProducts
-        unless product
-          @errors.push "[row #{rowIndex}] We need a product before starting with a variant!"
-          return
-        product.variants.push row
+      if @updateVariantsOnly
+        # we build one product per product type
+        productType = row[@header.toIndex CONS.HEADER_PRODUCT_TYPE]
+        if productType
+          unless _.has @productType2variantContainer, productType
+            @productType2variantContainer[productType] =
+              master: _.deepClone row
+              startRow: rowIndex
+              variants: []
+            @rawProducts.push @productType2variantContainer[productType]
+          @productType2variantContainer[productType].variants.push
+            variant: row
+            rowIndex: rowIndex
+        else
+          @errors.push "[row #{rowIndex}] Please provide a product type!"
       else
-        @errors.push "[row #{rowIndex}] Could not be identified as product or variant!"
+        # we build the product on the fly when we identify a new one
+        if @isProduct row, variantColumn
+          product =
+            master: row
+            startRow: rowIndex
+            variants: []
+          @rawProducts.push product
+        else if @isVariant row, variantColumn
+          product = _.last @rawProducts
+          if product
+            product.variants.push
+              variant: row
+              rowIndex: rowIndex
+          else
+            @errors.push "[row #{rowIndex}] We need a product before starting with a variant!"
+        else
+          @errors.push "[row #{rowIndex}] Could not be identified as product or variant!"
 
   valProductTypes: (productTypes) ->
     return if @suppressMissingHeaderWarning

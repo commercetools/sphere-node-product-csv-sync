@@ -163,9 +163,57 @@ describe 'Validator', ->
         expect(@validator.rawProducts[0].startRow).toBe 2
         expect(@validator.rawProducts[1].master).toEqual ['bar', '234']
         expect(@validator.rawProducts[1].variants.length).toBe 2
-        expect(@validator.rawProducts[1].variants[0]).toEqual ['', '345']
-        expect(@validator.rawProducts[1].variants[1]).toEqual ['', '456']
+        expect(@validator.rawProducts[1].variants[0].variant).toEqual ['', '345']
+        expect(@validator.rawProducts[1].variants[1].variant).toEqual ['', '456']
         expect(@validator.rawProducts[1].startRow).toBe 3
+        done()
+      .catch (err) -> done _.prettify(err)
+
+    it 'should build products per product type - sku update', (done) ->
+      csv =
+        """
+        productType,sku
+        foo,123
+        bar,234
+        bar,345
+        foo,456
+        """
+      @validator.parse csv
+      .then (parsed) =>
+        @validator.updateVariantsOnly = true
+        @validator.buildProducts parsed.data
+        expect(@validator.errors.length).toBe 0
+        expect(@validator.rawProducts.length).toBe 2
+        expect(@validator.rawProducts[0].variants.length).toBe 2
+        expect(@validator.rawProducts[0].startRow).toBe 2
+        expect(@validator.rawProducts[0].variants[0].variant).toEqual ['foo', '123']
+        expect(@validator.rawProducts[0].variants[0].rowIndex).toBe 2
+        expect(@validator.rawProducts[0].variants[1].variant).toEqual ['foo', '456']
+        expect(@validator.rawProducts[0].variants[1].rowIndex).toBe 5
+        expect(@validator.rawProducts[1].variants.length).toBe 2
+        expect(@validator.rawProducts[1].variants[0].variant).toEqual ['bar', '234']
+        expect(@validator.rawProducts[1].variants[0].rowIndex).toBe 3
+        expect(@validator.rawProducts[1].variants[1].variant).toEqual ['bar', '345']
+        expect(@validator.rawProducts[1].variants[1].rowIndex).toBe 4
+        expect(@validator.rawProducts[1].startRow).toBe 3
+        done()
+      .catch (err) -> done _.prettify(err)
+
+    it 'should build complain about missing product type - sku update', (done) ->
+      csv =
+        """
+        productType,sku
+        foo,123
+        bar,234
+        ,345
+        foo,456
+        """
+      @validator.parse csv
+      .then (parsed) =>
+        @validator.updateVariantsOnly = true
+        @validator.buildProducts parsed.data
+        expect(@validator.errors.length).toBe 1
+        expect(@validator.errors[0]).toBe '[row 4] Please provide a product type!'
         done()
       .catch (err) -> done _.prettify(err)
 

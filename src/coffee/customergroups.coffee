@@ -1,3 +1,4 @@
+_ = require 'underscore'
 # TODO:
 # - JSDoc
 # - make it util only
@@ -10,7 +11,7 @@ class CustomerGroups
     client.customerGroups.all().fetch()
 
   buildMaps: (customerGroups) ->
-    for group in customerGroups
+    _.each customerGroups, (group) =>
       name = group.name
       id = group.id
       @name2id[name] = id
