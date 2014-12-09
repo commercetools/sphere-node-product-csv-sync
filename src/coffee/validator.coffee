@@ -127,7 +127,9 @@ class Validator
               startRow: rowIndex
               variants: []
             @rawProducts.push @productType2variantContainer[productType]
-          @productType2variantContainer[productType].variants.push row
+          @productType2variantContainer[productType].variants.push
+            variant: row
+            rowIndex: rowIndex
         else
           @errors.push "[row #{rowIndex}] Please provide a product type!"
       else
@@ -141,7 +143,9 @@ class Validator
         else if @isVariant row, variantColumn
           product = _.last @rawProducts
           if product
-            product.variants.push row
+            product.variants.push
+              variant: row
+              rowIndex: rowIndex
           else
             @errors.push "[row #{rowIndex}] We need a product before starting with a variant!"
         else

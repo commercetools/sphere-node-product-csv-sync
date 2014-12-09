@@ -163,8 +163,8 @@ describe 'Validator', ->
         expect(@validator.rawProducts[0].startRow).toBe 2
         expect(@validator.rawProducts[1].master).toEqual ['bar', '234']
         expect(@validator.rawProducts[1].variants.length).toBe 2
-        expect(@validator.rawProducts[1].variants[0]).toEqual ['', '345']
-        expect(@validator.rawProducts[1].variants[1]).toEqual ['', '456']
+        expect(@validator.rawProducts[1].variants[0].variant).toEqual ['', '345']
+        expect(@validator.rawProducts[1].variants[1].variant).toEqual ['', '456']
         expect(@validator.rawProducts[1].startRow).toBe 3
         done()
       .catch (err) -> done _.prettify(err)
@@ -186,11 +186,15 @@ describe 'Validator', ->
         expect(@validator.rawProducts.length).toBe 2
         expect(@validator.rawProducts[0].variants.length).toBe 2
         expect(@validator.rawProducts[0].startRow).toBe 2
-        expect(@validator.rawProducts[0].variants[0]).toEqual ['foo', '123']
-        expect(@validator.rawProducts[0].variants[1]).toEqual ['foo', '456']
+        expect(@validator.rawProducts[0].variants[0].variant).toEqual ['foo', '123']
+        expect(@validator.rawProducts[0].variants[0].rowIndex).toBe 2
+        expect(@validator.rawProducts[0].variants[1].variant).toEqual ['foo', '456']
+        expect(@validator.rawProducts[0].variants[1].rowIndex).toBe 5
         expect(@validator.rawProducts[1].variants.length).toBe 2
-        expect(@validator.rawProducts[1].variants[0]).toEqual ['bar', '234']
-        expect(@validator.rawProducts[1].variants[1]).toEqual ['bar', '345']
+        expect(@validator.rawProducts[1].variants[0].variant).toEqual ['bar', '234']
+        expect(@validator.rawProducts[1].variants[0].rowIndex).toBe 3
+        expect(@validator.rawProducts[1].variants[1].variant).toEqual ['bar', '345']
+        expect(@validator.rawProducts[1].variants[1].rowIndex).toBe 4
         expect(@validator.rawProducts[1].startRow).toBe 3
         done()
       .catch (err) -> done _.prettify(err)
