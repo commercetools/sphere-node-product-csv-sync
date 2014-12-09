@@ -24,7 +24,7 @@ class Mapping
 
     product = @mapBaseProduct raw.master, productType, rowIndex
     product.masterVariant = @mapVariant raw.master, 1, productType, rowIndex, product
-    _.each raw.variants, (entry, index) ->
+    _.each raw.variants, (entry, index) =>
       product.variants.push @mapVariant entry.variant, index + 2, productType, entry.rowIndex, product
 
     data =
