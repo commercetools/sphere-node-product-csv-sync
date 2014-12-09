@@ -16,7 +16,7 @@ class Categories
     client.categories.all().fetch()
 
   buildMaps: (categories) ->
-    for category, index in categories
+    _.each categories, (category, index) =>
       name = category.name[GLOBALS.DEFAULT_LANGUAGE]
       id = category.id
       @id2index[id] = index
@@ -24,10 +24,10 @@ class Categories
         @duplicateNames.push name
       @name2id[name] = id
 
-    for category, index in categories
+    _.each categories, (category, index) =>
       fqName = ''
       if category.ancestors
-        for anchestor in category.ancestors
+        _.each category.ancestors, (ancestor) =>
           cat = categories[@id2index[anchestor.id]]
           name = cat.name[GLOBALS.DEFAULT_LANGUAGE]
           fqName = "#{fqName}#{name}#{GLOBALS.DELIM_CATEGORY_CHILD}"

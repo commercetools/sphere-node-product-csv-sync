@@ -1,3 +1,4 @@
+_ = require 'underscore'
 # TODO:
 # - JSDoc
 # - make it util only
@@ -10,9 +11,10 @@ class Channels
     client.channels.all().fetch()
 
   buildMaps: (channels) ->
-    for channel in channels
+    _.each channels, (channel) =>
       key = channel.key
       id = channel.id
+
       @key2id[key] = id
       @id2key[id] = key
 

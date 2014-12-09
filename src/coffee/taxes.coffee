@@ -13,13 +13,15 @@ class Taxes
     client.taxCategories.all().fetch()
 
   buildMaps: (taxCategories) ->
-    for taxCat in taxCategories
+    _.each taxCategories, (taxCat) =>
       name = taxCat.name
       id = taxCat.id
+
+      @id2name[id] = name
+
       if _.has @name2id, name
         @duplicateNames.push name
       @name2id[name] = id
-      @id2name[id] = name
 
 
 module.exports = Taxes
