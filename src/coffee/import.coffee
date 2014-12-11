@@ -39,11 +39,13 @@ class Import
   # - create/update products based on matches
   #
   # ideally workflow:
-  # - stream csv -> chunk
-  # - validate chunk
-  # - map products in chunk
-  # - lookup mapped products in sphere
-  # - create/update products based on matches from result
+  # - get all product types, categories, customer groups, taxes, channels (maybe get them ondemand?)
+  # - stream csv -> chunk (100)
+  # - base csv validation of chunk
+  # - map products to json in chunk
+  # - lookup mapped products in sphere (depending on given matcher - id, sku, slug, custom attribute)
+  # - validate products against their product types (we might not have to product type before)
+  # - create/update products based on matches
   # - next chunk
   import: (fileContent) ->
     @validator.parse fileContent
