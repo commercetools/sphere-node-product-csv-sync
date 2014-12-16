@@ -89,7 +89,7 @@ class Import
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true
 
-    @client.productProjections.staged(remove or publish).perPage(10).process (result) =>
+    @client.productProjections.staged(remove or publish).perPage(500).process (result) =>
       existingProducts = result.body.results
 
       console.log "Found #{_.size existingProducts} product(s) ..."
