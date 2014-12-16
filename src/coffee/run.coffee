@@ -19,11 +19,10 @@ module.exports = class
     new Promise (resolve, reject) ->
       if opts.csv
         fs.readFileAsync opts.csv, 'utf8'
+        .catch (err) ->
+          console.error "Problems on reading identity file '#{opts.csv}': #{err}"
+          process.exit 2
         .then (content) ->
-          if err
-            # TODO: use reject
-            console.error "Problems on reading identity file '#{opts.csv}': #{err}"
-            process.exit 2
           Csv().from.string(content)
           .to.array (data, count) ->
             identHeader = data[0][0]
