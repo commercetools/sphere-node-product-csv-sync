@@ -16,14 +16,14 @@ Feature: Publish and unpublish products
     [ '[row 2] New product created.' ]
     """
 
-    When I run `../../bin/product-csv-sync state --projectKey nicola --chnageTo publish`
+    When I run `../../bin/product-csv-sync state --projectKey nicola --changeTo publish`
     Then the exit status should be 0
     And the output should contain:
     """
     [ '[row 2] Product update not necessary.' ]
     """
 
-    When I run `../../bin/product-csv-sync state --projectKey nicola --chnageTo unpublish --x`
+    When I run `../../bin/product-csv-sync state --projectKey nicola --changeTo unpublish --x`
     Then the exit status should be 0
     And the output should contain:
     """
