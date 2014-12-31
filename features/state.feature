@@ -20,14 +20,14 @@ Feature: Publish and unpublish products
     Then the exit status should be 0
     And the output should contain:
     """
-    [ '[row 2] Product update not necessary.' ]
+    [ '[row 0] Product published.' ]
     """
 
-    When I run `../../bin/product-csv-sync state --projectKey nicola --changeTo unpublish --x`
+    When I run `../../bin/product-csv-sync state --projectKey nicola --changeTo unpublish`
     Then the exit status should be 0
     And the output should contain:
     """
-    [ '[row 2] Product update not necessary.' ]
+    [ '[row 0] Product unpublished.' ]
     """
 
     When I run `../../bin/product-csv-sync state --projectKey nicola --changeTo delete` interactively
