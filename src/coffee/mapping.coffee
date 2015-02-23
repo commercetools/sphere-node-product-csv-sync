@@ -254,11 +254,15 @@ class Mapping
   mapBoolean: (rawBoolean, attribName, rowIndex) ->
     if _.isUndefined(rawBoolean) or (_.isString(rawBoolean) and _.isEmpty(rawBoolean))
       return
-    b = JSON.parse(rawBoolean.toLowerCase())
-    if not _.isBoolean b
-      @errors.push "[row #{rowIndex}:#{attribName}] The value '#{rawBoolean}' isn't a valid boolean!"
-      return
-    b
+    errorMsg = "[row #{rowIndex}:#{attribName}] The value '#{rawBoolean}' isn't a valid boolean!"
+    try
+      b = JSON.parse(rawBoolean.toLowerCase())
+      if not _.isBoolean b
+        @errors.push errorMsg
+        return
+      b
+    catch
+      @errors.push errorMsg
 
   # "a.en,a.de,a.it"
   # "hi,Hallo,ciao"
