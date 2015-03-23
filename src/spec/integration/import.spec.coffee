@@ -34,7 +34,7 @@ describe 'Import integration test', ->
       @productType = result
       @client.channels.ensure(CHANNEL_KEY, 'InventorySupply')
     .then -> done()
-    .catch (err) -> done _.prettify(err)
+    .catch (err) -> done _.prettify(err.body)
     .done()
   , 40000 # 40sec
 

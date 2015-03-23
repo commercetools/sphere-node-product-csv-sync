@@ -24,7 +24,7 @@ describe 'Impex integration tests', ->
     .then (result) =>
       @productType = result
       done()
-    .catch (err) -> done _.prettify(err)
+    .catch (err) -> done _.prettify(err.body)
     .done()
   , 60000 # 60sec
 

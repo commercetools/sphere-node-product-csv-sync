@@ -21,7 +21,7 @@ describe 'State integration tests', ->
     .then (result) =>
       @productType = result
       done()
-    .catch (err) -> done _.prettify(err)
+    .catch (err) -> done _.prettify(err.body)
     .done()
   , 50000 # 50sec
 

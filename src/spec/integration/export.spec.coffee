@@ -31,7 +31,7 @@ describe 'Export integration tests', ->
 
     TestHelpers.setupProductType(@client, @productType, @product)
     .then -> done()
-    .catch (err) -> done _.prettify(err)
+    .catch (err) -> done _.prettify(err.body)
     .done()
   , 30000 # 30sec
 
