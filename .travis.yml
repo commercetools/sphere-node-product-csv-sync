@@ -15,6 +15,9 @@ script:
   - ./bin/product-csv-sync template --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --out data/template_sample.csv --all
   - ./bin/product-csv-sync export --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --template data/template_sample.csv --out data/exported.csv
   - ./bin/product-csv-sync state --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --changeTo delete --forceDelete
+branches:
+  except:
+    - /^v[0-9]\.[0-9]\.[0-9]$/
 notifications:
   hipchat:
     rooms:
