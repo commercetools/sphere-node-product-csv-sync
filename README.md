@@ -320,7 +320,7 @@ An export template defines the content of the resulting export CSV file, by list
 
 ```
 # only productType.name, the variant id and localized name (english) will be exported
-productType,name.en,varianId
+productType,name.en,variantId
 ```
 
 > Please see section [template]() on how to generate a template.
