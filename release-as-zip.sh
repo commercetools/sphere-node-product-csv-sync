@@ -39,6 +39,7 @@ npm install --production &>/dev/null
 git init
 git remote add origin git@github.com:sphereio/sphere-node-product-csv-sync.git
 git add -A &>/dev/null
+git add -f lib &>/dev/null
 git commit -m "Release packaged version ${VERSION} to ${LATEST_BRANCH_NAME} branch" &>/dev/null
 echo "About to push to ${LATEST_BRANCH_NAME} branch"
 git push --force origin master:${LATEST_BRANCH_NAME}
