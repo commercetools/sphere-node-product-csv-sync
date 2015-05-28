@@ -429,7 +429,7 @@ describe 'Mapping', ->
 
   describe '#mapReference', ->
     it 'should map a single reference', ->
-      expect(@validator.map.mapReference('123-456')).toEqual { id: '123-456' }
+      expect(@validator.map.mapReference('123-456')).toEqual { id: '123-456', typeId: 'product' }
 
   describe '#mapProduct', ->
     it 'should map a product', ->

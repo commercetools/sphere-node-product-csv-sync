@@ -239,6 +239,7 @@ class Mapping
     return undefined unless rawReference
     ref =
       id: rawReference
+      typeId: 'product'
 
   mapInteger: (rawNumber, attribName, rowIndex) ->
     parseInt @mapNumber(rawNumber, attribName, rowIndex, CONS.REGEX_INTEGER)
