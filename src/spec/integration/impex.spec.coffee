@@ -62,10 +62,29 @@ describe 'Impex integration tests', ->
         console.log "export", result
         expect(result).toBe 'Export done.'
         fs.readFileAsync file, {encoding: 'utf8'}
-      .then (content) ->
+      .then (content) =>
         console.log "export file content", content
+        # special check for p1 (because of list of prices)
+        p1Elements = p1.split(',')
+        expect(p1Elements[0]).toBe @productType.name
+        expect(p1Elements[1]).toBe 'myProduct1'
+        expect(p1Elements[2]).toBe 'my-slug1'
+        expect(p1Elements[3]).toBe '1'
+        expect(p1Elements[4]).toBe 'sku1'
+        # dirty check since prices can return in a different order
+        expect(_.difference(p1Elements[5].split(';'), ['FR-EUR 999', 'CHF 1099'])).toEqual []
+        expect(p1Elements[6]).toBe 'some Text'
+        expect(p1Elements[7]).toEqual 'foo\n'
+        expect(p1Elements[8]).toBe ''
+        expect(p1Elements[9]).toBe ''
+        expect(p1Elements[10]).toBe '2'
+        expect(p1Elements[11]).toBe 'sku2'
+        expect(p1Elements[12]).toBe 'EUR 799'
+        expect(p1Elements[13]).toBe 'some other Text'
+        expect(p1Elements[14]).toBe 'foo'
+        expect(p1Elements[15]).toBe '"t1;t2;t3;Üß""Let\'s see if we support multi\nline value"""'
+
         expect(content).toMatch header
-        expect(content).toMatch p1
         expect(content).toMatch p2
         done()
     .catch (err) -> done _.prettify(err)
