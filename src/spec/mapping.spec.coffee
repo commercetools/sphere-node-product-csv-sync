@@ -223,6 +223,47 @@ describe 'Mapping', ->
         ]
       expect(attribute).toEqual expectedAttribute
 
+    it 'should map set of money attributes', ->
+      productType =
+        id: 'myType'
+        attributes: [
+          name: 'money-rules'
+          type:
+            name: 'set'
+            elementType:
+              name: 'money'
+        ]
+      @map.header = new Header [ 'money-rules' ]
+      languageHeader2Index = @map.header._productTypeLanguageIndexes productType
+      attribute = @map.mapAttribute [ 'EUR 200;USD 100' ], productType.attributes[0], languageHeader2Index
+
+      expectedAttribute =
+        name: 'money-rules'
+        value: [
+          {"centAmount": 200, "currencyCode": "EUR"},
+          {"centAmount": 100, "currencyCode": "USD"}
+        ]
+      expect(attribute).toEqual expectedAttribute
+
+    it 'should map set of number attributes', ->
+      productType =
+        id: 'myType'
+        attributes: [
+          name: 'numbers'
+          type:
+            name: 'set'
+            elementType:
+              name: 'number'
+        ]
+      @map.header = new Header [ 'numbers' ]
+      languageHeader2Index = @map.header._productTypeLanguageIndexes productType
+      attribute = @map.mapAttribute [ '1;0;-1' ], productType.attributes[0], languageHeader2Index
+
+      expectedAttribute =
+        name: 'numbers'
+        value: [ 1, 0, -1 ]
+      expect(attribute).toEqual expectedAttribute
+
     it 'should validate attribute value (undefined)', ->
       productTypeAttribute =
         name: 'foo'

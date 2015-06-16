@@ -157,7 +157,7 @@ class Mapping
 
   mapValue: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
     switch attribute.type.name
-      when CONS.ATTRIBUTE_TYPE_SET then @mapSetAttribute rawVariant, attribute.name, attribute.type.elementType, languageHeader2Index
+      when CONS.ATTRIBUTE_TYPE_SET then @mapSetAttribute rawVariant, attribute.name, attribute.type.elementType, languageHeader2Index, rowIndex
       when CONS.ATTRIBUTE_TYPE_LTEXT then @mapLocalizedAttrib rawVariant, attribute.name, languageHeader2Index
       when CONS.ATTRIBUTE_TYPE_NUMBER then @mapNumber rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       when CONS.ATTRIBUTE_TYPE_BOOLEAN then @mapBoolean rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
@@ -165,25 +165,30 @@ class Mapping
       when CONS.ATTRIBUTE_TYPE_REFERENCE then @mapReference rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       else rawVariant[@header.toIndex attribute.name] # works for text, enum and lenum
 
-  # TODO: support set of money and number attributes!
-  mapSetAttribute: (rawVariant, attributeName, elementType, languageHeader2Index) ->
-    switch elementType.name
-      when CONS.ATTRIBUTE_TYPE_LTEXT
-        multiValObj = @mapLocalizedAttrib rawVariant, attributeName, languageHeader2Index
-        value = []
-        _.each multiValObj, (raw, lang) =>
-          if @isValidValue(raw)
-            languageVals = raw.split GLOBALS.DELIM_MULTI_VALUE
-            _.each languageVals, (v, index) ->
-              localized = {}
-              localized[lang] = v
-              value[index] = _.extend (value[index] or {}), localized
-        value
-      else
-        raw = rawVariant[@header.toIndex attributeName]
+  mapSetAttribute: (rawVariant, attributeName, elementType, languageHeader2Index, rowIndex) ->
+    if elementType.name is CONS.ATTRIBUTE_TYPE_LTEXT
+      multiValObj = @mapLocalizedAttrib rawVariant, attributeName, languageHeader2Index
+      value = []
+      _.each multiValObj, (raw, lang) =>
         if @isValidValue(raw)
-          rawValues = raw.split GLOBALS.DELIM_MULTI_VALUE
-          _.map rawValues, (rawValue) -> rawValue
+          languageVals = raw.split GLOBALS.DELIM_MULTI_VALUE
+          _.each languageVals, (v, index) ->
+            localized = {}
+            localized[lang] = v
+            value[index] = _.extend (value[index] or {}), localized
+      value
+    else
+      raw = rawVariant[@header.toIndex attributeName]
+      if @isValidValue(raw)
+        rawValues = raw.split GLOBALS.DELIM_MULTI_VALUE
+        _.map rawValues, (rawValue) =>
+          switch elementType.name
+            when CONS.ATTRIBUTE_TYPE_MONEY
+              @mapMoney rawValue, attributeName, rowIndex
+            when CONS.ATTRIBUTE_TYPE_NUMBER
+              @mapNumber rawValue, attributeName, rowIndex
+            else
+              rawValue
 
   mapPrices: (raw, rowIndex) ->
     prices = []
