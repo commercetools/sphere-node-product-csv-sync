@@ -162,7 +162,7 @@ class Mapping
       when CONS.ATTRIBUTE_TYPE_NUMBER then @mapNumber rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       when CONS.ATTRIBUTE_TYPE_BOOLEAN then @mapBoolean rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
-      when CONS.ATTRIBUTE_TYPE_REFERENCE then @mapReference rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
+      when CONS.ATTRIBUTE_TYPE_REFERENCE then @mapReference rawVariant[@header.toIndex attribute.name], attribute, rowIndex
       else rawVariant[@header.toIndex attribute.name] # works for text, enum and lenum
 
   # TODO: support set of money and number attributes!
@@ -235,11 +235,11 @@ class Mapping
       currencyCode: matchedMoney[1]
       centAmount: parseInt matchedMoney[2]
 
-  mapReference: (rawReference, attribName, rowIndex) ->
+  mapReference: (rawReference, attribute, rowIndex) ->
     return undefined unless rawReference
     ref =
       id: rawReference
-      typeId: 'product'
+      typeId: attribute.type.referenceTypeId
 
   mapInteger: (rawNumber, attribName, rowIndex) ->
     parseInt @mapNumber(rawNumber, attribName, rowIndex, CONS.REGEX_INTEGER)
