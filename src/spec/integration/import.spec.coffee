@@ -696,7 +696,7 @@ describe 'Import integration test', ->
     , 40000 # 40sec
 
 
-    it 'should not update SEO attribute if not all 3 headers are present', (done) ->
+    it 'should update SEO attribute if not all 3 headers are present', (done) ->
       csv =
         """
         productType,variantId,sku,name,metaTitle,metaDescription,metaKeywords
@@ -715,14 +715,14 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
-        expect(result[0]).toBe '[row 2] Product update not necessary.'
+        expect(result[0]).toBe '[row 2] Product updated.'
         @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
         expect(p.name).toEqual {en: @newProductName}
-        expect(p.metaTitle).toEqual {en: 'a'}
-        expect(p.metaDescription).toEqual {en: 'b'}
+        expect(p.metaTitle).toEqual {en: 'x'}
+        expect(p.metaDescription).toEqual {en: 'y'}
         expect(p.metaKeywords).toEqual {en: 'c'}
         done()
       .catch (err) -> done _.prettify(err)

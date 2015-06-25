@@ -93,7 +93,6 @@ module.exports = class
       .option '--continueOnProblems', 'When a product does not validate on the server side (400er response), ignore it and continue with the next products'
       .option '--suppressMissingHeaderWarning', 'Do not show which headers are missing per produt type.'
       .option '--allowRemovalOfVariants', 'If given variants will be removed if there is no corresponding row in the CSV. Otherwise they are not touched.'
-      .option '--ignoreSeoAttributes', 'If true all meta* attrbutes are kept untouched.'
       .option '--publish', 'When given, all changes will be published immediately'
       .option '--updatesOnly', "Won't create any new products, only updates existing"
       .option '--dryRun', 'Will list all action that would be triggered, but will not POST them to SPHERE.IO'

@@ -237,7 +237,9 @@ class Import
       { type: 'references', group: 'white' }
       { type: 'attributes', group: 'white' }
       { type: 'variants', group: 'white' }
-      { type: 'metaAttributes', group: 'white' }
+      { type: 'metaTitle', group: 'white' }
+      { type: 'metaDescription', group: 'white' }
+      { type: 'metaKeywords', group: 'white' }
     ]
     if header.has(CONS.HEADER_PRICES)
       config.push { type: 'prices', group: 'white' }
