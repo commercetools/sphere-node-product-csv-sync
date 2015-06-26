@@ -139,7 +139,6 @@ module.exports = class
           importer.blackListedCustomAttributesForUpdate = opts.customAttributesForCreationOnly or []
           importer.validator.suppressMissingHeaderWarning = opts.suppressMissingHeaderWarning
           importer.allowRemovalOfVariants = opts.allowRemovalOfVariants
-          importer.syncSeoAttributes = false if opts.ignoreSeoAttributes
           importer.publishProducts = opts.publish
           importer.updatesOnly = true if opts.updatesOnly
           importer.dryRun = true if opts.dryRun
