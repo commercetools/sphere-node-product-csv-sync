@@ -653,8 +653,7 @@ describe 'Import integration test', ->
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
         expect(p.name).toEqual {en: @newProductName}
-        # TODO: expecting metaTitle to be undefined
-        expect(p.metaTitle).toEqual {en: 'a'}
+        expect(p.metaTitle).toEqual undefined
         expect(p.metaDescription).toEqual {en: 'b'}
         expect(p.metaKeywords).toEqual {en: 'changed'}
         done()
