@@ -41,7 +41,7 @@ describe 'Impex integration tests', ->
       #{@productType.name},myProduct2,my-slug2,1,sku3,USD 1899
       ,,,2,sku4,USD 1999
       ,,,3,sku5,USD 2099
-      ,,,4,,USD 2199
+      ,,,4,sku6,USD 2199
       """
     csv =
       """
