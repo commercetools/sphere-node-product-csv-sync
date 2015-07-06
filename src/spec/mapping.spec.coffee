@@ -335,8 +335,8 @@ describe 'Mapping', ->
     it 'should map price with customer group', ->
       @map.customerGroups =
         name2id:
-          myGroup: 'group123'
-      prices = @map.mapPrices 'GBP 0 myGroup'
+          'my Group 7': 'group123'
+      prices = @map.mapPrices 'GBP 0 my Group 7'
       expect(prices.length).toBe 1
       expectedPrice =
         value:
