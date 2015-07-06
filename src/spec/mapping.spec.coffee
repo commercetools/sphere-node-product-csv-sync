@@ -389,8 +389,8 @@ describe 'Mapping', ->
           b2bCustomer: 'group_123'
       @map.channels =
         key2id:
-          wareHouse: 'dwh_987'
-      prices = @map.mapPrices 'DE-EUR 100 b2bCustomer#wareHouse'
+          'ware House-42': 'dwh_987'
+      prices = @map.mapPrices 'DE-EUR 100 b2bCustomer#ware House-42'
       expect(prices.length).toBe 1
       expectedPrice =
         value:
