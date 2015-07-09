@@ -176,7 +176,7 @@ describe 'Import integration test', ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
         @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
-      .then (result) ->
+      .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
         expect(p.masterVariant.attributes[0]).toEqual {name: TEXT_ATTRIBUTE_NONE, value: 'bar'}
@@ -190,13 +190,13 @@ describe 'Import integration test', ->
         expect(p.variants[0].attributes[2]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'CU2'}}
         expect(p.variants[0].attributes[3]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10}
         expect(p.variants[0].attributes[4]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
-        expect(p.variants[0].attributes[5]).toEqual {name: REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE, value: {id: productType.id, typeId: 'productType'}}
+        expect(p.variants[0].attributes[5]).toEqual {name: REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE, value: {id: @productType.id, typeId: 'productType'}}
         expect(p.variants[1].attributes[0]).toEqual {name: TEXT_ATTRIBUTE_NONE, value: 'bar'}
         expect(p.variants[1].attributes[1]).toEqual {name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['cinque', 'sei']}
         expect(p.variants[1].attributes[2]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'CU3'}}
         expect(p.variants[1].attributes[3]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10}
         expect(p.variants[1].attributes[4]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
-        expect(p.variants[1].attributes[5]).toEqual {name: REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE, value: {id: productType.id, typeId: 'productType'}}
+        expect(p.variants[1].attributes[5]).toEqual {name: REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE, value: {id: @productType.id, typeId: 'productType'}}
         done()
       .catch (err) -> done _.prettify(err)
       .done()
@@ -280,8 +280,8 @@ describe 'Import integration test', ->
       .then (result) ->
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
-        expect(p.masterVariant.attributes[0]).toEqual {name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['bar']}
-        expect(p.masterVariant.attributes[1]).toEqual {name: SET_ATTRIBUTE_ENUM_NONE, value: [{key: 'enum1', label: 'Enum1'}]}
+        expect(p.masterVariant.attributes[0]).toEqual {name: SET_ATTRIBUTE_ENUM_NONE, value: [{key: 'enum1', label: 'Enum1'}]}
+        expect(p.masterVariant.attributes[1]).toEqual {name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['bar']}
         expect(p.masterVariant.attributes[2]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 100}
         done()
       .catch (err) -> done _.prettify(err)
