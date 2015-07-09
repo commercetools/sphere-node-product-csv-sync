@@ -29,6 +29,9 @@ describe 'Export integration tests', ->
         en: 'Foo'
       slug:
         en: 'foo'
+      variants: [
+        sku: '123'
+      ]
 
     TestHelpers.setupProductType(@client, @productType, @product)
     .then -> done()
@@ -81,6 +84,7 @@ describe 'Export integration tests', ->
       """
       productType,name,variantId
       #{@productType.name},,1
+      ,,2
 
       """
     @export.export(template, file)
