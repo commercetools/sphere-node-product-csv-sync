@@ -78,23 +78,24 @@ class Export
           @customerGroupService.buildMaps customerGroups.body.results
           @taxService.buildMaps taxes.body.results
 
-          console.log "Number of product types: #{productTypes.body.total}."
-          _.each productTypes.body.results, (productType) =>
+          console.log "Fetched #{productTypes.body.total} product type(s)."
+          _.each productTypes.body.results, (productType) ->
             header._productTypeLanguageIndexes(productType)
 
           processChunk = (products) =>
-            console.log "Fetched #{products.body.count} product(s) - #{products.body.offset}/#{products.body.total}."
+            current = products.body.offset + products.body.count
+            console.log "Fetched #{products.body.count} product(s) - #{(100 * current / products.body.total).toFixed(1)}% of #{products.body.total}."
             csv = []
             _.each products.body.results, (product) ->
               csv = csv.concat exportMapping.mapProduct(product, productTypes.body.results)
             @_saveCSV(outputFile, csv, true)
 
           @_saveCSV(outputFile, [ header.rawHeader ] )
-          .then () =>
+          .then (r) =>
 
             @_getProductService(staged)
             .process(processChunk, {accumulate: false})
-            .then (result) =>
+            .then (result) ->
               Promise.resolve "Export done."
 
   exportAsJson: (outputFile) ->
