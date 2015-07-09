@@ -27,6 +27,7 @@ Feature: Export products
     Number of fetched products: 1/1.
     """
 
+  @wip
   Scenario: Export products by search
     When I run `../../bin/product-csv-sync export --projectKey nicola --template '../../data/template_sample.csv' --out '../../data/exported.csv' --queryString 'text.en=123&staged=true' --queryType search`
     Then the exit status should be 0
