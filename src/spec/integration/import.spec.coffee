@@ -24,6 +24,7 @@ CHANNEL_KEY = 'retailerA'
 describe 'Import integration test', ->
 
   beforeEach (done) ->
+    # jasmine.getEnv().defaultTimeoutInterval = 60000 # necessary when running single tests with 'iit'
     @importer = createImporter()
     @importer.validator.suppressMissingHeaderWarning = true
     @client = @importer.client
@@ -190,13 +191,13 @@ describe 'Import integration test', ->
         expect(p.variants[0].attributes[2]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'CU2'}}
         expect(p.variants[0].attributes[3]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10}
         expect(p.variants[0].attributes[4]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
-        expect(p.variants[0].attributes[5]).toEqual {name: REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE, value: {id: @productType.id, typeId: 'productType'}}
+        expect(p.variants[0].attributes[5]).toEqual {name: REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE, value: {id: @productType.id, typeId: 'product-type'}}
         expect(p.variants[1].attributes[0]).toEqual {name: TEXT_ATTRIBUTE_NONE, value: 'bar'}
-        expect(p.variants[1].attributes[1]).toEqual {name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['cinque', 'sei']}
-        expect(p.variants[1].attributes[2]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'CU3'}}
-        expect(p.variants[1].attributes[3]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10}
-        expect(p.variants[1].attributes[4]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
-        expect(p.variants[1].attributes[5]).toEqual {name: REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE, value: {id: @productType.id, typeId: 'productType'}}
+        expect(p.variants[1].attributes[1]).toEqual {name: REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE, value: {id: @productType.id, typeId: 'product-type'}}
+        expect(p.variants[1].attributes[2]).toEqual {name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['cinque', 'sei']}
+        expect(p.variants[1].attributes[3]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'CU3'}}
+        expect(p.variants[1].attributes[4]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10}
+        expect(p.variants[1].attributes[5]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
         done()
       .catch (err) -> done _.prettify(err)
       .done()
