@@ -24,7 +24,7 @@ CHANNEL_KEY = 'retailerA'
 describe 'Import integration test', ->
 
   beforeEach (done) ->
-    # jasmine.getEnv().defaultTimeoutInterval = 60000 # necessary when running single tests with 'iit'
+    jasmine.getEnv().defaultTimeoutInterval = 90000 # 90 sec
     @importer = createImporter()
     @importer.validator.suppressMissingHeaderWarning = true
     @client = @importer.client
@@ -38,7 +38,7 @@ describe 'Import integration test', ->
     .then -> done()
     .catch (err) -> done _.prettify(err.body)
     .done()
-  , 40000 # 40sec
+  , 120000 # 2min
 
   describe '#import', ->
 
@@ -65,8 +65,6 @@ describe 'Import integration test', ->
         expect(p.slug).toEqual en: @newProductSlug
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'should import a product with prices', (done) ->
       csv =
@@ -92,8 +90,6 @@ describe 'Import integration test', ->
         expect(prices[2].channel.id).toBeDefined()
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'should do nothing on 2nd import run', (done) ->
       csv =
@@ -113,8 +109,6 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'should update changes on 2nd import run', (done) ->
       csv =
@@ -144,8 +138,6 @@ describe 'Import integration test', ->
         expect(p.slug).toEqual en: @newProductSlug
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'should handle all kind of attributes and constraints', (done) ->
       csv =
@@ -200,8 +192,6 @@ describe 'Import integration test', ->
         expect(p.variants[1].attributes[5]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'should handle multiple products', (done) ->
       p1 = TestHelpers.uniqueId 'name1-'
@@ -246,8 +236,6 @@ describe 'Import integration test', ->
         expect(result.body.results[2].slug).toEqual {en: s3}
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'should handle set of enums', (done) ->
       csv =
@@ -286,8 +274,6 @@ describe 'Import integration test', ->
         expect(p.masterVariant.attributes[2]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 100}
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'should handle set of SameForAll enums with new variants', (done) ->
       csv =
@@ -341,8 +327,6 @@ describe 'Import integration test', ->
           expect(v.attributes[2]).toEqual {name: SET_ATTRIBUTE_LENUM_SAME_FOR_ALL, value: [{key: 'lenum1', label: {en: 'Enum1'}}, {key: 'lenum2', label: {en: 'Enum2'}}]}
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'should remove a variant and change an SameForAll attribute at the same time', (done) ->
       csv =
@@ -375,8 +359,6 @@ describe 'Import integration test', ->
         expect(p.masterVariant.attributes[2]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum1', label: 'Enum1'}}
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'should not removeVariant if allowRemovalOfVariants is off', (done) ->
       csv =
@@ -408,8 +390,6 @@ describe 'Import integration test', ->
         expect(_.size p.variants).toBe 1
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'should execute SameForAll attribute change before addVariant', (done) ->
       csv =
@@ -447,8 +427,6 @@ describe 'Import integration test', ->
         expect(p.variants[0].attributes[2]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'should do a partial update of product base attributes', (done) ->
       csv =
@@ -491,8 +469,6 @@ describe 'Import integration test', ->
         expect(p.masterVariant.sku).toBe @newProductSku
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'should do a partial update of localized attributes', (done) ->
       csv =
@@ -535,8 +511,6 @@ describe 'Import integration test', ->
         expect(p.masterVariant.attributes[0]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'english', de: undefined, it: 'ciao'}}
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'should do a partial update of custom attributes', (done) ->
       csv =
@@ -593,8 +567,6 @@ describe 'Import integration test', ->
         expect(p.variants[0].attributes[5]).toEqual { name: SET_ATTRIBUTE_LENUM_SAME_FOR_ALL, value: [{key: 'lenum2', label: { en: 'Enum2' }}] }
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'partial update should not overwrite name, prices and images', (done) ->
       csv =
@@ -630,8 +602,6 @@ describe 'Import integration test', ->
         expect(p.variants[0].images[0].url).toBe '/example.com/bar.png'
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'should do a full update of SEO attribute', (done) ->
       csv =
@@ -663,8 +633,6 @@ describe 'Import integration test', ->
         expect(p.metaKeywords).toEqual {en: 'changed'}
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'should do a full update of multi language SEO attribute', (done) ->
       csv =
@@ -696,9 +664,6 @@ describe 'Import integration test', ->
         expect(p.metaKeywords).toEqual {de: 'newMetaKeyDe'}
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
-
 
     it 'should update SEO attribute if not all 3 headers are present', (done) ->
       csv =
@@ -730,8 +695,6 @@ describe 'Import integration test', ->
         expect(p.metaKeywords).toEqual {en: 'c'}
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
 
     it 'should do a partial update of prices based on SKUs', (done) ->
       csv =
@@ -768,5 +731,3 @@ describe 'Import integration test', ->
         expect(p.variants[0].prices[0].value).toEqual { centAmount: 80000, currencyCode: 'USD' }
         done()
       .catch (err) -> done _.prettify(err)
-      .done()
-    , 40000 # 40sec
