@@ -45,10 +45,10 @@ class Export
     productsService = @client.productProjections
     if @queryOptions.queryString
       productsService.byQueryString(@queryOptions.queryString, @queryOptions.isQueryEncoded)
-#      if @queryOptions.queryType is 'search'
-#        productsService.search()
-#      else
-      productsService
+      if @queryOptions.queryType is 'search'
+        productsService.asSearch()
+      else
+        productsService
     else
       productsService.all().perPage(500).staged(staged)
 
@@ -84,7 +84,7 @@ class Export
 
           processChunk = (products) =>
             current = products.body.offset + products.body.count
-            console.log "Fetched #{products.body.count} product(s) - #{(100 * current / products.body.total).toFixed(1)}% of #{products.body.total}."
+            console.log "Fetched #{products.body.count} product(s)."
             csv = []
             _.each products.body.results, (product) ->
               csv = csv.concat exportMapping.mapProduct(product, productTypes.body.results)

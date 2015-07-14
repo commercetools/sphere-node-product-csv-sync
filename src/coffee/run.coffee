@@ -260,7 +260,7 @@ module.exports = class
       .option '-j, --json <file>', 'Path to the JSON file the exporter will write the resulting products'
       .option '-q, --queryString <query>', 'Query string to specify the sub-set of products to export'
       .option '-l, --language [lang]', 'Language used on export for category names (default is en)', 'en'
-#      .option '--queryType <type>', 'Whether to do a query or a search request', 'query'
+      .option '--queryType <type>', 'Whether to do a query or a search request', 'query'
       .option '--queryEncoded', 'Whether the given query string is already encoded or not', false
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) ->
@@ -281,7 +281,7 @@ module.exports = class
             export:
               show_progress: true
               queryString: opts.queryString
-              queryType: 'query'
+              queryType: opts.queryType
               isQueryEncoded: opts.queryEncoded or false
           options.client.host = program.sphereHost if program.sphereHost
           if program.sphereAuthHost
