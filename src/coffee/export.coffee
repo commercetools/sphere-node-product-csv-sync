@@ -46,11 +46,11 @@ class Export
     if @queryOptions.queryString
       productsService.byQueryString(@queryOptions.queryString, @queryOptions.isQueryEncoded)
       if @queryOptions.queryType is 'search'
-        productsService.search()
+        productsService.asSearch()
       else
-        productsService.fetch()
+        productsService
     else
-      productsService.all().staged(staged).fetch()
+      productsService.all().perPage(500).staged(staged)
 
   export: (templateContent, outputFile, staged = true) ->
     @_parse(templateContent)
@@ -62,37 +62,41 @@ class Export
         header.toIndex()
         header.toLanguageIndex()
         exportMapping = @_initMapping(header)
+
         data = [
           @typesService.getAll @client
           @categoryService.getAll @client
           @channelService.getAll @client
           @customerGroupService.getAll @client
           @taxService.getAll @client
-          @_getProductService(staged)
         ]
-        # TODO:
-        # - use process to export products in batches
-        # - use streams to write data chunks
         Promise.all(data)
-        .then ([productTypes, categories, channels, customerGroups, taxes, products]) =>
-          console.log "Number of product types: #{productTypes.body.total}."
-          if products.body.total is 0
-            Promise.resolve 'No products found.'
-          else
-            console.log "Number of fetched products: #{products.body.count}/#{products.body.total}."
-            @typesService.buildMaps productTypes.body.results
-            @categoryService.buildMaps categories.body.results
-            @channelService.buildMaps channels.body.results
-            @customerGroupService.buildMaps customerGroups.body.results
-            @taxService.buildMaps taxes.body.results
-            for productType in productTypes.body.results
-              header._productTypeLanguageIndexes(productType)
-            csv = [ header.rawHeader ]
-            for product in products.body.results
-              csv = csv.concat exportMapping.mapProduct(product, productTypes.body.results)
+        .then ([productTypes, categories, channels, customerGroups, taxes]) =>
+          @typesService.buildMaps productTypes.body.results
+          @categoryService.buildMaps categories.body.results
+          @channelService.buildMaps channels.body.results
+          @customerGroupService.buildMaps customerGroups.body.results
+          @taxService.buildMaps taxes.body.results
 
-            @_saveCSV(outputFile, csv)
-            .then -> Promise.resolve 'Export done.'
+          console.log "Fetched #{productTypes.body.total} product type(s)."
+          _.each productTypes.body.results, (productType) ->
+            header._productTypeLanguageIndexes(productType)
+
+          processChunk = (products) =>
+            current = products.body.offset + products.body.count
+            console.log "Fetched #{products.body.count} product(s)."
+            csv = []
+            _.each products.body.results, (product) ->
+              csv = csv.concat exportMapping.mapProduct(product, productTypes.body.results)
+            @_saveCSV(outputFile, csv, true)
+
+          @_saveCSV(outputFile, [ header.rawHeader ] )
+          .then (r) =>
+
+            @_getProductService(staged)
+            .process(processChunk, {accumulate: false})
+            .then (result) ->
+              Promise.resolve "Export done."
 
   exportAsJson: (outputFile) ->
     # TODO:
@@ -147,10 +151,11 @@ class Export
             else
               Promise.reject 'Please re-run and select a valid number.'
 
-  _saveCSV: (file, content) ->
+  _saveCSV: (file, content, append) ->
+    flags = if append then 'a' else 'w'
     new Promise (resolve, reject) ->
       Csv().from(content)
-      .to.path file, {encoding: 'utf8'}
+      .to.path file, {encoding: 'utf8', flags: flags, eof: true}
       .on 'error', (err) -> reject err
       .on 'close', (count) -> resolve count
 

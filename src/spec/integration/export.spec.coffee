@@ -9,6 +9,7 @@ TestHelpers = require './testhelpers'
 describe 'Export integration tests', ->
 
   beforeEach (done) ->
+    jasmine.getEnv().defaultTimeoutInterval = 30000 # 30 sec
     @export = new Export client: Config
     @client = @export.client
 
@@ -28,12 +29,14 @@ describe 'Export integration tests', ->
         en: 'Foo'
       slug:
         en: 'foo'
+      variants: [
+        sku: '123'
+      ]
 
     TestHelpers.setupProductType(@client, @productType, @product)
     .then -> done()
     .catch (err) -> done _.prettify(err.body)
-    .done()
-  , 30000 # 30sec
+  , 60000 # 60sec
 
 
   it 'should inform about a bad header in the template', (done) ->
@@ -49,21 +52,27 @@ describe 'Export integration tests', ->
       expect(err[0]).toBe 'There are duplicate header entries!'
       expect(err[1]).toBe "You need either the column 'variantId' or 'sku' to identify your variants!"
       done()
-    .done()
-  , 20000 # 20sec
 
   it 'should inform that there are no products', (done) ->
     template =
       '''
       productType,name,variantId
       '''
-    @export.export(template, '/tmp/foo.csv', false)
+    file = '/tmp/output.csv'
+    expectedCSV =
+      """
+      productType,name,variantId
+
+
+      """
+    @export.export(template, file, false)
     .then (result) ->
-      expect(result).toBe 'No products found.'
+      expect(result).toBe 'Export done.'
+      fs.readFileAsync file, {encoding: 'utf8'}
+    .then (content) ->
+      expect(content).toBe expectedCSV
       done()
     .catch (err) -> done _.prettify(err)
-    .done()
-  , 20000 # 20sec
 
   it 'should export based on minimum template', (done) ->
     template =
@@ -75,6 +84,8 @@ describe 'Export integration tests', ->
       """
       productType,name,variantId
       #{@productType.name},,1
+      ,,2
+
       """
     @export.export(template, file)
     .then (result) ->
@@ -84,5 +95,3 @@ describe 'Export integration tests', ->
       expect(content).toBe expectedCSV
       done()
     .catch (err) -> done _.prettify(err)
-    .done()
-  , 20000 # 20sec
