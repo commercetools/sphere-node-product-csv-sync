@@ -137,6 +137,7 @@ class ExportMapping
       when CONS.ATTRIBUTE_TYPE_ENUM, CONS.ATTRIBUTE_TYPE_LENUM then attribute.value.key
       when CONS.ATTRIBUTE_TYPE_MONEY then @_mapMoney attribute.value
       when CONS.ATTRIBUTE_TYPE_REFERENCE then attribute.value?.id
+      when CONS.ATTRIBUTE_TYPE_BOOLEAN then attribute.value.toString()
       else attribute.value
 
   _mapLocalizedAttribute: (attribute, productType, row) ->
