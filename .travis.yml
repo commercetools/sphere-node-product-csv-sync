@@ -4,6 +4,8 @@ branches:
     - latest
 node_js:
   - '0.10'
+  - '0.12'
+  - 'iojs'
 before_script:
   - npm install -g grunt-cli
   - ./create_config.sh
