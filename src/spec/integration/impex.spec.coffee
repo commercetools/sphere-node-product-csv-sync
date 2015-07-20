@@ -60,11 +60,14 @@ describe 'Impex integration tests', ->
       expect(result[1]).toBe '[row 4] New product created.'
       file = '/tmp/impex.csv'
       @exporter.export(csv, file)
-      .then (result) ->
+      .then (result) =>
         console.log "export", result
         expect(result).toBe 'Export done.'
+        @client.products.all().fetch()
+      .then (res) ->
+        console.log "products %j", res.body
         fs.readFileAsync file, {encoding: 'utf8'}
-      .then (content) =>
+      .then (content) ->
         console.log "export file content", content
         expect(content).toMatch header
         expect(content).toMatch p1
