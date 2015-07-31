@@ -35,3 +35,19 @@ describe 'Categories', ->
       expect(@categories.fqName2id['root>main']).toBe 'idy'
       expect(@categories.fqName2id['root>main>sub']).toBe 'idz'
       expect(_.size @categories.duplicateNames).toBe 0
+      
+    it 'should create maps for categories with externalId', ->
+      categories = [
+        { id: 'idx', name: { en: 'root' }, externalId: '123' }
+        { id: 'idy', name: { en: 'main' }, externalId: '234' }
+        { id: 'idz', name: { en: 'sub' }, externalId: '345' }
+      ]
+      @categories.buildMaps categories
+      expect(_.size @categories.id2index).toBe 3
+      expect(_.size @categories.name2id).toBe 3
+      expect(_.size @categories.fqName2id).toBe 3
+      expect(_.size @categories.externalId2id).toBe 3
+      expect(@categories.externalId2id['root']).toBe '123'
+      expect(@categories.externalId2id['main']).toBe '234'
+      expect(@categories.externalId2id['sub']).toBe '345'
+      expect(_.size @categories.duplicateNames).toBe 0

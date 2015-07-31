@@ -13,6 +13,7 @@ constants =
 
   HEADER_TAX: 'tax'
   HEADER_CATEGORIES: 'categories'
+  HEADER_CATEGORIES_EXTERNALID: 'categories.externalId'
 
   HEADER_SKU: 'sku'
   HEADER_PRICES: 'prices'
