@@ -1,6 +1,7 @@
 _ = require 'underscore'
 CONS = require '../lib/constants'
 {Header, Mapping, Validator} = require '../lib/main'
+Categories = require '../lib/categories'
 
 describe 'Mapping', ->
   beforeEach ->
@@ -107,6 +108,43 @@ describe 'Mapping', ->
           masterVariant: {}
           variants: []
           categories: []
+
+        expect(product).toEqual expectedProduct
+
+    it 'should map base product with categories', ->
+      csv =
+        """
+        productType,id,name,variantId,categories.externalId
+        foo,xyz,myProduct,1,ext-123
+        """
+      pt =
+        id: '123'
+      cts = [
+        id: '234'
+        externalId: 'ext-123'
+      ]
+
+      @validator.parse csv, (content, count) =>
+        @categories = new Categories
+        @categories.buildMaps cts
+        @validator.validateOffline content
+        product = @validator.map.mapBaseProduct @validator.rawProducts[0].master, pt
+
+        expectedProduct =
+          id: 'xyz'
+          productType:
+            typeId: 'product-type'
+            id: '123'
+          name:
+            en: 'myProduct'
+          slug:
+            en: 'myproduct'
+          masterVariant: {}
+          variants: []
+          categories: [
+            typeId: 'category'
+            id: '234'
+          ]
 
         expect(product).toEqual expectedProduct
 
