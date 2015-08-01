@@ -8,7 +8,7 @@ class Categories
   constructor: ->
     @id2index = {}
     @name2id = {}
-    @externalId2id ={}
+    @externalId2id = {}
     @fqName2id = {}
     @id2fqName = {}
     @duplicateNames = []
