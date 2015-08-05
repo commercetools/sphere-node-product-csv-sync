@@ -79,31 +79,30 @@ class Mapping
 
   mapCategories: (rawMaster, rowIndex) ->
     categories = []
-    return categories unless @hasValidValueForHeader(rawMaster, CONS.HEADER_CATEGORIES) or @hasValidValueForHeader(rawMaster, CONS.HEADER_CATEGORIES_EXTERNALID)
+    return categories unless @hasValidValueForHeader(rawMaster, CONS.HEADER_CATEGORIES)
     rawCategories = rawMaster[@header.toIndex CONS.HEADER_CATEGORIES].split GLOBALS.DELIM_MULTI_VALUE
     for rawCategory in rawCategories
       cat =
         typeId: 'category'
-      if _.contains(@categories.duplicateNames, rawCategory)
-        @errors.push "[row #{rowIndex}:#{CONS.HEADER_CATEGORIES}] The category '#{rawCategory}' is not unqiue!"
-        continue
-      if @hasValidValueForHeader(rawMaster, CONS.HEADER_CATEGORIES)
-        if _.has(@categories.name2id, rawCategory)
-          cat.id = @categories.name2id[rawCategory]
-        else if _.has(@categories.fqName2id, rawCategory)
-          cat.id = @categories.fqName2id[rawCategory]
-      else
-        if _.has(@categories.externalId2id, rawCategory)
-          cat.id = @categories.externalId2id[rawCategory]
-          
-      if cat.id
-        categories.push cat
+      if _.has(@categories.externalId2id, rawCategory)
+        categories.push @categories.externalId2id[rawCategory]
+      else if _.has(@categories.fqName2id, rawCategory)
+        categories.push @categories.fqName2id[rawCategory]
+      else if _.has(@categories.name2id, rawCategory)
+        if _.contains(@categories.duplicateNames, rawCategory)
+          msg =  "[row #{rowIndex}:#{CONS.HEADER_CATEGORIES}] The category '#{rawCategory}' is not unqiue!"
+          if @continueOnProblems
+            console.warn msg
+          else
+            @errors.push msg
+        else
+          categories.push @categories.name2id[rawCategory]
       else
         msg = "[row #{rowIndex}:#{CONS.HEADER_CATEGORIES}] Can not find category for '#{rawCategory}'!"
         if @continueOnProblems
           console.warn msg
         else
-          @errors.push "[row #{rowIndex}:#{CONS.HEADER_CATEGORIES}] Can not find category for '#{rawCategory}'!"
+          @errors.push msg
 
     categories
 
