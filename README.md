@@ -198,14 +198,20 @@ Just provide the name of the tax category in the `tax` column.
 
 #### Categories
 
-In the `categories` column you can define a list of categories the product should be categorized in separated by `;`:
+In the `categories` column you can define a list of categories the product should be categorized in separated by `;`.
+
+The tool supports 3 different ways to reference a category. The match works on the following order:
+- externalId
+- named path
+- name
+
+The following example contains 3 categories defined by their named path. The path starts at the root level and all segments are separated with `>`.
 ```
 Root>Category>SameSubCategory;Root2;Root>Category2>SameSubCategory
 ```
-This example contains 3 categories defined by their full path. The path segments are thereby separated with `>`
-to ensure you can link to leaf categories with same names but different bread crumb.
+Using the full path of the category name allows you to link to leaf categories with same names but different bread crumb.
 
-> You can also just use the category name as long as it is unqiue within the whole category tree. In addtion, the category ID (UUID) can also be used.
+> You can also just use the category name as long as it is unqiue within the whole category tree.
 
 #### Prices
 

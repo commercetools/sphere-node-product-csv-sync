@@ -8,6 +8,7 @@ class Categories
   constructor: ->
     @id2index = {}
     @name2id = {}
+    @externalId2id = {}
     @fqName2id = {}
     @id2fqName = {}
     @duplicateNames = []
@@ -19,10 +20,12 @@ class Categories
     _.each categories, (category, index) =>
       name = category.name[GLOBALS.DEFAULT_LANGUAGE]
       id = category.id
+      externalId = category.externalId
       @id2index[id] = index
       if _.has @name2id, name
         @duplicateNames.push name
       @name2id[name] = id
+      @externalId2id[externalId] = id
 
     _.each categories, (category, index) =>
       fqName = ''
