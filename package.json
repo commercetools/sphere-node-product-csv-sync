@@ -21,12 +21,7 @@
   "bugs": {
     "url": "https://github.com/sphereio/sphere-node-product-csv-sync/issues"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/sphereio/sphere-node-product-csv-sync/blob/master/LICENSE-MIT"
-    }
-  ],
+  "license": "MIT",
   "bin": {
     "product-csv-sync": "bin/product-csv-sync"
   },
