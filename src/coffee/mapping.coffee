@@ -85,9 +85,9 @@ class Mapping
       cat =
         typeId: 'category'
       if _.has(@categories.externalId2id, rawCategory)
-        categories.push @categories.externalId2id[rawCategory]
+        cat.id = @categories.externalId2id[rawCategory]
       else if _.has(@categories.fqName2id, rawCategory)
-        categories.push @categories.fqName2id[rawCategory]
+        cat.id = @categories.fqName2id[rawCategory]
       else if _.has(@categories.name2id, rawCategory)
         if _.contains(@categories.duplicateNames, rawCategory)
           msg =  "[row #{rowIndex}:#{CONS.HEADER_CATEGORIES}] The category '#{rawCategory}' is not unqiue!"
@@ -96,7 +96,11 @@ class Mapping
           else
             @errors.push msg
         else
-          categories.push @categories.name2id[rawCategory]
+          cat.id = @categories.name2id[rawCategory]
+
+      if cat.id
+        categories.push cat
+
       else
         msg = "[row #{rowIndex}:#{CONS.HEADER_CATEGORIES}] Can not find category for '#{rawCategory}'!"
         if @continueOnProblems
