@@ -6,7 +6,7 @@ Feature: Export products
     productType,name,variantId,sku
     ImpEx with all types,Product 1,1,sku-1-123
     ImpEx with all types,Product 2,1,sku-2-123
-    ImpEx with all types,Product 3,1,sku-3-123
+    ImpEx with all types,Product 3,1,0123
     """
     When I run `../../bin/product-csv-sync import --projectKey nicola --csv i.csv`
     Then the exit status should be 0
@@ -27,10 +27,11 @@ Feature: Export products
     Fetched 1 product(s)
     """
 
+  @wip
   Scenario: Export products by search
-    When I run `../../bin/product-csv-sync export --projectKey nicola --template '../../data/template_sample.csv' --out '../../data/exported.csv' --queryString 'text.en=123&staged=true' --queryType search`
+    When I run `../../bin/product-csv-sync export --projectKey nicola --template '../../data/template_sample.csv' --out '../../data/exported.csv' --queryString 'text.en=0123&staged=true' --queryType search`
     Then the exit status should be 0
     And the output should contain:
     """
-    Fetched 3 product(s)
+    Fetched 1 product(s)
     """

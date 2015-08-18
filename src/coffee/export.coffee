@@ -46,6 +46,10 @@ class Export
     if @queryOptions.queryString
       productsService.byQueryString(@queryOptions.queryString, @queryOptions.isQueryEncoded)
       if @queryOptions.queryType is 'search'
+        # FIXME: this doesn't work with methods like `process`
+        # as the base resource endpoint will be used
+        # (in this case `/product-projections`).
+        # Should be fixed upstream in the `node-sdk`.
         productsService.asSearch()
       else
         productsService
