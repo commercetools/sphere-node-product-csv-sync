@@ -222,6 +222,7 @@ module.exports = class
               console.log result
               process.exit 0
             .catch (err) ->
+              if err.stack then console.error(err.stack)
               console.error err
               process.exit 1
             .done()
@@ -295,6 +296,7 @@ module.exports = class
               console.log result
               process.exit 0
             .catch (err) ->
+              if err.stack then console.error(err.stack)
               console.error err
               process.exit 1
             .done()
@@ -306,6 +308,7 @@ module.exports = class
                 console.log result
                 process.exit 0
               .catch (err) ->
+                if err.stack then console.error(err.stack)
                 console.error err
                 process.exit 1
             .catch (err) ->
