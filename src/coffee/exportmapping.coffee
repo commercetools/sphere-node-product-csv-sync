@@ -119,7 +119,10 @@ class ExportMapping
       channelKeyPart = ''
       if price.channel and _.has(@channelService.id2key, price.channel.id)
         channelKeyPart = "##{@channelService.id2key[price.channel.id]}"
-      acc + "#{countryPart}#{price.value.currencyCode} #{price.value.centAmount}#{customerGroupPart}#{channelKeyPart}"
+      discountedPricePart = ''
+      if price.discounted?
+        discountedPricePart = "|#{price.discounted.value.centAmount}"
+      acc + "#{countryPart}#{price.value.currencyCode} #{price.value.centAmount}#{discountedPricePart}#{customerGroupPart}#{channelKeyPart}"
     , '')
 
   _mapMoney: (money) ->

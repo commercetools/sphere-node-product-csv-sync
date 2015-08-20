@@ -52,6 +52,12 @@ describe 'ExportMapping', ->
       ]
       expect(@exportMapping._mapPrices prices).toBe 'USD 9999999 B2B'
 
+    it 'should map discounted price', ->
+      prices = [
+        { value: { centAmount: 1999, currencyCode: 'USD' }, discounted: { value: { centAmount: 999, currencyCode: 'USD' } } }
+      ]
+      expect(@exportMapping._mapPrices prices).toBe 'USD 1999|999'
+
     it 'should map customerGroup and channel on price', ->
       @exportMapping.channelService.id2key['channel_123'] = 'WAREHOUSE-1'
       @exportMapping.customerGroupService.id2name['987-xyz'] = 'sales'
