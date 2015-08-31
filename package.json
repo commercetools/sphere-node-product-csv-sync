@@ -37,7 +37,7 @@
     "commander": "2.3.0",
     "csv": "0.3.7",
     "sphere-node-sdk": "1.4.4",
-    "sphere-node-utils": "0.6.0",
+    "sphere-node-utils": "0.7.0",
     "optimist": "0.6.1",
     "prompt": "0.2.14",
     "underscore": "1.8.3",
