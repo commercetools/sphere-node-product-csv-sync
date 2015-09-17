@@ -36,13 +36,14 @@
     "bluebird": "2.9.x",
     "commander": "2.3.0",
     "csv": "0.3.7",
-    "sphere-node-sdk": "1.4.4",
-    "sphere-node-utils": "0.7.0",
+    "lodash.chunk": "^3.0.1",
     "optimist": "0.6.1",
     "prompt": "0.2.14",
+    "sphere-node-sdk": "1.4.4",
+    "sphere-node-utils": "0.7.0",
     "underscore": "1.8.3",
-    "underscore.string": "2.4.x",
-    "underscore-mixins": "*"
+    "underscore-mixins": "*",
+    "underscore.string": "2.4.x"
   },
   "devDependencies": {
     "coveralls": "2.10.0",

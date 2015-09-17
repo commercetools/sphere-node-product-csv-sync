@@ -1,4 +1,5 @@
 _ = require 'underscore'
+chunk = require 'lodash.chunk'
 Promise = require 'bluebird'
 {SphereClient, ProductSync, Errors} = require 'sphere-node-sdk'
 {Repeater} = require 'sphere-node-utils'
@@ -59,31 +60,34 @@ class Import
           # - process products in batches!!
           # - for each chunk match products -> createOrUpdate
           # - provide a way to accumulate partial results, or just log them to console
-          products = []
           console.log "Mapping #{_.size rawProducts} product(s) ..."
-          for rawProduct in rawProducts
-            products.push @validator.map.mapProduct(rawProduct)
+          # for rawProduct in rawProducts
+          #   products.push @validator.map.mapProduct(rawProduct)
+          products = rawProducts.map((p) => @validator.map.mapProduct p)
+          chunks = chunk(products, 100)
+          Promise.all chunks.map((ps) => @processProducts(ps))
 
-          if _.size(@validator.map.errors) isnt 0
-            Promise.reject @validator.map.errors
-          else
-            console.log "Mapping done. About to process existing product(s) ..."
-            @client.productProjections.staged().all().fetch()
-            .then (payload) =>
-              existingProducts = payload.body.results
-              console.log "Comparing against #{payload.body.total} existing product(s) ..."
-              @initMatcher existingProducts
-              productsToUpdate =
-              if @validator.updateVariantsOnly
-                @mapVariantsBasedOnSKUs existingProducts, products
-              else
-                products
-              console.log "Processing #{_.size productsToUpdate} product(s) ..."
-              @createOrUpdate(productsToUpdate, @validator.types)
-            .then (result) ->
-              # TODO: resolve with a summary of the import
-              console.log "Finished processing #{_.size result} product(s)"
-              Promise.resolve result
+  processProducts: (products) ->
+    if _.size(@validator.map.errors) isnt 0
+      Promise.reject @validator.map.errors
+    else
+      console.log "Mapping done. About to process existing product(s) ..."
+      @client.productProjections.staged().all().fetch()
+      .then (payload) =>
+        existingProducts = payload.body.results
+        console.log "Comparing against #{payload.body.total} existing product(s) ..."
+        @initMatcher existingProducts
+        productsToUpdate =
+        if @validator.updateVariantsOnly
+          @mapVariantsBasedOnSKUs existingProducts, products
+        else
+          products
+        console.log "Processing #{_.size productsToUpdate} product(s) ..."
+        @createOrUpdate(productsToUpdate, @validator.types)
+      .then (result) ->
+        # TODO: resolve with a summary of the import
+        console.log "Finished processing #{_.size result} product(s)"
+        Promise.resolve result
 
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true
