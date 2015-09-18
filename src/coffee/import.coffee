@@ -64,7 +64,8 @@ class Import
           # for rawProduct in rawProducts
           #   products.push @validator.map.mapProduct(rawProduct)
           products = rawProducts.map((p) => @validator.map.mapProduct p)
-          Promise.all chunk(products, 100).map((ps) => @processProducts(ps))
+          Promise.all(chunk(products, 100).map((ps) => @processProducts(ps)))
+          .then((results) => results.reduce((agg, r) => agg.concat(r) []))
 
   processProducts: (products) ->
     if _.size(@validator.map.errors) isnt 0
