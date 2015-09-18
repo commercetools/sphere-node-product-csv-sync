@@ -1,5 +1,5 @@
 _ = require 'underscore'
-chunk = require 'lodash.chunk'
+_.mixin require('underscore-mixins')
 Promise = require 'bluebird'
 {SphereClient, ProductSync, Errors} = require 'sphere-node-sdk'
 {Repeater} = require 'sphere-node-utils'
@@ -64,31 +64,36 @@ class Import
           # for rawProduct in rawProducts
           #   products.push @validator.map.mapProduct(rawProduct)
           products = rawProducts.map((p) => @validator.map.mapProduct p)
-          Promise.all(chunk(products, 100).map((ps) => @processProducts(ps)))
+          if _.size(@validator.map.errors) isnt 0
+            Promise.reject @validator.map.errors
+          chunks = _.batchList(products, 20)
+          p = (p) => @processProducts(p)
+          Promise.map(chunks, p, { concurrency: 20 })
           .then((results) => results.reduce((agg, r) => agg.concat(r) []))
 
   processProducts: (products) ->
-    if _.size(@validator.map.errors) isnt 0
-      Promise.reject @validator.map.errors
-    else
-      console.log "Mapping done. About to process existing product(s) ..."
-      ids = products.map((p) -> "\"#{p.product.id}\"").join(',')
-      @client.productProjections.staged().filter("id:in (#{ids})").fetch()
-      .then (payload) =>
-        existingProducts = payload.body.results
-        console.log "Comparing against #{payload.body.total} existing product(s) ..."
-        @initMatcher existingProducts
-        productsToUpdate =
-        if @validator.updateVariantsOnly
-          @mapVariantsBasedOnSKUs existingProducts, products
-        else
-          products
-        console.log "Processing #{_.size productsToUpdate} product(s) ..."
-        @createOrUpdate(productsToUpdate, @validator.types)
-      .then (result) ->
-        # TODO: resolve with a summary of the import
-        console.log "Finished processing #{_.size result} product(s)"
-        Promise.resolve result
+    console.log "Mapping done. About to process existing product(s) ..."
+    ids = products.map((p) -> "\"#{p.product.id}\"").join(',')
+    @client.productProjections.staged().filter("id:in (#{ids})").fetch()
+    .then (payload) =>
+      existingProducts = payload.body.results
+      console.log "Comparing against #{payload.body.total} existing product(s) ..."
+      @initMatcher existingProducts
+      productsToUpdate =
+      if @validator.updateVariantsOnly
+        @mapVariantsBasedOnSKUs existingProducts, products
+      else
+        products
+      console.log "Processing #{_.size productsToUpdate} product(s) ..."
+      @createOrUpdate(productsToUpdate, @validator.types)
+    .then (result) ->
+      # TODO: resolve with a summary of the import
+      console.log "Finished processing #{_.size result} product(s)"
+      Promise.resolve result
+
+  _createProductFetchBySkuQueryPredicate: (skus) ->
+    skuString = "sku in (\"#{skus.join('", "')}\")"
+    return "masterVariant(#{skuString}) or variants(#{skuString})"
 
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true
