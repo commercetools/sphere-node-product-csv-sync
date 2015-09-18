@@ -72,7 +72,8 @@ class Import
       Promise.reject @validator.map.errors
     else
       console.log "Mapping done. About to process existing product(s) ..."
-      @client.productProjections.staged().all().fetch()
+      ids = products.map((p) -> "\"#{p.product.id}\"").join(',')
+      @client.productProjections.staged().filter("id:in (#{ids})").fetch()
       .then (payload) =>
         existingProducts = payload.body.results
         console.log "Comparing against #{payload.body.total} existing product(s) ..."
