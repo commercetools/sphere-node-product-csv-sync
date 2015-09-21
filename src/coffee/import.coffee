@@ -30,6 +30,7 @@ class Import
     @dryRun = false
     @blackListedCustomAttributesForUpdate = []
     @customAttributeNameToMatch = undefined
+    @matchBy = 'id'
 
   # current workflow:
   # - parse csv
@@ -73,8 +74,7 @@ class Import
 
   processProducts: (products) ->
     console.log "Mapping done. About to process existing product(s) ..."
-    ids = products.map((p) -> "\"#{p.product.id}\"").join(',')
-    @client.productProjections.staged().filter("id:in (#{ids})").fetch()
+    @_mapMatchFunction(@matchBy)(@client.productProjections, products)
     .then (payload) =>
       existingProducts = payload.body.results
       console.log "Comparing against #{payload.body.total} existing product(s) ..."
@@ -90,6 +90,16 @@ class Import
       # TODO: resolve with a summary of the import
       console.log "Finished processing #{_.size result} product(s)"
       Promise.resolve result
+
+  _mapMatchFunction: (matchBy) ->
+    switch matchBy
+      when 'id' then @_matchById
+
+  # Matches products by `id` attribute
+  # @param {Array} products
+  _matchById: (service, products) ->
+    ids = products.map((p) -> "\"#{p.product.id}\"").join(',')
+    service.staged().filter("id:in (#{ids})").fetch()
 
   _createProductFetchBySkuQueryPredicate: (skus) ->
     skuString = "sku in (\"#{skus.join('", "')}\")"
