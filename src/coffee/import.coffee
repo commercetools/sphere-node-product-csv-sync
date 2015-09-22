@@ -6,6 +6,7 @@ Promise = require 'bluebird'
 CONS = require './constants'
 GLOBALS = require './globals'
 Validator = require './validator'
+QueryUtils = require './queryutils'
 
 # TODO:
 # - better organize subcommands / classes / helpers
@@ -74,7 +75,7 @@ class Import
 
   processProducts: (products) ->
     console.log "Mapping done. About to process existing product(s) ..."
-    @_mapMatchFunction(@matchBy)(@client.productProjections, products)
+    QueryUtils.mapMatchFunction(@matchBy)(@client.productProjections, products)
     .then (payload) =>
       existingProducts = payload.body.results
       console.log "Comparing against #{payload.body.total} existing product(s) ..."
@@ -90,36 +91,6 @@ class Import
       # TODO: resolve with a summary of the import
       console.log "Finished processing #{_.size result} product(s)"
       Promise.resolve result
-
-  _mapMatchFunction: (matchBy) ->
-    switch matchBy
-      when 'id' then @_matchById
-      when 'sku' then @_matchBySku
-      when 'slug' then @_matchBySlug
-
-  # Matches products by `id` attribute
-  # @param {object} service - SDK service object
-  # @param {Array} products
-  _matchById: (service, products) ->
-    ids = products.map((p) -> "\"#{p.product.id}\"")
-    service.staged().filter("id:in (#{ids.join(',')})").fetch()
-
-  # Matches products by `id` attribute
-  # @param {object} service - SDK service object
-  # @param {Array} products
-  _matchBySku: (service, products) ->
-    skus = _.flatten(products.map((p) ->
-      [p.product.masterVariant.sku].concat(p.product.variants.map((v) ->
-        v.sku))))
-    skuString = "sku in (\"#{skus.join('", "')}\")"
-    filterInput = "masterVariant(#{skuString}) or variants(#{skuString})"
-    service.staged().filter(filterInput).fetch()
-
-  _matchBySlug: (service, products) ->
-    slugs = products.map((p) ->
-      p.product.slug[GLOBALS.DEFAULT_LANGUAGE])
-    filterInput = "slug in (\"#{slugs.join('", "')}\")"
-    service.staged().filter(filterInput).fetch()
 
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true
@@ -207,10 +178,10 @@ class Import
           console.warn "Ignoring variant as no match by SKU found for: ", variant
     _.map productsToUpdate
 
-  getCustomAttributeValue: (variant) ->
+  getCustomAttributeValue: (variant, name) ->
     variant.attributes or= []
     attrib = _.find variant.attributes, (attribute) =>
-      attribute.name is @customAttributeNameToMatch
+      attribute.name is (@customAttributeNameToMatch unless name)
     attrib?.value
 
   match: (entry) ->
