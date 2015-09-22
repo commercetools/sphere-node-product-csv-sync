@@ -75,7 +75,8 @@ class Import
 
   processProducts: (products) ->
     console.log "Mapping done. About to process existing product(s) ..."
-    QueryUtils.mapMatchFunction(@matchBy)(@client.productProjections, products)
+    filterInput = QueryUtils.mapMatchFunction(@matchBy)(products)
+    @client.productProjections.staged().filter(filterInput).fetch()
     .then (payload) =>
       existingProducts = payload.body.results
       console.log "Comparing against #{payload.body.total} existing product(s) ..."
