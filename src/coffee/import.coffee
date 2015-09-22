@@ -94,16 +94,25 @@ class Import
   _mapMatchFunction: (matchBy) ->
     switch matchBy
       when 'id' then @_matchById
+      when 'sku' then @_matchBySku
 
   # Matches products by `id` attribute
+  # @param {object} service - SDK service object
   # @param {Array} products
   _matchById: (service, products) ->
     ids = products.map((p) -> "\"#{p.product.id}\"").join(',')
     service.staged().filter("id:in (#{ids})").fetch()
 
-  _createProductFetchBySkuQueryPredicate: (skus) ->
+  # Matches products by `id` attribute
+  # @param {object} service - SDK service object
+  # @param {Array} products
+  _matchBySku: (service, products) ->
+    skus = _.flatten(products.map((p) ->
+      [p.product.masterVariant.sku].concat(p.product.variants.map((v) ->
+        v.sku))))
     skuString = "sku in (\"#{skus.join('", "')}\")"
-    return "masterVariant(#{skuString}) or variants(#{skuString})"
+    filterInput = "masterVariant(#{skuString}) or variants(#{skuString})"
+    service.staged().filter(filterInput).fetch()
 
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true
