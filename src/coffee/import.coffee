@@ -95,6 +95,7 @@ class Import
     switch matchBy
       when 'id' then @_matchById
       when 'sku' then @_matchBySku
+      when 'slug' then @_matchBySlug
 
   # Matches products by `id` attribute
   # @param {object} service - SDK service object
@@ -112,6 +113,12 @@ class Import
         v.sku))))
     skuString = "sku in (\"#{skus.join('", "')}\")"
     filterInput = "masterVariant(#{skuString}) or variants(#{skuString})"
+    service.staged().filter(filterInput).fetch()
+
+  _matchBySlug: (service, products) ->
+    slugs = products.map(p ->
+      product.slug[GLOBALS.DEFAULT_LANGUAGE])
+    slugString = "slug in (\"#{slugs.join('", "')}\")"
     service.staged().filter(filterInput).fetch()
 
   changeState: (publish = true, remove = false, filterFunction) ->
