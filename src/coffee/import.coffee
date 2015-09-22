@@ -101,8 +101,8 @@ class Import
   # @param {object} service - SDK service object
   # @param {Array} products
   _matchById: (service, products) ->
-    ids = products.map((p) -> "\"#{p.product.id}\"").join(',')
-    service.staged().filter("id:in (#{ids})").fetch()
+    ids = products.map((p) -> "\"#{p.product.id}\"")
+    service.staged().filter("id:in (#{ids.join(',')})").fetch()
 
   # Matches products by `id` attribute
   # @param {object} service - SDK service object
@@ -116,9 +116,9 @@ class Import
     service.staged().filter(filterInput).fetch()
 
   _matchBySlug: (service, products) ->
-    slugs = products.map(p ->
-      product.slug[GLOBALS.DEFAULT_LANGUAGE])
-    slugString = "slug in (\"#{slugs.join('", "')}\")"
+    slugs = products.map((p) ->
+      p.product.slug[GLOBALS.DEFAULT_LANGUAGE])
+    filterInput = "slug in (\"#{slugs.join('", "')}\")"
     service.staged().filter(filterInput).fetch()
 
   changeState: (publish = true, remove = false, filterFunction) ->
