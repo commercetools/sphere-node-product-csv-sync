@@ -16,16 +16,22 @@ class ExportMapping
     @customerGroupService = options.customerGroupService
     @taxService = options.taxService
     @header = options.header
+    @fillAllRows = false
 
   mapProduct: (product, productTypes) ->
     productType = productTypes[@typesService.id2index[product.productType.id]]
 
     rows = []
-    rows.push @_mapBaseProduct product, productType
+    productRow = @_mapBaseProduct product, productType
+    rows.push productRow
 
     if product.variants
       for variant in product.variants
-        rows.push @_mapVariant variant, productType
+        variantRow = if @fillAllRows
+          _.deepClone productRow
+        else
+          []
+        rows.push @_mapVariant variant, productType, variantRow
 
     rows
 
@@ -83,8 +89,7 @@ class ExportMapping
 
     row
 
-  _mapVariant: (variant, productType) ->
-    row = []
+  _mapVariant: (variant, productType, row = []) ->
     if @header.has(CONS.HEADER_VARIANT_ID)
       row[@header.toIndex CONS.HEADER_VARIANT_ID] = variant.id
 
