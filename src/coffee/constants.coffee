@@ -1,6 +1,7 @@
 constants =
   HEADER_PRODUCT_TYPE: 'productType'
   HEADER_ID: 'id'
+  HEADER_EXTERNAL_ID: 'externalId'
   HEADER_VARIANT_ID: 'variantId'
 
   HEADER_NAME: 'name'

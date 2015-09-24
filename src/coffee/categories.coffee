@@ -7,6 +7,8 @@ GLOBALS = require '../lib/globals'
 class Categories
   constructor: ->
     @id2index = {}
+    @id2externalId = {}
+    @id2slug = {}
     @name2id = {}
     @externalId2id = {}
     @fqName2id = {}
@@ -22,9 +24,11 @@ class Categories
       id = category.id
       externalId = category.externalId
       @id2index[id] = index
+      @id2slug[id] = category.slug[GLOBALS.DEFAULT_LANGUAGE]
       if _.has @name2id, name
         @duplicateNames.push name
       @name2id[name] = id
+      @id2externalId[id] = externalId
       @externalId2id[externalId] = id
 
     _.each categories, (category, index) =>
