@@ -1,4 +1,9 @@
 _ = require 'underscore'
+GLOBALS = require './globals'
+
+class Helpers
+
+  @exists: (x) -> !!x
 
 class QueryUtils
 
@@ -30,8 +35,8 @@ class QueryUtils
   @matchBySku: (products) ->
     skus = _.flatten(products.map((p) ->
       [p.product.masterVariant.sku].concat(p.product.variants.map((v) ->
-        v.sku)))).filter(x ->
-          !!x)
+        v.sku))))
+        .filter(Helpers.exists)
     predicate = QueryUtils.formatAttributePredicate("sku", skus)
     QueryUtils.applyPredicateToVariants(predicate)
 
@@ -44,8 +49,8 @@ class QueryUtils
         [
           QueryUtils.valueOf(p.product.masterVariant.attributes, attribute)
         ].concat(p.product.variants.map((v) ->
-          QueryUtils.valueOf(v.attributes, attribute))))).filter(x ->
-            !!x)
+          QueryUtils.valueOf(v.attributes, attribute)))))
+          .filter(Helpers.exists)
       predicate = QueryUtils.formatAttributePredicate(attribute, values)
       QueryUtils.applyPredicateToVariants(predicate)
 
@@ -54,12 +59,12 @@ class QueryUtils
   # @param {String} name - name of the attribute
   # @return {Any} attribute value if found
   @valueOf: (attributes, name) ->
-    attrib = _.find(attributes || [], (attribute) ->
+    attrib = _.find(attributes, (attribute) ->
       attribute.name is name)
     attrib?.value
 
   @formatAttributePredicate: (name, items) ->
-    "#{attribute} in (\"#{items.join('", "')}\")"
+    "#{name} in (\"#{items.join('", "')}\")"
 
   @applyPredicateToVariants: (predicate) ->
     "masterVariant(#{predicate}) or variants(#{predicate})"
