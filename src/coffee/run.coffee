@@ -153,7 +153,6 @@ module.exports = class
               process.exit 0
             .catch (err) ->
               console.error err
-              console.log err.stack
               process.exit 1
           .catch (err) ->
             console.error "Problems on reading file '#{opts.csv}': #{err}"

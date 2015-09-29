@@ -70,9 +70,7 @@ Feature: Import products
     """
 
   Scenario: Match products
-    When I run `../../bin/product-csv-sync state --projectKey nicola --changeTo delete` interactively
-    And I type "yes"
-
+    
     Given a file named "i.csv" with:
     """
     id,productType,slug.en,variantId,name,sku,attr-text-n
