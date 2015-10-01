@@ -145,11 +145,16 @@ module.exports = class
           importer.dryRun = true if opts.dryRun
           importer.matchBy = opts.matchBy
 
-          fs.readFileAsync opts.csv, 'utf8'
+          (if ('csv' in opts) then fs.readFileAsync opts.csv, 'utf8'
+          else new Promise (resolve) ->
+            chunks = []
+            process.stdin.on 'data', (chunk) -> chunks.push chunk
+            process.stdin.on 'end', () -> resolve Buffer.concat chunks
+          )
           .then (content) ->
             importer.import(content)
             .then (result) ->
-              console.log result
+              console.warn result
               process.exit 0
             .catch (err) ->
               console.error err
@@ -221,7 +226,7 @@ module.exports = class
               importer.continueOnProblems = opts.continueOnProblems
               importer.changeState(publish, remove, filterFunction)
             .then (result) ->
-              console.log result
+              console.warn result
               process.exit 0
             .catch (err) ->
               if err.stack then console.error(err.stack)
@@ -260,7 +265,7 @@ module.exports = class
       .description 'Export your products from your SPHERE.IO project to CSV using.'
       .option '-t, --template <file>', 'CSV file containing your header that defines what you want to export'
       .option '-o, --out <file>', 'Path to the file the exporter will write the resulting CSV in'
-      .option '-j, --json <file>', 'Path to the JSON file the exporter will write the resulting products'
+      .option '-j, --json', 'Export in JSON format'
       .option '-q, --queryString <query>', 'Query string to specify the sub-set of products to export'
       .option '-l, --language [lang]', 'Language used on export for category names (default is en)', 'en'
       .option '--queryType <type>', 'Whether to do a query or a search request', 'query'
@@ -292,10 +297,10 @@ module.exports = class
             options.client.rejectUnauthorized = false
 
           exporter = new Exporter options
-          if opts.json
-            exporter.exportAsJson(opts.json)
+          if 'json' in opts
+            exporter.exportAsJson(opts.out)
             .then (result) ->
-              console.log result
+              console.warn result
               process.exit 0
             .catch (err) ->
               if err.stack then console.error(err.stack)
@@ -307,7 +312,7 @@ module.exports = class
             .then (content) ->
               exporter.export(content, opts.out)
               .then (result) ->
-                console.log result
+                console.warn result
                 process.exit 0
               .catch (err) ->
                 if err.stack then console.error(err.stack)
@@ -366,7 +371,7 @@ module.exports = class
           exporter = new Exporter options
           exporter.createTemplate(opts.languages, opts.out, opts.all)
           .then (result) ->
-            console.log result
+            console.warn result
             process.exit 0
           .catch (err) ->
             console.error err
