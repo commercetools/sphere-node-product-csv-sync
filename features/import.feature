@@ -138,3 +138,14 @@ Feature: Import products
     """
     [ '[row 0] Product deleted.' ]
     """
+
+  Scenario: Import from stdin
+    Given a file named "i.csv" with:
+    """
+    productType,name,variantId,sku
+    ImpEx with all types,Product 1,1,sku-1-123
+    ImpEx with all types,Product 2,1,sku-2-123
+    ImpEx with all types,Product 3,1,0123
+    """
+    When I run `cat i.csv | ../../bin/product-csv-sync import --projectKey nicola`
+    Then the exit status should be 0
