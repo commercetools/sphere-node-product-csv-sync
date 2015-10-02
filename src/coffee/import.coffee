@@ -1,10 +1,12 @@
 _ = require 'underscore'
+_.mixin require('underscore-mixins')
 Promise = require 'bluebird'
 {SphereClient, ProductSync, Errors} = require 'sphere-node-sdk'
 {Repeater} = require 'sphere-node-utils'
 CONS = require './constants'
 GLOBALS = require './globals'
 Validator = require './validator'
+QueryUtils = require './queryutils'
 
 # TODO:
 # - better organize subcommands / classes / helpers
@@ -29,6 +31,7 @@ class Import
     @dryRun = false
     @blackListedCustomAttributesForUpdate = []
     @customAttributeNameToMatch = undefined
+    @matchBy = 'id'
 
   # current workflow:
   # - parse csv
@@ -59,31 +62,36 @@ class Import
           # - process products in batches!!
           # - for each chunk match products -> createOrUpdate
           # - provide a way to accumulate partial results, or just log them to console
-          products = []
           console.log "Mapping #{_.size rawProducts} product(s) ..."
-          for rawProduct in rawProducts
-            products.push @validator.map.mapProduct(rawProduct)
-
+          # for rawProduct in rawProducts
+          #   products.push @validator.map.mapProduct(rawProduct)
+          products = rawProducts.map((p) => @validator.map.mapProduct p)
           if _.size(@validator.map.errors) isnt 0
             Promise.reject @validator.map.errors
-          else
-            console.log "Mapping done. About to process existing product(s) ..."
-            @client.productProjections.staged().all().fetch()
-            .then (payload) =>
-              existingProducts = payload.body.results
-              console.log "Comparing against #{payload.body.total} existing product(s) ..."
-              @initMatcher existingProducts
-              productsToUpdate =
-              if @validator.updateVariantsOnly
-                @mapVariantsBasedOnSKUs existingProducts, products
-              else
-                products
-              console.log "Processing #{_.size productsToUpdate} product(s) ..."
-              @createOrUpdate(productsToUpdate, @validator.types)
-            .then (result) ->
-              # TODO: resolve with a summary of the import
-              console.log "Finished processing #{_.size result} product(s)"
-              Promise.resolve result
+          chunks = _.batchList(products, 20)
+          p = (p) => @processProducts(p)
+          Promise.map(chunks, p, { concurrency: 20 })
+          .then((results) => results.reduce((agg, r) => agg.concat(r) []))
+
+  processProducts: (products) ->
+    console.log "Mapping done. About to process existing product(s) ..."
+    filterInput = QueryUtils.mapMatchFunction(@matchBy)(products)
+    @client.productProjections.staged().filter(filterInput).fetch()
+    .then (payload) =>
+      existingProducts = payload.body.results
+      console.log "Comparing against #{payload.body.total} existing product(s) ..."
+      @initMatcher existingProducts
+      productsToUpdate =
+      if @validator.updateVariantsOnly
+        @mapVariantsBasedOnSKUs existingProducts, products
+      else
+        products
+      console.log "Processing #{_.size productsToUpdate} product(s) ..."
+      @createOrUpdate(productsToUpdate, @validator.types)
+    .then (result) ->
+      # TODO: resolve with a summary of the import
+      console.log "Finished processing #{_.size result} product(s)"
+      Promise.resolve result
 
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true
@@ -171,10 +179,10 @@ class Import
           console.warn "Ignoring variant as no match by SKU found for: ", variant
     _.map productsToUpdate
 
-  getCustomAttributeValue: (variant) ->
+  getCustomAttributeValue: (variant, name) ->
     variant.attributes or= []
     attrib = _.find variant.attributes, (attribute) =>
-      attribute.name is @customAttributeNameToMatch
+      attribute.name is (@customAttributeNameToMatch unless name)
     attrib?.value
 
   match: (entry) ->

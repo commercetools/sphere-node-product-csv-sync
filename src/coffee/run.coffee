@@ -96,6 +96,7 @@ module.exports = class
       .option '--publish', 'When given, all changes will be published immediately'
       .option '--updatesOnly', "Won't create any new products, only updates existing"
       .option '--dryRun', 'Will list all action that would be triggered, but will not POST them to SPHERE.IO'
+      .option '-m, --matchBy [value]', 'Product attribute name which will be used to match products. Possible values: id, slug, sku, <custom_attribute_name>. Default: id. Localized attribute types are not supported for <custom_attribute_name> option', 'id'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>'
       .action (opts) ->
         GLOBALS.DEFAULT_LANGUAGE = opts.language
@@ -142,6 +143,7 @@ module.exports = class
           importer.publishProducts = opts.publish
           importer.updatesOnly = true if opts.updatesOnly
           importer.dryRun = true if opts.dryRun
+          importer.matchBy = opts.matchBy
 
           fs.readFileAsync opts.csv, 'utf8'
           .then (content) ->
