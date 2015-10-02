@@ -145,7 +145,7 @@ module.exports = class
           importer.dryRun = true if opts.dryRun
           importer.matchBy = opts.matchBy
 
-          (if opts.csv then fs.readFileAsync opts.csv, 'utf8'
+          (if opts.csv? then fs.readFileAsync opts.csv, 'utf8'
           else new Promise (resolve) ->
             console.warn 'Reading from stdin...'
             chunks = []
@@ -309,7 +309,13 @@ module.exports = class
               process.exit 1
             .done()
           else
-            fs.readFileAsync opts.template, 'utf8'
+            (if opts.template? then fs.readFileAsync opts.template, 'utf8'
+            else new Promise (resolve) ->
+              console.warn 'Reading from stdin...'
+              chunks = []
+              process.stdin.on 'data', (chunk) -> chunks.push chunk
+              process.stdin.on 'end', () -> resolve Buffer.concat chunks
+            )
             .then (content) ->
               exporter.export(content, opts.out)
               .then (result) ->
@@ -320,7 +326,7 @@ module.exports = class
                 console.error err
                 process.exit 1
             .catch (err) ->
-              console.error "Problems on reading template file '#{opts.template}': #{err}"
+              console.error "Problems on reading template input: #{err}"
               process.exit 2
         .catch (err) ->
           console.error "Problems on getting client credentials from config files: #{err}"
