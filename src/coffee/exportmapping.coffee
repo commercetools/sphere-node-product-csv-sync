@@ -16,7 +16,7 @@ class ExportMapping
     @customerGroupService = options.customerGroupService
     @taxService = options.taxService
     @header = options.header
-    @fillAllRows = false
+    @fillAllRows = options.fillAllRows
 
   mapProduct: (product, productTypes) ->
     productType = productTypes[@typesService.id2index[product.productType.id]]

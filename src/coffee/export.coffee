@@ -16,12 +16,12 @@ ExportMapping = require './exportmapping'
 # - JSDoc
 class Export
 
-  constructor: (options = {}) ->
+  constructor: (@options = {}) ->
     @queryOptions =
-      queryString: options.export?.queryString?.trim()
-      queryType: options.export?.queryType
-      isQueryEncoded: options.export?.isQueryEncoded
-    @client = new SphereClient options.client
+      queryString: @options.export?.queryString?.trim()
+      queryType: @options.export?.queryType
+      isQueryEncoded: @options.export?.isQueryEncoded
+    @client = new SphereClient @options.client
 
     # TODO: using single mapping util instead of services
     @typesService = new Types()
@@ -31,14 +31,14 @@ class Export
     @taxService = new Taxes()
 
   _initMapping: (header) ->
-    options =
+    _.extend @options
       channelService: @channelService
       categoryService: @categoryService
       typesService: @typesService
       customerGroupService: @customerGroupService
       taxService: @taxService
       header: header
-    new ExportMapping(options)
+    new ExportMapping(@options)
 
   # return the correct product service in case query string is used or not
   _getProductService: (staged = true) ->

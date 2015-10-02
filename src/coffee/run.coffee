@@ -263,6 +263,7 @@ module.exports = class
       .option '-l, --language [lang]', 'Language used on export for category names (default is en)', 'en'
       .option '--queryType <type>', 'Whether to do a query or a search request', 'query'
       .option '--queryEncoded', 'Whether the given query string is already encoded or not', false
+      .option '--fillAllRows', 'When given product attributes like name will be added to each variant row.', false
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) ->
         GLOBALS.DEFAULT_LANGUAGE = opts.language
@@ -272,6 +273,7 @@ module.exports = class
         ProjectCredentialsConfig.create()
         .then (credentials) ->
           options =
+            fillAllRows = program.fillAllRows
             client:
               config: credentials.enrichCredentials
                 project_key: program.projectKey
