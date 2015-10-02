@@ -31,7 +31,7 @@ class Export
     @taxService = new Taxes()
 
   _initMapping: (header) ->
-    _.extend @options
+    _.extend @options,
       channelService: @channelService
       categoryService: @categoryService
       typesService: @typesService
