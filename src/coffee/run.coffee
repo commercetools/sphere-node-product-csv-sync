@@ -273,7 +273,7 @@ module.exports = class
         ProjectCredentialsConfig.create()
         .then (credentials) ->
           options =
-            fillAllRows = program.fillAllRows
+            fillAllRows: program.fillAllRows
             client:
               config: credentials.enrichCredentials
                 project_key: program.projectKey
