@@ -6,7 +6,7 @@ Feature: Import products
     productType,variantId
     foo,1
     """
-    When I run `../../bin/product-csv-sync import --projectKey nicola --csv i.csv`
+    When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv i.csv`
     Then the exit status should be 1
     And the output should contain:
     """
@@ -19,7 +19,7 @@ Feature: Import products
     """
     productType,variantId
     """
-    When I run `../../bin/product-csv-sync import --projectKey nicola --csvDelimiter ';' --csv i.csv`
+    When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csvDelimiter ';' --csv i.csv`
     Then the exit status should be 1
     And the output should contain:
     """
@@ -27,7 +27,7 @@ Feature: Import products
     """
 
   Scenario: Import/update and remove a product
-    When I run `../../bin/product-csv-sync state --projectKey nicola --changeTo delete` interactively
+    When I run `../../bin/product-csv-sync state --projectKey sphere-node-product-csv-sync-94 --changeTo delete` interactively
     And I type "yes"
 
     Given a file named "i.csv" with:
@@ -35,14 +35,14 @@ Feature: Import products
     productType,variantId,name,sku
     ImpEx with all types,1,myProduct,12345
     """
-    When I run `../../bin/product-csv-sync import --projectKey nicola --csv i.csv`
+    When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv i.csv`
     Then the exit status should be 0
     And the output should contain:
     """
     [ '[row 2] New product created.' ]
     """
 
-    When I run `../../bin/product-csv-sync import --projectKey nicola --csv i.csv`
+    When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv i.csv`
     Then the exit status should be 0
     And the output should contain:
     """
@@ -54,14 +54,14 @@ Feature: Import products
     productType,variantId,name,sku
     ImpEx with all types,1,myProductCHANGED,12345
     """
-    When I run `../../bin/product-csv-sync import --projectKey nicola --csv u.csv`
+    When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv u.csv`
     Then the exit status should be 0
     And the output should contain:
     """
     [ '[row 2] Product updated.' ]
     """
 
-    When I run `../../bin/product-csv-sync state --projectKey nicola --changeTo delete` interactively
+    When I run `../../bin/product-csv-sync state --projectKey sphere-node-product-csv-sync-94 --changeTo delete` interactively
     And I type "yes"
     Then the exit status should be 0
     And the output should contain:
@@ -76,7 +76,7 @@ Feature: Import products
     id,productType,slug.en,variantId,name,sku,attr-text-n
     0912,ImpEx with all types,slug_1,1,myProduct,12345,key_1
     """
-    When I run `../../bin/product-csv-sync import --projectKey nicola --csv i.csv`
+    When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv i.csv`
     Then the exit status should be 0
     And the output should contain:
     """
@@ -88,7 +88,7 @@ Feature: Import products
     id,productType,slug.en,variantId,name,sku,attr-text-n
     0912,ImpEx with all types,slug_1,1,myProduct_mb_id,12345,key_1
     """
-    When I run `../../bin/product-csv-sync import --projectKey nicola --csv u.csv`
+    When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv u.csv`
     Then the exit status should be 0
     And the output should contain:
     """
@@ -100,7 +100,7 @@ Feature: Import products
     id,productType,slug.en,variantId,name,sku,attr-text-n
     0912,ImpEx with all types,slug_1,1,myProduct_mb_slug,12345,key_1
     """
-    When I run `../../bin/product-csv-sync import -m slug --projectKey nicola --csv u.csv`
+    When I run `../../bin/product-csv-sync import -m slug --projectKey sphere-node-product-csv-sync-94 --csv u.csv`
     Then the exit status should be 0
     And the output should contain:
     """
@@ -112,7 +112,7 @@ Feature: Import products
     id,productType,slug.en,variantId,name,sku,attr-text-n
     0912,ImpEx with all types,slug_1,1,myProduct_mb_sku,12345,key_1
     """
-    When I run `../../bin/product-csv-sync import -m sku --projectKey nicola --csv u.csv`
+    When I run `../../bin/product-csv-sync import -m sku --projectKey sphere-node-product-csv-sync-94 --csv u.csv`
     Then the exit status should be 0
     And the output should contain:
     """
@@ -124,14 +124,14 @@ Feature: Import products
     id,productType,slug.en,variantId,name,sku,attr-text-n
     0912,ImpEx with all types,slug_1,1,myProduct_mb_ca,12345,key_1
     """
-    When I run `../../bin/product-csv-sync import -m attr-text-n --projectKey nicola --csv u.csv`
+    When I run `../../bin/product-csv-sync import -m attr-text-n --projectKey sphere-node-product-csv-sync-94 --csv u.csv`
     Then the exit status should be 0
     And the output should contain:
     """
     [ '[row 2] Product updated.' ]
     """
 
-    When I run `../../bin/product-csv-sync state --projectKey nicola --changeTo delete` interactively
+    When I run `../../bin/product-csv-sync state --projectKey sphere-node-product-csv-sync-94 --changeTo delete` interactively
     And I type "yes"
     Then the exit status should be 0
     And the output should contain:
