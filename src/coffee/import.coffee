@@ -1,10 +1,12 @@
 _ = require 'underscore'
+_.mixin require('underscore-mixins')
 Promise = require 'bluebird'
 {SphereClient, ProductSync, Errors} = require 'sphere-node-sdk'
 {Repeater} = require 'sphere-node-utils'
 CONS = require './constants'
 GLOBALS = require './globals'
 Validator = require './validator'
+QueryUtils = require './queryutils'
 
 # TODO:
 # - better organize subcommands / classes / helpers
@@ -29,6 +31,7 @@ class Import
     @dryRun = false
     @blackListedCustomAttributesForUpdate = []
     @customAttributeNameToMatch = undefined
+    @matchBy = 'id'
 
   # current workflow:
   # - parse csv
@@ -49,7 +52,7 @@ class Import
   import: (fileContent) ->
     @validator.parse fileContent
     .then (parsed) =>
-      console.log "CSV file with #{parsed.count} row(s) loaded."
+      console.warn "CSV file with #{parsed.count} row(s) loaded."
       @validator.validate(parsed.data)
       .then (rawProducts) =>
         if _.size(@validator.errors) isnt 0
@@ -59,31 +62,34 @@ class Import
           # - process products in batches!!
           # - for each chunk match products -> createOrUpdate
           # - provide a way to accumulate partial results, or just log them to console
-          products = []
-          console.log "Mapping #{_.size rawProducts} product(s) ..."
-          for rawProduct in rawProducts
-            products.push @validator.map.mapProduct(rawProduct)
-
+          console.warn "Mapping #{_.size rawProducts} product(s) ..."
+          products = rawProducts.map((p) => @validator.map.mapProduct p)
           if _.size(@validator.map.errors) isnt 0
             Promise.reject @validator.map.errors
-          else
-            console.log "Mapping done. About to process existing product(s) ..."
-            @client.productProjections.staged().all().fetch()
-            .then (payload) =>
-              existingProducts = payload.body.results
-              console.log "Comparing against #{payload.body.total} existing product(s) ..."
-              @initMatcher existingProducts
-              productsToUpdate =
-              if @validator.updateVariantsOnly
-                @mapVariantsBasedOnSKUs existingProducts, products
-              else
-                products
-              console.log "Processing #{_.size productsToUpdate} product(s) ..."
-              @createOrUpdate(productsToUpdate, @validator.types)
-            .then (result) ->
-              # TODO: resolve with a summary of the import
-              console.log "Finished processing #{_.size result} product(s)"
-              Promise.resolve result
+          chunks = _.batchList(products, 20)
+          p = (p) => @processProducts(p)
+          Promise.map(chunks, p, { concurrency: 20 })
+          .then((results) => results.reduce((agg, r) => agg.concat(r) []))
+
+  processProducts: (products) ->
+    console.warn "Mapping done. About to process existing product(s) ..."
+    filterInput = QueryUtils.mapMatchFunction(@matchBy)(products)
+    @client.productProjections.staged().filter(filterInput).fetch()
+    .then (payload) =>
+      existingProducts = payload.body.results
+      console.warn "Comparing against #{payload.body.total} existing product(s) ..."
+      @initMatcher existingProducts
+      productsToUpdate =
+      if @validator.updateVariantsOnly
+        @mapVariantsBasedOnSKUs existingProducts, products
+      else
+        products
+      console.warn "Processing #{_.size productsToUpdate} product(s) ..."
+      @createOrUpdate(productsToUpdate, @validator.types)
+    .then (result) ->
+      # TODO: resolve with a summary of the import
+      console.warn "Finished processing #{_.size result} product(s)"
+      Promise.resolve result
 
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true
@@ -91,9 +97,9 @@ class Import
     @client.productProjections.staged(remove or publish).perPage(500).process (result) =>
       existingProducts = result.body.results
 
-      console.log "Found #{_.size existingProducts} product(s) ..."
+      console.warn "Found #{_.size existingProducts} product(s) ..."
       filteredProducts = _.filter existingProducts, filterFunction
-      console.log "Filtered #{_.size filteredProducts} product(s)."
+      console.warn "Filtered #{_.size filteredProducts} product(s)."
 
       if _.size(filteredProducts) is 0
         # Q 'Nothing to do.'
@@ -107,12 +113,12 @@ class Import
 
         action = if publish then 'Publishing' else 'Unpublishing'
         action = 'Deleting' if remove
-        console.log "#{action} #{_.size posts} product(s) ..."
+        console.warn "#{action} #{_.size posts} product(s) ..."
         Promise.all(posts)
     .then (result) ->
       filteredResult = _.filter result, (r) -> r
       # TODO: resolve with a summary of the import
-      console.log "Finished processing #{_.size filteredResult} products"
+      console.warn "Finished processing #{_.size filteredResult} products"
       if _.size(filteredResult) is 0
         Promise.resolve 'Nothing to do'
       else
@@ -143,14 +149,14 @@ class Import
             id: variant.id
         @customAttributeValue2index[@getCustomAttributeValue variant] = productIndex if @customAttributeNameToMatch?
 
-    #console.log "id2index", @id2index
-    #console.log "customAttributeValue2index", @customAttributeValue2index
-    #console.log "sku2index", @sku2index
-    #console.log "slug2index", @slug2index
-    #console.log "sku2variantInfo", @sku2variantInfo
+    #console.warn "id2index", @id2index
+    #console.warn "customAttributeValue2index", @customAttributeValue2index
+    #console.warn "sku2index", @sku2index
+    #console.warn "slug2index", @slug2index
+    #console.warn "sku2variantInfo", @sku2variantInfo
 
   mapVariantsBasedOnSKUs: (existingProducts, products) ->
-    console.log "Mapping variants for #{_.size products} product type(s) ..."
+    console.warn "Mapping variants for #{_.size products} product type(s) ..."
     productsToUpdate = {}
     _.each products, (entry) =>
       _.each entry.product.variants, (variant) =>
@@ -171,10 +177,10 @@ class Import
           console.warn "Ignoring variant as no match by SKU found for: ", variant
     _.map productsToUpdate
 
-  getCustomAttributeValue: (variant) ->
+  getCustomAttributeValue: (variant, name) ->
     variant.attributes or= []
     attrib = _.find variant.attributes, (attribute) =>
-      attribute.name is @customAttributeNameToMatch
+      attribute.name is (@customAttributeNameToMatch unless name)
     attrib?.value
 
   match: (entry) ->
@@ -250,7 +256,7 @@ class Import
     filtered = @sync.config(config)
     .buildActions(product, existingProduct, allSameValueAttributes)
     .filterActions (action) =>
-      # console.log "ACTION", action
+      # console.warn "ACTION", action
       switch action.action
         when 'setAttribute', 'setAttributeInAllVariants'
           (header.has(action.name) or header.hasLanguageForCustomAttribute(action.name)) and not

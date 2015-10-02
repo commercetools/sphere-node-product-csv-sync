@@ -13,6 +13,8 @@ before_script:
 script:
   - npm test
   - cucumber -t ~@wip
+  - cat data/simple-import.csv | ./bin/product-csv-sync import --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --suppressMissingHeaderWarning
+  - cat data/template_sample.csv | ./bin/product-csv-sync export --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET}
   - ./bin/product-csv-sync import --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --csv data/simple-import.csv --suppressMissingHeaderWarning
   - ./bin/product-csv-sync template --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --out data/template_sample.csv --all
   - ./bin/product-csv-sync export --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --template data/template_sample.csv --out data/exported.csv
@@ -31,7 +33,7 @@ notifications:
     on_failure: change
 env:
   global:
-    - secure: GStZeS8lCr5AbseJ7HrKwAA9pw6UbkVN0l6vZynKgbuYQSQmWBNuLrtWi08ykkpKMKNsHIlh6+wPSgcxiJ7kX7E+o1EA4VJPqKqzi2ITmri4jHukQAMD0RvcD62wBJJi7juZiMd40CsXklOPFCYy/x7jBupw0L8bV8OVGq2JKNI=
-    - secure: VqPJV184aJL2aCJB/KH953YMSRHJhWcYS9ySn6TLbZI6jDD+ul/DIhk0hlMNp1JlkTAuXocwJWZH00R1WUexamEdGO8l/Gv06soNFSKM0klsQxkNvmISfTqSXWZGckOtqScTuOzStCEXk/uT6Vo5cycsxYkZBTPBXEn4J5SB0po=
-    - secure: szr8OjiKyPinz/k8sFmutIURoMEI75KeVA7h6hgVb03zxCfLbPP991TPwdfNyqIaBWucjI11yY2AeDJsK7cmaYdYRHktFGoRdiLAU0sCKfHuyxIXPSHYq4krY0rIyCMtpsYad/hfZ5yNTX5B6l7gTxTjFpPmCKXaDRYwdk57uB4=
+    - secure: nd50EfL32KaVoqMGNp4/gyl1XwvTDDRVfiMpMjHajorp9kAfMfFWVqo7N43PT9or2Bkks1h9/cFrDMLFwOz/Oc+D6CCcuvhEJbRq7gcMvaR5Ei2rEo2hG+Liph5EAj7yeiFoI73D4Oj0iQY/+qleRh451I4x3XW5ef8AP8pV+D8=
+    - secure: dQ35ND3Dd5FSBcePLRv7InBPkbvYm0011/xkPJeyOkLPLSmB+SXxTzBZur50YZELld9CYfNvMLkBluaNTjP/hVcb921Q53UUKG/k36X38sWXACQzIwEvbOHnU7p+A42oJDQWGLi1AKZrTUvaMZiEFf4HyB04dKnf+Xsc5aXwKQE=
+    - secure: d06TBgyndHegzTVf9aX7EkJvaQx1sDavv6jcfWQ2umhIvkK+hFN5T2+i2aTdOAzsmkew/zjKgVnY7sJ5eTCmCzd5HVKZz+EVGX/xr7Wo6omdyEyRkXliARQoaYumFUs9JFAAZXEUEvT52ClkeulGOF8yPFgh98KMmismsE9qapA=
 sudo: false

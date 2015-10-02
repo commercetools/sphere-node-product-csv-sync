@@ -96,6 +96,7 @@ module.exports = class
       .option '--publish', 'When given, all changes will be published immediately'
       .option '--updatesOnly', "Won't create any new products, only updates existing"
       .option '--dryRun', 'Will list all action that would be triggered, but will not POST them to SPHERE.IO'
+      .option '-m, --matchBy [value]', 'Product attribute name which will be used to match products. Possible values: id, slug, sku, <custom_attribute_name>. Default: id. Localized attribute types are not supported for <custom_attribute_name> option', 'id'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>'
       .action (opts) ->
         GLOBALS.DEFAULT_LANGUAGE = opts.language
@@ -142,12 +143,19 @@ module.exports = class
           importer.publishProducts = opts.publish
           importer.updatesOnly = true if opts.updatesOnly
           importer.dryRun = true if opts.dryRun
+          importer.matchBy = opts.matchBy
 
-          fs.readFileAsync opts.csv, 'utf8'
+          (if opts.csv? then fs.readFileAsync opts.csv, 'utf8'
+          else new Promise (resolve) ->
+            console.warn 'Reading from stdin...'
+            chunks = []
+            process.stdin.on 'data', (chunk) -> chunks.push chunk
+            process.stdin.on 'end', () -> resolve Buffer.concat chunks
+          )
           .then (content) ->
             importer.import(content)
             .then (result) ->
-              console.log result
+              console.warn result
               process.exit 0
             .catch (err) ->
               console.error err
@@ -219,7 +227,7 @@ module.exports = class
               importer.continueOnProblems = opts.continueOnProblems
               importer.changeState(publish, remove, filterFunction)
             .then (result) ->
-              console.log result
+              console.warn result
               process.exit 0
             .catch (err) ->
               if err.stack then console.error(err.stack)
@@ -258,11 +266,12 @@ module.exports = class
       .description 'Export your products from your SPHERE.IO project to CSV using.'
       .option '-t, --template <file>', 'CSV file containing your header that defines what you want to export'
       .option '-o, --out <file>', 'Path to the file the exporter will write the resulting CSV in'
-      .option '-j, --json <file>', 'Path to the JSON file the exporter will write the resulting products'
+      .option '-j, --json', 'Export in JSON format'
       .option '-q, --queryString <query>', 'Query string to specify the sub-set of products to export'
       .option '-l, --language [lang]', 'Language used on export for category names (default is en)', 'en'
       .option '--queryType <type>', 'Whether to do a query or a search request', 'query'
       .option '--queryEncoded', 'Whether the given query string is already encoded or not', false
+      .option '--fillAllRows', 'When given product attributes like name will be added to each variant row.', false
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) ->
         GLOBALS.DEFAULT_LANGUAGE = opts.language
@@ -272,6 +281,7 @@ module.exports = class
         ProjectCredentialsConfig.create()
         .then (credentials) ->
           options =
+            fillAllRows: program.fillAllRows
             client:
               config: credentials.enrichCredentials
                 project_key: program.projectKey
@@ -290,10 +300,10 @@ module.exports = class
             options.client.rejectUnauthorized = false
 
           exporter = new Exporter options
-          if opts.json
-            exporter.exportAsJson(opts.json)
+          if 'json' in opts
+            exporter.exportAsJson(opts.out)
             .then (result) ->
-              console.log result
+              console.warn result
               process.exit 0
             .catch (err) ->
               if err.stack then console.error(err.stack)
@@ -301,18 +311,24 @@ module.exports = class
               process.exit 1
             .done()
           else
-            fs.readFileAsync opts.template, 'utf8'
+            (if opts.template? then fs.readFileAsync opts.template, 'utf8'
+            else new Promise (resolve) ->
+              console.warn 'Reading from stdin...'
+              chunks = []
+              process.stdin.on 'data', (chunk) -> chunks.push chunk
+              process.stdin.on 'end', () -> resolve Buffer.concat chunks
+            )
             .then (content) ->
               exporter.export(content, opts.out)
               .then (result) ->
-                console.log result
+                console.warn result
                 process.exit 0
               .catch (err) ->
                 if err.stack then console.error(err.stack)
                 console.error err
                 process.exit 1
             .catch (err) ->
-              console.error "Problems on reading template file '#{opts.template}': #{err}"
+              console.error "Problems on reading template input: #{err}"
               process.exit 2
         .catch (err) ->
           console.error "Problems on getting client credentials from config files: #{err}"
@@ -364,7 +380,7 @@ module.exports = class
           exporter = new Exporter options
           exporter.createTemplate(opts.languages, opts.out, opts.all)
           .then (result) ->
-            console.log result
+            console.warn result
             process.exit 0
           .catch (err) ->
             console.error err

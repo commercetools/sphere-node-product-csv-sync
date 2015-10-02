@@ -8,11 +8,15 @@ Feature: Export products
     ImpEx with all types,Product 2,1,sku-2-123
     ImpEx with all types,Product 3,1,0123
     """
-    When I run `../../bin/product-csv-sync import --projectKey nicola --csv i.csv`
+    When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv i.csv`
     Then the exit status should be 0
+    And the output should contain:
+    """
+    Finished processing 3 product(s)
+    """
 
   Scenario: Export products by query
-    When I run `../../bin/product-csv-sync export --projectKey nicola --template '../../data/template_sample.csv' --out '../../data/exported.csv' --queryString 'where=name(en = "Product 1")&staged=true'`
+    When I run `../../bin/product-csv-sync export --projectKey sphere-node-product-csv-sync-94 --template '../../data/template_sample.csv' --out '../../data/exported.csv' --queryString 'where=name(en = "Product 1")&staged=true'`
     Then the exit status should be 0
     And the output should contain:
     """
@@ -20,7 +24,7 @@ Feature: Export products
     """
 
   Scenario: Export products by query (encoded)
-    When I run `../../bin/product-csv-sync export --projectKey nicola --template '../../data/template_sample.csv' --out '../../data/exported.csv' --queryString 'where=name(en%20%3D%20%22Product%201%22)&staged=true' --queryEncoded`
+    When I run `../../bin/product-csv-sync export --projectKey sphere-node-product-csv-sync-94 --template '../../data/template_sample.csv' --out '../../data/exported.csv' --queryString 'where=name(en%20%3D%20%22Product%201%22)&staged=true' --queryEncoded`
     Then the exit status should be 0
     And the output should contain:
     """
@@ -29,7 +33,7 @@ Feature: Export products
 
   @wip
   Scenario: Export products by search
-    When I run `../../bin/product-csv-sync export --projectKey nicola --template '../../data/template_sample.csv' --out '../../data/exported.csv' --queryString 'text.en=0123&staged=true' --queryType search`
+    When I run `../../bin/product-csv-sync export --projectKey sphere-node-product-csv-sync-94 --template '../../data/template_sample.csv' --out '../../data/exported.csv' --queryString 'text.en=0123&staged=true' --queryType search`
     Then the exit status should be 0
     And the output should contain:
     """
