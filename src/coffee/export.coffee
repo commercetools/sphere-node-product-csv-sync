@@ -82,13 +82,13 @@ class Export
           @customerGroupService.buildMaps customerGroups.body.results
           @taxService.buildMaps taxes.body.results
 
-          console.log "Fetched #{productTypes.body.total} product type(s)."
+          console.warn "Fetched #{productTypes.body.total} product type(s)."
           _.each productTypes.body.results, (productType) ->
             header._productTypeLanguageIndexes(productType)
 
           processChunk = (products) =>
             current = products.body.offset + products.body.count
-            console.log "Fetched #{products.body.count} product(s)."
+            console.warn "Fetched #{products.body.count} product(s)."
             csv = []
             _.each products.body.results, (product) ->
               csv = csv.concat exportMapping.mapProduct(product, productTypes.body.results)
@@ -112,7 +112,7 @@ class Export
       if _.size(products) is 0
         Promise.resolve 'No products found.'
       else
-        console.log "Number of fetched products: #{result.body.count}/#{result.body.total}."
+        console.warn "Number of fetched products: #{result.body.count}/#{result.body.total}."
         @_saveJSON(outputFile, products)
         .then -> Promise.resolve 'Export done.'
 
@@ -136,7 +136,7 @@ class Export
           .then -> Promise.resolve 'Template for all product types generated.'
         else
           _.each idsAndNames, (entry, index) ->
-            console.log '  %d) %s', index, entry
+            console.warn '  %d) %s', index, entry
           prompt.start()
           property =
             name: 'number'
@@ -147,7 +147,7 @@ class Export
           .then (result) =>
             productType = productTypes[parseInt(result.number)]
             if productType
-              console.log "Generating template for product type '#{productType.name}' (id: #{productType.id})."
+              console.warn "Generating template for product type '#{productType.name}' (id: #{productType.id})."
               process.stdin.destroy()
               csv = new ExportMapping().createTemplate(productType, languages)
               @_saveCSV(outputFile, [csv])
@@ -158,13 +158,26 @@ class Export
   _saveCSV: (file, content, append) ->
     flags = if append then 'a' else 'w'
     new Promise (resolve, reject) ->
-      Csv().from(content)
-      .to.path file, {encoding: 'utf8', flags: flags, eof: true}
+      parsedCsv = Csv().from content
+      opts =
+        encoding: 'utf8'
+        flags: flags
+        eof: true
+
+      if file then parsedCsv.to.path file, opts
+      else parsedCsv.to.stream process.stdout, opts
+
+      parsedCsv
       .on 'error', (err) -> reject err
       .on 'close', (count) -> resolve count
 
   _saveJSON: (file, content) ->
-    fs.writeFileAsync file, JSON.stringify(content, null, 2), {encoding: 'utf8'}
+    content = JSON.stringify content, null, 2
+    opts =
+      encoding: 'utf8'
+
+    if file then fs.writeFileAsync file, content, opts
+    else process.stdout.write content
 
   _parse: (csvString) ->
     new Promise (resolve, reject) ->
