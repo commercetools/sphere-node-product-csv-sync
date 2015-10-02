@@ -145,8 +145,9 @@ module.exports = class
           importer.dryRun = true if opts.dryRun
           importer.matchBy = opts.matchBy
 
-          (if ('csv' in opts) then fs.readFileAsync opts.csv, 'utf8'
+          (if opts.csv then fs.readFileAsync opts.csv, 'utf8'
           else new Promise (resolve) ->
+            console.warn 'Reading from stdin...'
             chunks = []
             process.stdin.on 'data', (chunk) -> chunks.push chunk
             process.stdin.on 'end', () -> resolve Buffer.concat chunks
