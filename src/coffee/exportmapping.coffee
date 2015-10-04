@@ -17,6 +17,7 @@ class ExportMapping
     @taxService = options.taxService
     @header = options.header
     @fillAllRows = options.fillAllRows
+    @categoryBy = options.categoryBy
 
   mapProduct: (product, productTypes) ->
     productType = productTypes[@typesService.id2index[product.productType.id]]
@@ -73,7 +74,12 @@ class ExportMapping
     if @header.has(CONS.HEADER_CATEGORIES)
       row[@header.toIndex CONS.HEADER_CATEGORIES] = _.reduce(product.categories or [], (memo, category, index) =>
         memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
-        memo + @categoryService.id2fqName[category.id]
+        memo + if @categoryBy = CONS.HEADER_SLUG
+          @categoryService.id2slug[category.id]
+        else if @categoryBy = CONS.HEADER_EXTERNAL_ID
+          @categoryService.id2slug[category.id]
+        else
+          @categoryService.id2fqName[category.id]
       , '')
 
     if @header.has(CONS.HEADER_CREATED_AT)

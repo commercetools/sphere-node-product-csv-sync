@@ -12,8 +12,8 @@ describe 'Categories', ->
   describe '#buildMaps', ->
     it 'should create maps for root categories', ->
       categories = [
-        { id: 1, name: { en: 'cat1' } }
-        { id: 2, name: { en: 'cat2' } }
+        { id: 1, name: { en: 'cat1' }, slug: { en: 'cat-1'} }
+        { id: 2, name: { en: 'cat2' }, slug: { en: 'cat-2'} }
       ]
       @categories.buildMaps categories
       expect(_.size @categories.id2index).toBe 2
@@ -23,9 +23,9 @@ describe 'Categories', ->
 
     it 'should create maps for children categories', ->
       categories = [
-        { id: 'idx', name: { en: 'root' } }
-        { id: 'idy', name: { en: 'main' }, ancestors: [ { id: 'idx' } ] }
-        { id: 'idz', name: { en: 'sub' }, ancestors: [ { id: 'idx' }, { id: 'idy' } ] }
+        { id: 'idx', name: { en: 'root' }, slug: { en: 'root'} }
+        { id: 'idy', name: { en: 'main' }, ancestors: [ { id: 'idx' } ], slug: { en: 'main'} }
+        { id: 'idz', name: { en: 'sub' }, ancestors: [ { id: 'idx' }, { id: 'idy' } ], slug: { en: 'sub'} }
       ]
       @categories.buildMaps categories
       expect(_.size @categories.id2index).toBe 3
@@ -38,9 +38,9 @@ describe 'Categories', ->
 
     it 'should create maps for categories with externalId', ->
       categories = [
-        { id: 'idx', name: { en: 'root' }, externalId: '123' }
-        { id: 'idy', name: { en: 'main' }, externalId: '234' }
-        { id: 'idz', name: { en: 'sub' }, externalId: '345' }
+        { id: 'idx', name: { en: 'root' }, externalId: '123', slug: { en: 'root'} }
+        { id: 'idy', name: { en: 'main' }, externalId: '234', slug: { en: 'main'} }
+        { id: 'idz', name: { en: 'sub' }, externalId: '345', slug: { en: 'sub'} }
       ]
       @categories.buildMaps categories
       expect(_.size @categories.id2index).toBe 3
