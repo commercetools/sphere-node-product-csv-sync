@@ -17,6 +17,7 @@ class ExportMapping
     @taxService = options.taxService
     @header = options.header
     @fillAllRows = options.fillAllRows
+    @categoryBy = options.categoryBy
 
   mapProduct: (product, productTypes) ->
     productType = productTypes[@typesService.id2index[product.productType.id]]
