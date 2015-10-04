@@ -43,15 +43,22 @@ This tool uses sub commands for the various task. Please refer to the usage of t
 General command line options can be seen by simply executing the command `node lib/run`.
 ```
 ./bin/product-csv-sync
-
-  Usage: run [globals] [sub-command] [options]
+  Usage: product-csv-sync [globals] [sub-command] [options]
 
   Commands:
 
-    import [options]       Import your products from CSV into your SPHERE.IO project.
-    state [options]        Allows to publish, unpublish or delete (all) products of your SPHERE.IO project.
-    export [options]       Export your products from your SPHERE.IO project to CSV using.
-    template [options]     Create a template for a product type of your SPHERE.IO project.
+    import [options]
+       Import your products from CSV into your SPHERE.IO project.
+
+    state [options]
+       Allows to publish, unpublish or delete (all) products of your SPHERE.IO project.
+
+    export [options]
+       Export your products from your SPHERE.IO project to CSV using.
+
+    template [options]
+       Create a template for a product type of your SPHERE.IO project.
+
 
   Options:
 
@@ -60,8 +67,9 @@ General command line options can be seen by simply executing the command `node l
     -p, --projectKey <key>       your SPHERE.IO project-key
     -i, --clientId <id>          your OAuth client id for the SPHERE.IO API
     -s, --clientSecret <secret>  your OAuth client secret for the SPHERE.IO API
-    --sphereHost <host>          SPHERE.IO API host to connecto to
-    --timeout [millis]           Set timeout for requests
+    --sphereHost <host>          SPHERE.IO API host to connect to
+    --sphereAuthHost <host>      SPHERE.IO OAuth host to connect to
+    --timeout [millis]           Set timeout for requests (default is 300000)
     --verbose                    give more feedback during action
     --debug                      give as many feedback as possible
 ```
@@ -78,7 +86,7 @@ This means that the CSV may contain only those columns that contain changed valu
 ### Usage
 
 ```
-./bin/product-csv-sync import --help
+./bin/product-csv-sync import
 
   Usage: import --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>
 
@@ -87,18 +95,16 @@ This means that the CSV may contain only those columns that contain changed valu
     -h, --help                                 output usage information
     -c, --csv <file>                           CSV file containing products to import
     -l, --language [lang]                      Default language to using during import (for slug generation, category linking etc. - default is en)
-    --csvDelimiter                             CSV Delimiter that separates the cells (default is comma - ",")
-    --multiValueDelimiter                      Delimiter to separate values inside of a cell (default is semicolon - ";")
+    --csvDelimiter [delim]                     CSV Delimiter that separates the cells (default is comma - ",")
+    --multiValueDelimiter [delim]              Delimiter to separate values inside of a cell (default is semicolon - ";")
     --customAttributesForCreationOnly <items>  List of comma-separated attributes to use when creating products (ignore when updating)
     --continueOnProblems                       When a product does not validate on the server side (400er response), ignore it and continue with the next products
     --suppressMissingHeaderWarning             Do not show which headers are missing per produt type.
     --allowRemovalOfVariants                   If given variants will be removed if there is no corresponding row in the CSV. Otherwise they are not touched.
-    --ignoreSeoAttributes                      If true all meta* attrbutes are kept untouched.
     --publish                                  When given, all changes will be published immediately
     --updatesOnly                              Won't create any new products, only updates existing
     --dryRun                                   Will list all action that would be triggered, but will not POST them to SPHERE.IO
-    -m, --matchBy                              Product attribute name which will be used to match products. Possible values: id, slug, sku,
-                                               <custom_attribute_name>. Default: id. Localized attribute types are not supported for <custom_attribute_name> option
+    -m, --matchBy [value]                      Product attribute name which will be used to match products. Possible values: id, slug, sku, <custom_attribute_name>. Default: id. Localized attribute types are not supported for <custom_attribute_name> option
 ```
 
 ### CSV Format
@@ -337,7 +343,7 @@ productType,name.en,variantId
 ### Usage
 
 ```
-./bin/product-csv-sync export --help
+./bin/product-csv-sync export
 
   Usage: export --projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>
 
@@ -346,11 +352,13 @@ productType,name.en,variantId
     -h, --help                 output usage information
     -t, --template <file>      CSV file containing your header that defines what you want to export
     -o, --out <file>           Path to the file the exporter will write the resulting CSV in
-    -j, --json <file>          Path to the JSON file the exporter will write the resulting products
+    -j, --json                 Export in JSON format
     -q, --queryString <query>  Query string to specify the sub-set of products to export
     -l, --language [lang]      Language used on export for category names (default is en)
     --queryType <type>         Whether to do a query or a search request
     --queryEncoded             Whether the given query string is already encoded or not
+    --fillAllRows              When given product attributes like name will be added to each variant row.
+    --categoryBy               Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.
 ```
 
 #### Export as JSON
