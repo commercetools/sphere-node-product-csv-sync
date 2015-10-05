@@ -69,7 +69,9 @@ class Import
           chunks = _.batchList(products, 20)
           p = (p) => @processProducts(p)
           Promise.map(chunks, p, { concurrency: 20 })
-          .then((results) => results.reduce((agg, r) => agg.concat(r) []))
+          .then((results) => results.reduce((agg, r) ->
+            agg.concat(r)
+          []))
 
   processProducts: (products) ->
     console.warn "Mapping done. About to process existing product(s) ..."
