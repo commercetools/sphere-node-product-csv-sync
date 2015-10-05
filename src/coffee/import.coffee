@@ -83,6 +83,7 @@ class Import
       matchFn = @initMatcher @matchBy, existingProducts
       productsToUpdate =
       if @validator.updateVariantsOnly
+        # TODO: reactive this - currently broken!
         @mapVariantsBasedOnSKUs existingProducts, products
       else
         products
