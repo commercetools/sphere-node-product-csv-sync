@@ -76,18 +76,18 @@ class Import
   processProducts: (products) ->
     console.warn "Mapping done. About to process existing product(s) ..."
     filterInput = QueryUtils.mapMatchFunction(@matchBy)(products)
-    @client.productProjections.staged().filter(filterInput).fetch()
+    @client.productProjections.staged().where(filterInput).fetch()
     .then (payload) =>
       existingProducts = payload.body.results
-      console.warn "Comparing against #{payload.body.total} existing product(s) ..."
-      @initMatcher existingProducts
+      console.warn "Comparing against #{payload.body.count} existing product(s) ..."
+      matchFn = @initMatcher @matchBy, existingProducts
       productsToUpdate =
       if @validator.updateVariantsOnly
         @mapVariantsBasedOnSKUs existingProducts, products
       else
         products
       console.warn "Processing #{_.size productsToUpdate} product(s) ..."
-      @createOrUpdate(productsToUpdate, @validator.types)
+      @createOrUpdate(productsToUpdate, @validator.types, matchFn)
     .then (result) ->
       # TODO: resolve with a summary of the import
       console.warn "Finished processing #{_.size result} product(s)"
@@ -126,99 +126,31 @@ class Import
       else
         Promise.resolve filteredResult
 
-  initMatcher: (existingProducts) ->
-    @existingProducts = existingProducts
-    @id2index = {}
-    @customAttributeValue2index = {}
-    @sku2index = {}
-    @sku2variantInfo = {}
-    @slug2index = {}
-    _.each existingProducts, (product, productIndex) =>
-      @id2index[product.id] = productIndex
-      if product.slug?
-        slug = product.slug[GLOBALS.DEFAULT_LANGUAGE]
-        @slug2index[slug] = productIndex if slug?
+  initMatcher: (matchBy, existingProducts) ->
+    temp = existingProducts
+    match = (matchBy, entry) ->
+      map = {}
+      _.each temp, (p, index) ->
+        switch matchBy
+          when 'id' then map[p.id] = p
+          when 'slug' then map[p.slug[GLOBALS.DEFAULT_LANGUAGE]] = p
+          when 'sku'
+            p.variants or= []
+            variants = [p.masterVariant].concat(p.variants)
+            _.each variants, (v) ->
+              map[v.sku] = p
 
-      product.variants or= []
-      variants = [product.masterVariant].concat(product.variants)
+      identifier = switch matchBy
+        when 'id' then entry.product.id
+        when 'slug' then entry.product.slug[GLOBALS.DEFAULT_LANGUAGE]
+        when 'sku' then entry.product.masterVariant.sku
 
-      _.each variants, (variant, variantIndex) =>
-        sku = variant.sku
-        if sku?
-          @sku2index[sku] = productIndex
-          @sku2variantInfo[sku] =
-            index: variantIndex - 1 # we reduce by one because of the masterVariant
-            id: variant.id
-        @customAttributeValue2index[@getCustomAttributeValue variant] = productIndex if @customAttributeNameToMatch?
+      map[identifier]
 
-    #console.warn "id2index", @id2index
-    #console.warn "customAttributeValue2index", @customAttributeValue2index
-    #console.warn "sku2index", @sku2index
-    #console.warn "slug2index", @slug2index
-    #console.warn "sku2variantInfo", @sku2variantInfo
-
-  mapVariantsBasedOnSKUs: (existingProducts, products) ->
-    console.warn "Mapping variants for #{_.size products} product type(s) ..."
-    productsToUpdate = {}
-    _.each products, (entry) =>
-      _.each entry.product.variants, (variant) =>
-        productIndex = @sku2index[variant.sku]
-        if productIndex?
-          existingProduct = productsToUpdate[productIndex]?.product or _.deepClone existingProducts[productIndex]
-          variantInfo = @sku2variantInfo[variant.sku]
-          variant.id = variantInfo.id
-          if variant.id is 1
-            existingProduct.masterVariant = variant
-          else
-            existingProduct.variants[variantInfo.index] = variant
-          productsToUpdate[productIndex] =
-            product: existingProduct
-            header: entry.header
-            rowIndex: entry.rowIndex
-        else
-          console.warn "Ignoring variant as no match by SKU found for: ", variant
-    _.map productsToUpdate
-
-  getCustomAttributeValue: (variant, name) ->
-    variant.attributes or= []
-    attrib = _.find variant.attributes, (attribute) =>
-      attribute.name is (@customAttributeNameToMatch unless name)
-    attrib?.value
-
-  match: (entry) ->
-    product = entry.product
-    # 1. match by id
-    index = @id2index[product.id] if product.id?
-    if not index
-      # 2. match by custom attribute
-      index = @_matchOnCustomAttribute product
-    if not index
-      # 3. match by sku
-      index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku?
-    if not index and (entry.header.has(CONS.HEADER_SLUG) or entry.header.hasLanguageForBaseAttribute(CONS.HEADER_SLUG))
-      # 4. match by slug (if header is present)
-      index = @slug2index[product.slug[GLOBALS.DEFAULT_LANGUAGE]] if product.slug? and product.slug[GLOBALS.DEFAULT_LANGUAGE]?
-
-    return @existingProducts[index] if index > -1
-
-  _matchOnCustomAttribute: (product) ->
-    attribute = undefined
-    if @customAttributeNameToMatch?
-      product.variants or= []
-      variants = [product.masterVariant].concat(product.variants)
-      _.find variants, (variant) =>
-        variant.attributes or= []
-        attribute = _.find variant.attributes, (attrib) =>
-          attrib.name is @customAttributeNameToMatch
-        attribute?
-
-    if attribute?
-      @customAttributeValue2index[attribute.value]
-
-  createOrUpdate: (products, types) ->
+  createOrUpdate: (products, types, matchFn) ->
     Promise.all _.map products, (entry) =>
       @repeater.execute =>
-        existingProduct = @match(entry)
+        existingProduct = matchFn(@matchBy, entry)
         if existingProduct?
           @update(entry.product, existingProduct, types, entry.header, entry.rowIndex)
         else
@@ -229,7 +161,6 @@ class Import
           Promise.resolve() # will retry in case of Gateway Timeout
         else
           Promise.reject e
-
 
   _isBlackListedForUpdate: (attributeName) ->
     if _.isEmpty @blackListedCustomAttributesForUpdate
