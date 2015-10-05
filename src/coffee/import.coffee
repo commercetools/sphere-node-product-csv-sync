@@ -7,6 +7,7 @@ CONS = require './constants'
 GLOBALS = require './globals'
 Validator = require './validator'
 QueryUtils = require './queryutils'
+MatchUtils = require './matchutils'
 
 # TODO:
 # - better organize subcommands / classes / helpers
@@ -80,7 +81,7 @@ class Import
     .then (payload) =>
       existingProducts = payload.body.results
       console.warn "Comparing against #{payload.body.count} existing product(s) ..."
-      matchFn = @initMatcher @matchBy, existingProducts
+      matchFn = MatchUtils.initMatcher @matchBy, existingProducts
       productsToUpdate =
       if @validator.updateVariantsOnly
         # TODO: reactive this - currently broken!
@@ -127,32 +128,10 @@ class Import
       else
         Promise.resolve filteredResult
 
-  initMatcher: (matchBy, existingProducts) ->
-    map = {}
-    _.each existingProducts, (p, index) ->
-      switch matchBy
-        when 'id' then map[p.id] = p
-        when 'slug' then map[p.slug[GLOBALS.DEFAULT_LANGUAGE]] = p
-        when 'sku'
-          p.variants or= []
-          variants = [p.masterVariant].concat(p.variants)
-          _.each variants, (v) ->
-            map[v.sku] = p
-        # TODO: build map for custom attribute matching
-
-    match = (matchBy, entry) ->
-      identifier = switch matchBy
-        when 'id' then entry.product.id
-        when 'slug' then entry.product.slug[GLOBALS.DEFAULT_LANGUAGE]
-        when 'sku' then entry.product.masterVariant.sku
-        # TODO: custom attribute matching
-
-      map[identifier]
-
   createOrUpdate: (products, types, matchFn) ->
     Promise.all _.map products, (entry) =>
       @repeater.execute =>
-        existingProduct = matchFn(@matchBy, entry)
+        existingProduct = matchFn(entry)
         if existingProduct?
           @update(entry.product, existingProduct, types, entry.header, entry.rowIndex)
         else
