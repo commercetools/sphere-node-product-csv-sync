@@ -168,6 +168,7 @@ describe 'Import integration test', ->
           ,,3,slug,CU3,10,bar,cinque;sei,enum2,#{@productType.id}
           """
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -266,6 +267,7 @@ describe 'Import integration test', ->
           ,,2,slug2,enum2,foo,200
           """
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -314,6 +316,7 @@ describe 'Import integration test', ->
           ,,13,,#{@newProductSku+13},lenum1;lenum2,foo,fooEn13
           """
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
