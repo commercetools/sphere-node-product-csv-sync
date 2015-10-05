@@ -33,10 +33,9 @@ class QueryUtils
   # @param {object} service - SDK service object
   # @param {Array} products
   @matchBySku: (products) ->
-    skus = _.flatten(products.map((p) ->
-      [p.product.masterVariant.sku].concat(p.product.variants.map((v) ->
-        v.sku))))
-        .filter(Helpers.exists)
+    skus = products.map((p) ->
+      p.product.masterVariant.sku
+    ).filter(Helpers.exists)
     predicate = QueryUtils.formatAttributePredicate("sku", skus)
     QueryUtils.applyPredicateToVariants(predicate)
 
