@@ -27,7 +27,7 @@ describe 'Import', ->
       expect(importer.client._task._maxParallel).toBe 10
       expect(importer.sync).toBeDefined()
 
-  describe 'match on custom attribute', ->
+  xdescribe 'match on custom attribute', ->
     it 'should find match based on custom attribute', ->
       product =
         id: '123'
@@ -62,7 +62,7 @@ describe 'Import', ->
 
       expect(match).toBe product
 
-  describe 'mapVariantsBasedOnSKUs', ->
+  xdescribe 'mapVariantsBasedOnSKUs', ->
     beforeEach ->
       @header = {}
     it 'should map masterVariant', ->

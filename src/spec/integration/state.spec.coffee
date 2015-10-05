@@ -12,6 +12,7 @@ describe 'State integration tests', ->
 
   beforeEach (done) ->
     @importer = new Import Config
+    @importer.matchBy = 'sku'
     @importer.validator.suppressMissingHeaderWarning = true
     @client = @importer.client
 
@@ -77,6 +78,7 @@ describe 'State integration tests', ->
         #{@productType.name},myProduct2,my-slug2,1,sku2,baz
         """
       im = new Import Config
+      im.matchBy = 'slug'
       im.validator.suppressMissingHeaderWarning = true
       im.import(csv)
     .then (result) =>

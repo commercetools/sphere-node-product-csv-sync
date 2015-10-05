@@ -16,6 +16,7 @@ describe 'Impex integration tests', ->
   beforeEach (done) ->
     jasmine.getEnv().defaultTimeoutInterval = 90000 # 90 sec
     @importer = new Import Config
+    @importer.matchBy = 'slug'
     @importer.validator.suppressMissingHeaderWarning = true
     @exporter = new Export client: Config
     @client = @importer.client
