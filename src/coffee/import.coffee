@@ -31,7 +31,7 @@ class Import
     @dryRun = false
     @blackListedCustomAttributesForUpdate = []
     @customAttributeNameToMatch = undefined
-    @matchBy = 'id'
+    @matchBy = CONS.HEADER_ID
 
   # current workflow:
   # - parse csv
@@ -127,23 +127,24 @@ class Import
         Promise.resolve filteredResult
 
   initMatcher: (matchBy, existingProducts) ->
-    temp = existingProducts
-    match = (matchBy, entry) ->
-      map = {}
-      _.each temp, (p, index) ->
-        switch matchBy
-          when 'id' then map[p.id] = p
-          when 'slug' then map[p.slug[GLOBALS.DEFAULT_LANGUAGE]] = p
-          when 'sku'
-            p.variants or= []
-            variants = [p.masterVariant].concat(p.variants)
-            _.each variants, (v) ->
-              map[v.sku] = p
+    map = {}
+    _.each existingProducts, (p, index) ->
+      switch matchBy
+        when 'id' then map[p.id] = p
+        when 'slug' then map[p.slug[GLOBALS.DEFAULT_LANGUAGE]] = p
+        when 'sku'
+          p.variants or= []
+          variants = [p.masterVariant].concat(p.variants)
+          _.each variants, (v) ->
+            map[v.sku] = p
+        # TODO: build map for custom attribute matching
 
+    match = (matchBy, entry) ->
       identifier = switch matchBy
         when 'id' then entry.product.id
         when 'slug' then entry.product.slug[GLOBALS.DEFAULT_LANGUAGE]
         when 'sku' then entry.product.masterVariant.sku
+        # TODO: custom attribute matching
 
       map[identifier]
 
