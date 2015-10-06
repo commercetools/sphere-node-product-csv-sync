@@ -18,7 +18,6 @@ class Validator
     @channels = options.channels
 
     options.validator = @
-    @map = new Mapping options
     # TODO:
     # - pass only correct options, not all classes
     # - avoid creating a new instance of the client, since it should be created from Import class
@@ -38,8 +37,8 @@ class Validator
       .on 'error', (error) -> reject error
       .to.array (data, count) =>
         @header = new Header(data[0])
-        @map.header = @header
         resolve
+          header: @header
           data: _.rest(data)
           count: count
 

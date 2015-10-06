@@ -6,6 +6,7 @@ Promise = require 'bluebird'
 CONS = require './constants'
 GLOBALS = require './globals'
 Validator = require './validator'
+Mapping = require './mapping'
 QueryUtils = require './queryutils'
 MatchUtils = require './matchutils'
 
@@ -30,15 +31,15 @@ class Import
       @repeater = new Repeater attempts: 3
 
     # TODO: move initialisation somewhere else
-    
+
     options.types = new Types()
     options.customerGroups = new CustomerGroups()
     options.categories = new Categories()
     options.taxes = new Taxes()
     options.channels = new Channels()
 
-    @validator = new Validator options
-
+    @validator = new Validator(options)
+    @map = new Mapping(options)
     @publishProducts = false
     @continueOnProblems = options.continueOnProblems
     @allowRemovalOfVariants = false
@@ -68,15 +69,16 @@ class Import
     @validator.parse fileContent
     .then (parsed) =>
       console.warn "CSV file with #{parsed.count} row(s) loaded."
+      @map.header = parsed.header
       @validator.validate(parsed.data)
       .then (rawProducts) =>
         if _.size(@validator.errors) isnt 0
           Promise.reject @validator.errors
         else
           console.warn "Mapping #{_.size rawProducts} product(s) ..."
-          products = rawProducts.map((p) => @validator.map.mapProduct p)
-          if _.size(@validator.map.errors) isnt 0
-            Promise.reject @validator.map.errors
+          products = rawProducts.map((p) => @map.mapProduct p)
+          if _.size(@map.errors) isnt 0
+            Promise.reject @map.errors
           chunks = _.batchList(products, 20)
           p = (p) => @processProducts(p)
           Promise.map(chunks, p, { concurrency: 20 })
