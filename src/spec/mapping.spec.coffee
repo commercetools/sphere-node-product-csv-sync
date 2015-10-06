@@ -3,9 +3,23 @@ CONS = require '../lib/constants'
 {Header, Mapping, Validator} = require '../lib/main'
 Categories = require '../lib/categories'
 
+# API Types
+Types = require '../lib/types'
+Categories = require '../lib/categories'
+CustomerGroups = require '../lib/customergroups'
+Taxes = require '../lib/taxes'
+Channels = require '../lib/channels'
+
 describe 'Mapping', ->
   beforeEach ->
-    @validator = new Validator()
+    options = {
+      types : new Types(),
+      customerGroups : new CustomerGroups(),
+      categories : new Categories(),
+      taxes : new Taxes(),
+      channels : new Channels(),
+    }
+    @validator = new Validator(options)
     @map = @validator.map
 
   describe '#constructor', ->

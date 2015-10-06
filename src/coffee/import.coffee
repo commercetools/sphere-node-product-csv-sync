@@ -9,6 +9,13 @@ Validator = require './validator'
 QueryUtils = require './queryutils'
 MatchUtils = require './matchutils'
 
+# API Types
+Types = require './types'
+Categories = require './categories'
+CustomerGroups = require './customergroups'
+Taxes = require './taxes'
+Channels = require './channels'
+
 # TODO:
 # - better organize subcommands / classes / helpers
 # - don't save partial results globally, instead pass them around to functions that need them
@@ -22,9 +29,16 @@ class Import
       @sync = new ProductSync
       @repeater = new Repeater attempts: 3
 
+    # TODO: move initialisation somewhere else
+    
+    options.types = new Types()
+    options.customerGroups = new CustomerGroups()
+    options.categories = new Categories()
+    options.taxes = new Taxes()
+    options.channels = new Channels()
+
     @validator = new Validator options
 
-    # TODO: define globale options variable object
     @publishProducts = false
     @continueOnProblems = options.continueOnProblems
     @allowRemovalOfVariants = false

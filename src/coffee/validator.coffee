@@ -5,30 +5,18 @@ Csv = require 'csv'
 {SphereClient} = require 'sphere-node-sdk'
 CONS = require './constants'
 GLOBALS = require './globals'
-Types = require './types'
-Categories = require './categories'
-CustomerGroups = require './customergroups'
-Taxes = require './taxes'
-Channels = require './channels'
 Mapping = require './mapping'
 Header = require './header'
 
 class Validator
 
   constructor: (options = {}) ->
-    # TODO:
-    # - move them to services folder
-    # - can we simplify those?
-    @types = new Types()
-    @customerGroups = new CustomerGroups()
-    @categories = new Categories()
-    @taxes = new Taxes()
-    @channels = new Channels()
-    options.types = @types
-    options.customerGroups = @customerGroups
-    options.categories = @categories
-    options.taxes = @taxes
-    options.channels = @channels
+    @types = options.types
+    @customerGroups = options.customerGroups
+    @categories = options.categories
+    @taxes = options.taxes
+    @channels = options.channels
+
     options.validator = @
     @map = new Mapping options
     # TODO:
@@ -81,16 +69,15 @@ class Validator
       @errors.push "Your selected delimiter clash with each other: #{JSON.stringify(allDelimiter)}"
 
   validateOnline: ->
-    gets = [
+    # TODO: too much parallel?
+    # TODO: is it ok storing everything in memory?
+    Promise.all([
       @types.getAll @client
       @customerGroups.getAll @client
       @categories.getAll @client
       @taxes.getAll @client
       @channels.getAll @client
-    ]
-    # TODO: too much parallel?
-    # TODO: is it ok storing everything in memory?
-    Promise.all(gets)
+    ])
     .then ([productTypes, customerGroups, categories, taxes, channels]) =>
       @productTypes = productTypes.body.results
       @types.buildMaps @productTypes
