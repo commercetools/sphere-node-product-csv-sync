@@ -59,10 +59,6 @@ class Import
         if _.size(@validator.errors) isnt 0
           Promise.reject @validator.errors
         else
-          # TODO:
-          # - process products in batches!!
-          # - for each chunk match products -> createOrUpdate
-          # - provide a way to accumulate partial results, or just log them to console
           console.warn "Mapping #{_.size rawProducts} product(s) ..."
           products = rawProducts.map((p) => @validator.map.mapProduct p)
           if _.size(@validator.map.errors) isnt 0
