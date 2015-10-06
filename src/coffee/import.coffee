@@ -31,7 +31,6 @@ class Import
       @repeater = new Repeater attempts: 3
 
     # TODO: move initialisation somewhere else
-
     options.types = new Types()
     options.customerGroups = new CustomerGroups()
     options.categories = new Categories()
@@ -70,21 +69,24 @@ class Import
     .then (parsed) =>
       console.warn "CSV file with #{parsed.count} row(s) loaded."
       @map.header = parsed.header
-      @validator.validate(parsed.data)
+      productsRows = @validator.validateOffline(parsed.data)
+      if _.size(@validator.errors) isnt 0
+        return Promise.reject @validator.errors
+      @validator.validateOnline()
       .then (rawProducts) =>
         if _.size(@validator.errors) isnt 0
-          Promise.reject @validator.errors
-        else
-          console.warn "Mapping #{_.size rawProducts} product(s) ..."
-          products = rawProducts.map((p) => @map.mapProduct p)
-          if _.size(@map.errors) isnt 0
-            Promise.reject @map.errors
-          chunks = _.batchList(products, 20)
-          p = (p) => @processProducts(p)
-          Promise.map(chunks, p, { concurrency: 20 })
-          .then((results) => results.reduce((agg, r) ->
-            agg.concat(r)
-          , []))
+          return Promise.reject @validator.errors
+
+        console.warn "Mapping #{_.size rawProducts} product(s) ..."
+        products = rawProducts.map((p) => @map.mapProduct p)
+        if _.size(@map.errors) isnt 0
+          return Promise.reject @map.errors
+          
+        p = (p) => @processProducts(p)
+        Promise.map(_.batchList(products, 20), p, { concurrency: 20 })
+        .then((results) => results.reduce((agg, r) ->
+          agg.concat(r)
+        , []))
 
   processProducts: (products) ->
     console.warn "Mapping done. About to process existing product(s) ..."
