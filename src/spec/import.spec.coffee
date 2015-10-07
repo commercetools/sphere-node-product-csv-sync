@@ -62,20 +62,20 @@ describe 'Import', ->
 
       expect(match).toBe product
 
-  xdescribe 'mapVariantsBasedOnSKUs', ->
+  describe 'mapVariantsBasedOnSKUs', ->
     beforeEach ->
       @header = {}
     it 'should map masterVariant', ->
       existingProducts = [
         { masterVariant: { id: 1, sku: "mySKU" }, variants: [] }
       ]
-      @importer.initMatcher existingProducts
+      #@importer.initMatcher existingProducts
       entry =
         product:
           variants: [
             { sku: "mySKU", attributes: [ { foo: 'bar' } ] }
           ]
-      productsToUpdate = @importer.mapVariantsBasedOnSKUs existingProducts, [entry]
+      productsToUpdate = @importer.mapVariantsBasedOnSKUs(existingProducts, [entry])
       expect(_.size productsToUpdate).toBe 1
       product = productsToUpdate[0].product
       expect(product.masterVariant).toBeDefined()
@@ -92,7 +92,7 @@ describe 'Import', ->
           { id: 4, sku: "mySKU4", attributes: [ { foo: 'baz' } ] }
         ] }
       ]
-      @importer.initMatcher existingProducts
+      #@importer.initMatcher existingProducts
       entry =
         product:
           variants: [
@@ -100,7 +100,7 @@ describe 'Import', ->
             { sku: "mySKU2", attributes: [ { foo: 'bar2' } ] }
             { sku: "mySKU3", attributes: [ { foo: 'bar3' } ] }
           ]
-      productsToUpdate = @importer.mapVariantsBasedOnSKUs existingProducts, [entry]
+      productsToUpdate = @importer.mapVariantsBasedOnSKUs(existingProducts, [entry])
       expect(_.size productsToUpdate).toBe 1
       product = productsToUpdate[0].product
       expect(product.masterVariant.id).toBe 1

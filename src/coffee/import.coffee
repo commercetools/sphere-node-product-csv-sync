@@ -72,21 +72,25 @@ class Import
       productsRows = @validator.validateOffline(parsed.data)
       if _.size(@validator.errors) isnt 0
         return Promise.reject @validator.errors
-      @validator.validateOnline()
-      .then (rawProducts) =>
-        if _.size(@validator.errors) isnt 0
-          return Promise.reject @validator.errors
 
-        console.warn "Mapping #{_.size rawProducts} product(s) ..."
-        products = rawProducts.map((p) => @map.mapProduct p)
-        if _.size(@map.errors) isnt 0
-          return Promise.reject @map.errors
-          
-        p = (p) => @processProducts(p)
-        Promise.map(_.batchList(products, 20), p, { concurrency: 20 })
-        .then((results) => results.reduce((agg, r) ->
-          agg.concat(r)
-        , []))
+      if @validator.updateVariantsOnly
+        console.error ("NOT IMPLEMENTED")
+      else
+        @validator.validateOnline()
+        .then (rawProducts) =>
+          if _.size(@validator.errors) isnt 0
+            return Promise.reject @validator.errors
+
+          console.warn "Mapping #{_.size rawProducts} product(s) ..."
+          products = rawProducts.map((p) => @map.mapProduct p)
+          if _.size(@map.errors) isnt 0
+            return Promise.reject @map.errors
+
+          p = (p) => @processProducts(p)
+          Promise.map(_.batchList(products, 20), p, { concurrency: 20 })
+          .then((results) => results.reduce((agg, r) ->
+            agg.concat(r)
+          , []))
 
   processProducts: (products) ->
     console.warn "Mapping done. About to process existing product(s) ..."
@@ -108,6 +112,39 @@ class Import
       # TODO: resolve with a summary of the import
       console.warn "Finished processing #{_.size result} product(s)"
       Promise.resolve result
+
+  mapVariantsBasedOnSKUs: (existingProducts, products) ->
+    console.warn "Mapping variants for #{_.size products} product type(s) ..."
+    [sku2index, sku2variantInfo] = existingProducts.reduce((aggr, p, i) ->
+      console.warn("EXISTING PRODUCT", p)
+      ([p.masterVariant].concat(p.variants)).reduce(([s2i, s2v], v, vi) ->
+        s2i[v.sku] = i
+        s2v[v.sku] = {
+          index: vi - 1, # we reduce by one because of the masterVariant
+          id: v.id
+        }
+        [s2i, s2v]
+      , aggr)
+    , [{}, {}])
+    productsToUpdate = {}
+    _.each products, (entry) =>
+      _.each entry.product.variants, (variant) =>
+        productIndex = sku2index[variant.sku]
+        if productIndex?
+          existingProduct = productsToUpdate[productIndex]?.product or _.deepClone existingProducts[productIndex]
+          variantInfo = sku2variantInfo[variant.sku]
+          variant.id = variantInfo.id
+          if variant.id is 1
+            existingProduct.masterVariant = variant
+          else
+            existingProduct.variants[variantInfo.index] = variant
+          productsToUpdate[productIndex] =
+            product: existingProduct
+            header: entry.header
+            rowIndex: entry.rowIndex
+        else
+          console.warn "Ignoring variant as no match by SKU found for: ", variant
+    _.map productsToUpdate
 
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true
