@@ -74,7 +74,7 @@ class Import
         return Promise.reject @validator.errors
 
       if @validator.updateVariantsOnly
-        console.error ("NOT IMPLEMENTED")
+        console.warn "Mapping variants only. Falling back to map by sku option"
       else
         @validator.validateOnline()
         .then (rawProducts) =>
@@ -113,10 +113,36 @@ class Import
       console.warn "Finished processing #{_.size result} product(s)"
       Promise.resolve result
 
+  processProductsBasesOnSkus: (products) ->
+    filterInput = QueryUtils.mapMatchFunction("sku")(products)
+    @client.productProjections.staged().where(filterInput).fetch()
+    .then((payload) =>
+      existingProducts = payload.body.results
+      console.warn "Comparing against #{payload.body.count} existing product(s) ..."
+      matchFn = MatchUtils.initMatcher("sku", existingProducts)
+      productsToUpdate = @mapVariantsBasedOnSKUs(existingProducts, products)
+      Promise.all(_.map(productsToUpdate, (entry) =>
+        @repeater.execute( =>
+          existingProduct = matchFn(entry)
+          if existingProduct?
+            @update(entry.product, existingProduct, [], entry.header, entry.rowIndex)
+          else
+            console.warn("Ignoring not matched product")
+        , (e) ->
+          if e.code is 504
+            console.warn 'Got a timeout, will retry again...'
+            Promise.resolve() # will retry in case of Gateway Timeout
+          else
+            Promise.reject e)))
+      .then((result) ->
+        console.warn "Finished processing #{_.size result} product(s)"
+        Promise.resolve result
+      )
+    )
+
   mapVariantsBasedOnSKUs: (existingProducts, products) ->
     console.warn "Mapping variants for #{_.size products} product type(s) ..."
     [sku2index, sku2variantInfo] = existingProducts.reduce((aggr, p, i) ->
-      console.warn("EXISTING PRODUCT", p)
       ([p.masterVariant].concat(p.variants)).reduce(([s2i, s2v], v, vi) ->
         s2i[v.sku] = i
         s2v[v.sku] = {
@@ -184,7 +210,7 @@ class Import
       @repeater.execute =>
         existingProduct = matchFn(entry)
         if existingProduct?
-          @update(entry.product, existingProduct, types, entry.header, entry.rowIndex)
+          @update(entry.product, existingProduct, types.id2SameForAllAttributes, entry.header, entry.rowIndex)
         else
           @create(entry.product, entry.rowIndex)
       , (e) ->
@@ -200,8 +226,8 @@ class Import
     else
       _.contains @blackListedCustomAttributesForUpdate, attributeName
 
-  update: (product, existingProduct, types, header, rowIndex) ->
-    allSameValueAttributes = types.id2SameForAllAttributes[product.productType.id]
+  update: (product, existingProduct, id2SameForAllAttributes, header, rowIndex) ->
+    allSameValueAttributes = id2SameForAllAttributes[product.productType.id]
     config = [
       { type: 'base', group: 'white' }
       { type: 'references', group: 'white' }
