@@ -75,6 +75,11 @@ class Import
 
       if @validator.updateVariantsOnly
         console.warn "Mapping variants only. Falling back to map by sku option"
+        p = (p) => @processProductsBasesOnSkus(p)
+        return Promise.map(_.batchList(productsRows, 20), p, { concurrency: 20 })
+        .then((results) => results.reduce((agg, r) ->
+          agg.concat(r)
+        , []))
       else
         @validator.validateOnline()
         .then (rawProducts) =>
