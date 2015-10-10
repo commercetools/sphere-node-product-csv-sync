@@ -72,14 +72,6 @@ class Import
       productsRows = @validator.validateOffline(parsed.data)
       if _.size(@validator.errors) isnt 0
         return Promise.reject @validator.errors
-
-      if @validator.updateVariantsOnly
-        console.warn "Mapping variants only. Falling back to map by sku option"
-        p = (p) => @processProductsBasesOnSkus(p)
-        return Promise.map(_.batchList(productsRows, 20), p, { concurrency: 20 })
-        .then((results) => results.reduce((agg, r) ->
-          agg.concat(r)
-        , []))
       else
         @validator.validateOnline()
         .then (rawProducts) =>
@@ -88,21 +80,27 @@ class Import
 
           console.warn "Mapping #{_.size rawProducts} product(s) ..."
           products = rawProducts.map((p) => @map.mapProduct p)
+
           if _.size(@map.errors) isnt 0
             return Promise.reject @map.errors
+          console.warn "Mapping done. About to process existing product(s) ..."
 
-          p = (p) => @processProducts(p)
+          p = if @validator.updateVariantsOnly
+            p = (p) => @processProductsBasesOnSkus(p)
+          else
+            (p) => @processProducts(p)
           Promise.map(_.batchList(products, 20), p, { concurrency: 20 })
           .then((results) => results.reduce((agg, r) ->
             agg.concat(r)
           , []))
 
   processProducts: (products) ->
-    console.warn "Mapping done. About to process existing product(s) ..."
     filterInput = QueryUtils.mapMatchFunction(@matchBy)(products)
+    console.warn "filterInput", filterInput
     @client.productProjections.staged().where(filterInput).fetch()
     .then (payload) =>
       existingProducts = payload.body.results
+      console.warn "existingProducts", existingProducts
       console.warn "Comparing against #{payload.body.count} existing product(s) ..."
       matchFn = MatchUtils.initMatcher @matchBy, existingProducts
       productsToUpdate =
@@ -126,6 +124,7 @@ class Import
       console.warn "Comparing against #{payload.body.count} existing product(s) ..."
       matchFn = MatchUtils.initMatcher("sku", existingProducts)
       productsToUpdate = @mapVariantsBasedOnSKUs(existingProducts, products)
+      console.warn "productsToUpdate", _.prettify(productsToUpdate)
       Promise.all(_.map(productsToUpdate, (entry) =>
         @repeater.execute( =>
           existingProduct = matchFn(entry)
@@ -147,6 +146,8 @@ class Import
 
   mapVariantsBasedOnSKUs: (existingProducts, products) ->
     console.warn "Mapping variants for #{_.size products} product type(s) ..."
+    # console.warn "existingProducts", _.prettify(existingProducts)
+    # console.warn "products", _.prettify(products)
     [sku2index, sku2variantInfo] = existingProducts.reduce((aggr, p, i) ->
       ([p.masterVariant].concat(p.variants)).reduce(([s2i, s2v], v, vi) ->
         s2i[v.sku] = i
@@ -157,24 +158,30 @@ class Import
         [s2i, s2v]
       , aggr)
     , [{}, {}])
+    console.warn "sku2index", _.prettify(sku2index)
+    console.warn "sku2variantInfo", _.prettify(sku2variantInfo)
     productsToUpdate = {}
     _.each products, (entry) =>
-      _.each entry.product.variants, (variant) =>
-        productIndex = sku2index[variant.sku]
-        if productIndex?
-          existingProduct = productsToUpdate[productIndex]?.product or _.deepClone existingProducts[productIndex]
-          variantInfo = sku2variantInfo[variant.sku]
-          variant.id = variantInfo.id
-          if variant.id is 1
-            existingProduct.masterVariant = variant
-          else
-            existingProduct.variants[variantInfo.index] = variant
-          productsToUpdate[productIndex] =
-            product: existingProduct
-            header: entry.header
-            rowIndex: entry.rowIndex
+      variant = entry.product.masterVariant
+      console.warn "variant", entry
+      productIndex = sku2index[variant.sku]
+      console.warn "variant.sku", variant.sku
+      console.warn "productIndex", productIndex
+      if productIndex?
+        existingProduct = productsToUpdate[productIndex]?.product or _.deepClone existingProducts[productIndex]
+
+        variantInfo = sku2variantInfo[variant.sku]
+        variant.id = variantInfo.id
+        if variant.id is 1
+          existingProduct.masterVariant = variant
         else
-          console.warn "Ignoring variant as no match by SKU found for: ", variant
+          existingProduct.variants[variantInfo.index] = variant
+        productsToUpdate[productIndex] =
+          product: existingProduct
+          header: entry.header
+          rowIndex: entry.rowIndex
+      else
+        console.warn "Ignoring variant as no match by SKU found for: ", variant
     _.map productsToUpdate
 
   changeState: (publish = true, remove = false, filterFunction) ->

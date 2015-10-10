@@ -96,46 +96,47 @@ class Validator
         Promise.reject @errors
 
 
+
   # TODO: Allow to define a column that defines the variant relationship.
   # If the value is the same, they belong to the same product
   buildProducts: (content, variantColumn) ->
-    if @updateVariantsOnly
-      @productType2variantContainer = {}
-    _.each content, (row, index) =>
+    buildVariantsOnly = (aggr, row, index) =>
       rowIndex = index + 2 # Excel et all start counting at 1 and we already popped the header
-      if @updateVariantsOnly
-        # we build one product per product type
-        productType = row[@header.toIndex CONS.HEADER_PRODUCT_TYPE]
-        if productType
-          unless _.has @productType2variantContainer, productType
-            @productType2variantContainer[productType] =
-              master: _.deepClone row
-              startRow: rowIndex
-              variants: []
-            @rawProducts.push @productType2variantContainer[productType]
-          @productType2variantContainer[productType].variants.push
+      productType = row[@header.toIndex CONS.HEADER_PRODUCT_TYPE]
+      if productType
+        @rawProducts.push({
+          master: _.deepClone(row),
+          startRow: rowIndex,
+          variants: []
+        })
+      else
+        @errors.push "[row #{rowIndex}] Please provide a product type!"
+      aggr
+
+    buildProductsOnFly = (aggr, row, index) =>
+      rowIndex = index + 2 # Excel et all start counting at 1 and we already popped the header
+      if @isProduct row, variantColumn
+        product =
+          master: row
+          startRow: rowIndex
+          variants: []
+        @rawProducts.push product
+      else if @isVariant row, variantColumn
+        product = _.last @rawProducts
+        if product
+          product.variants.push
             variant: row
             rowIndex: rowIndex
         else
-          @errors.push "[row #{rowIndex}] Please provide a product type!"
+          @errors.push "[row #{rowIndex}] We need a product before starting with a variant!"
       else
-        # we build the product on the fly when we identify a new one
-        if @isProduct row, variantColumn
-          product =
-            master: row
-            startRow: rowIndex
-            variants: []
-          @rawProducts.push product
-        else if @isVariant row, variantColumn
-          product = _.last @rawProducts
-          if product
-            product.variants.push
-              variant: row
-              rowIndex: rowIndex
-          else
-            @errors.push "[row #{rowIndex}] We need a product before starting with a variant!"
-        else
-          @errors.push "[row #{rowIndex}] Could not be identified as product or variant!"
+        @errors.push "[row #{rowIndex}] Could not be identified as product or variant!"
+      aggr
+
+    reducer = if @updateVariantsOnly
+      buildVariantsOnly
+    else buildProductsOnFly
+    content.reduce(reducer, {})
 
   valProductTypes: (productTypes) ->
     return if @suppressMissingHeaderWarning
