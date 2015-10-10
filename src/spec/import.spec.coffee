@@ -72,9 +72,7 @@ describe 'Import', ->
       #@importer.initMatcher existingProducts
       entry =
         product:
-          variants: [
-            { sku: "mySKU", attributes: [ { foo: 'bar' } ] }
-          ]
+          masterVariant: { sku: "mySKU", attributes: [ { foo: 'bar' } ] }
       productsToUpdate = @importer.mapVariantsBasedOnSKUs(existingProducts, [entry])
       expect(_.size productsToUpdate).toBe 1
       product = productsToUpdate[0].product
@@ -84,7 +82,7 @@ describe 'Import', ->
       expect(_.size product.variants).toBe 0
       expect(product.masterVariant.attributes).toEqual [{ foo: 'bar' }]
 
-    it 'should map several variants into one product', ->
+    xit 'should map several variants into one product', ->
       existingProducts = [
         { masterVariant: { id: 1, sku: "mySKU" }, variants: [] }
         { masterVariant: { id: 1, sku: "mySKU1" }, variants: [
