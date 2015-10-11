@@ -13,9 +13,9 @@ before_script:
 script:
   - npm test
   - cucumber -t ~@wip
-  - cat data/simple-import.csv | ./bin/product-csv-sync import --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --suppressMissingHeaderWarning
+  - cat data/simple-import.csv | ./bin/product-csv-sync import --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --suppressMissingHeaderWarning --matchBy sku
   - cat data/template_sample.csv | ./bin/product-csv-sync export --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET}
-  - ./bin/product-csv-sync import --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --csv data/simple-import.csv --suppressMissingHeaderWarning
+  - ./bin/product-csv-sync import --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --csv data/simple-import.csv --suppressMissingHeaderWarning --matchBy sku
   - ./bin/product-csv-sync template --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --out data/template_sample.csv --all
   - ./bin/product-csv-sync export --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --template data/template_sample.csv --out data/exported.csv
   - ./bin/product-csv-sync state --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --changeTo delete --forceDelete
