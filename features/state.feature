@@ -9,7 +9,7 @@ Feature: Publish and unpublish products
     productType,variantId,name,sku
     ImpEx with all types,1,myPublishedProduct,123456789
     """
-    When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv i.csv`
+    When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv i.csv --matchBy sku`
     Then the exit status should be 0
     And the output should contain:
     """
