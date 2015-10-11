@@ -27,7 +27,7 @@ class QueryUtils
   @matchBySlug: (products) ->
     slugs = products.map((p) ->
       p.product.slug[GLOBALS.DEFAULT_LANGUAGE])
-    QueryUtils.formatAttributePredicate("slug", slugs)
+    "slug(#{QueryUtils.formatAttributePredicate(GLOBALS.DEFAULT_LANGUAGE, slugs)})"
 
   # Matches products by `sku` attribute
   # @param {object} service - SDK service object

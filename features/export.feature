@@ -8,7 +8,7 @@ Feature: Export products
     ImpEx with all types,Product 2,1,sku-2-123
     ImpEx with all types,Product 3,1,0123
     """
-    When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv i.csv`
+    When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv i.csv --matchBy sku`
     Then the exit status should be 0
     And the output should contain:
     """

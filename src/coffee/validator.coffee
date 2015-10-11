@@ -5,32 +5,19 @@ Csv = require 'csv'
 {SphereClient} = require 'sphere-node-sdk'
 CONS = require './constants'
 GLOBALS = require './globals'
-Types = require './types'
-Categories = require './categories'
-CustomerGroups = require './customergroups'
-Taxes = require './taxes'
-Channels = require './channels'
 Mapping = require './mapping'
 Header = require './header'
 
 class Validator
 
   constructor: (options = {}) ->
-    # TODO:
-    # - move them to services folder
-    # - can we simplify those?
-    @types = new Types()
-    @customerGroups = new CustomerGroups()
-    @categories = new Categories()
-    @taxes = new Taxes()
-    @channels = new Channels()
-    options.types = @types
-    options.customerGroups = @customerGroups
-    options.categories = @categories
-    options.taxes = @taxes
-    options.channels = @channels
+    @types = options.types
+    @customerGroups = options.customerGroups
+    @categories = options.categories
+    @taxes = options.taxes
+    @channels = options.channels
+
     options.validator = @
-    @map = new Mapping options
     # TODO:
     # - pass only correct options, not all classes
     # - avoid creating a new instance of the client, since it should be created from Import class
@@ -50,8 +37,8 @@ class Validator
       .on 'error', (error) -> reject error
       .to.array (data, count) =>
         @header = new Header(data[0])
-        @map.header = @header
         resolve
+          header: @header
           data: _.rest(data)
           count: count
 
@@ -81,16 +68,15 @@ class Validator
       @errors.push "Your selected delimiter clash with each other: #{JSON.stringify(allDelimiter)}"
 
   validateOnline: ->
-    gets = [
+    # TODO: too much parallel?
+    # TODO: is it ok storing everything in memory?
+    Promise.all([
       @types.getAll @client
       @customerGroups.getAll @client
       @categories.getAll @client
       @taxes.getAll @client
       @channels.getAll @client
-    ]
-    # TODO: too much parallel?
-    # TODO: is it ok storing everything in memory?
-    Promise.all(gets)
+    ])
     .then ([productTypes, customerGroups, categories, taxes, channels]) =>
       @productTypes = productTypes.body.results
       @types.buildMaps @productTypes
@@ -110,46 +96,47 @@ class Validator
         Promise.reject @errors
 
 
+
   # TODO: Allow to define a column that defines the variant relationship.
   # If the value is the same, they belong to the same product
   buildProducts: (content, variantColumn) ->
-    if @updateVariantsOnly
-      @productType2variantContainer = {}
-    _.each content, (row, index) =>
+    buildVariantsOnly = (aggr, row, index) =>
       rowIndex = index + 2 # Excel et all start counting at 1 and we already popped the header
-      if @updateVariantsOnly
-        # we build one product per product type
-        productType = row[@header.toIndex CONS.HEADER_PRODUCT_TYPE]
-        if productType
-          unless _.has @productType2variantContainer, productType
-            @productType2variantContainer[productType] =
-              master: _.deepClone row
-              startRow: rowIndex
-              variants: []
-            @rawProducts.push @productType2variantContainer[productType]
-          @productType2variantContainer[productType].variants.push
+      productType = row[@header.toIndex CONS.HEADER_PRODUCT_TYPE]
+      if productType
+        @rawProducts.push({
+          master: _.deepClone(row),
+          startRow: rowIndex,
+          variants: []
+        })
+      else
+        @errors.push "[row #{rowIndex}] Please provide a product type!"
+      aggr
+
+    buildProductsOnFly = (aggr, row, index) =>
+      rowIndex = index + 2 # Excel et all start counting at 1 and we already popped the header
+      if @isProduct row, variantColumn
+        product =
+          master: row
+          startRow: rowIndex
+          variants: []
+        @rawProducts.push product
+      else if @isVariant row, variantColumn
+        product = _.last @rawProducts
+        if product
+          product.variants.push
             variant: row
             rowIndex: rowIndex
         else
-          @errors.push "[row #{rowIndex}] Please provide a product type!"
+          @errors.push "[row #{rowIndex}] We need a product before starting with a variant!"
       else
-        # we build the product on the fly when we identify a new one
-        if @isProduct row, variantColumn
-          product =
-            master: row
-            startRow: rowIndex
-            variants: []
-          @rawProducts.push product
-        else if @isVariant row, variantColumn
-          product = _.last @rawProducts
-          if product
-            product.variants.push
-              variant: row
-              rowIndex: rowIndex
-          else
-            @errors.push "[row #{rowIndex}] We need a product before starting with a variant!"
-        else
-          @errors.push "[row #{rowIndex}] Could not be identified as product or variant!"
+        @errors.push "[row #{rowIndex}] Could not be identified as product or variant!"
+      aggr
+
+    reducer = if @updateVariantsOnly
+      buildVariantsOnly
+    else buildProductsOnFly
+    content.reduce(reducer, {})
 
   valProductTypes: (productTypes) ->
     return if @suppressMissingHeaderWarning

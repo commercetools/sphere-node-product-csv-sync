@@ -15,6 +15,7 @@ REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE = 'attr-ref-product-type-n'
 
 createImporter = ->
   im = new Import Config
+  im.matchBy = 'sku'
   im.allowRemovalOfVariants = true
   im.validator.suppressMissingHeaderWarning = true
   im
@@ -103,6 +104,7 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
 
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) ->
         expect(_.size result).toBe 1
@@ -126,6 +128,7 @@ describe 'Import integration test', ->
           #{@productType.id},#{@newProductName+'_changed'},1,#{@newProductSlug}
           """
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -152,6 +155,7 @@ describe 'Import integration test', ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -164,6 +168,7 @@ describe 'Import integration test', ->
           ,,3,slug,CU3,10,bar,cinque;sei,enum2,#{@productType.id}
           """
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -215,6 +220,7 @@ describe 'Import integration test', ->
         expect(result[1]).toBe '[row 4] New product created.'
         expect(result[2]).toBe '[row 5] New product created.'
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 3
@@ -249,6 +255,7 @@ describe 'Import integration test', ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -260,6 +267,7 @@ describe 'Import integration test', ->
           ,,2,slug2,enum2,foo,200
           """
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -308,6 +316,7 @@ describe 'Import integration test', ->
           ,,13,,#{@newProductSku+13},lenum1;lenum2,foo,fooEn13
           """
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -345,6 +354,7 @@ describe 'Import integration test', ->
           #{@productType.id},#{@newProductName},1,#{@newProductSlug},foo,10,enum1
           """
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -377,6 +387,7 @@ describe 'Import integration test', ->
           #{@productType.id},#{@newProductName},1,#{@newProductSlug},foo,10,enum1
           """
         im = createImporter()
+        im.matchBy = 'slug'
         im.allowRemovalOfVariants = false
         im.import(csv)
       .then (result) =>
@@ -409,6 +420,7 @@ describe 'Import integration test', ->
           ,,2,slug-2,bar,20,enum1
           """
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -444,6 +456,7 @@ describe 'Import integration test', ->
           #{@productType.id},#{@newProductSlug},1
           """
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -454,6 +467,7 @@ describe 'Import integration test', ->
           #{@productType.id},#{@newProductSlug},#{@newProductName+'_changed'},1,#{@newProductSku}
           """
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -586,6 +600,7 @@ describe 'Import integration test', ->
           ,,2
           """
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -719,7 +734,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
-        expect(result[0]).toBe '[row 2] Product updated.'
+        expect(result[0]).toBe '[row 3] Product updated.'
         @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
       .then (result) =>
         expect(_.size result.body.results).toBe 1

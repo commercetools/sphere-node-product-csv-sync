@@ -6,7 +6,16 @@ Promise = require 'bluebird'
 CONS = require './constants'
 GLOBALS = require './globals'
 Validator = require './validator'
+Mapping = require './mapping'
 QueryUtils = require './queryutils'
+MatchUtils = require './matchutils'
+
+# API Types
+Types = require './types'
+Categories = require './categories'
+CustomerGroups = require './customergroups'
+Taxes = require './taxes'
+Channels = require './channels'
 
 # TODO:
 # - better organize subcommands / classes / helpers
@@ -21,9 +30,15 @@ class Import
       @sync = new ProductSync
       @repeater = new Repeater attempts: 3
 
-    @validator = new Validator options
+    # TODO: move initialisation somewhere else
+    options.types = new Types()
+    options.customerGroups = new CustomerGroups()
+    options.categories = new Categories()
+    options.taxes = new Taxes()
+    options.channels = new Channels()
 
-    # TODO: define globale options variable object
+    @validator = new Validator(options)
+    @map = new Mapping(options)
     @publishProducts = false
     @continueOnProblems = options.continueOnProblems
     @allowRemovalOfVariants = false
@@ -31,7 +46,7 @@ class Import
     @dryRun = false
     @blackListedCustomAttributesForUpdate = []
     @customAttributeNameToMatch = undefined
-    @matchBy = 'id'
+    @matchBy = CONS.HEADER_ID
 
   # current workflow:
   # - parse csv
@@ -53,45 +68,121 @@ class Import
     @validator.parse fileContent
     .then (parsed) =>
       console.warn "CSV file with #{parsed.count} row(s) loaded."
-      @validator.validate(parsed.data)
-      .then (rawProducts) =>
-        if _.size(@validator.errors) isnt 0
-          Promise.reject @validator.errors
-        else
-          # TODO:
-          # - process products in batches!!
-          # - for each chunk match products -> createOrUpdate
-          # - provide a way to accumulate partial results, or just log them to console
+      @map.header = parsed.header
+      productsRows = @validator.validateOffline(parsed.data)
+      if _.size(@validator.errors) isnt 0
+        return Promise.reject @validator.errors
+      else
+        @validator.validateOnline()
+        .then (rawProducts) =>
+          if _.size(@validator.errors) isnt 0
+            return Promise.reject @validator.errors
+
           console.warn "Mapping #{_.size rawProducts} product(s) ..."
-          products = rawProducts.map((p) => @validator.map.mapProduct p)
-          if _.size(@validator.map.errors) isnt 0
-            Promise.reject @validator.map.errors
-          chunks = _.batchList(products, 20)
-          p = (p) => @processProducts(p)
-          Promise.map(chunks, p, { concurrency: 20 })
+          products = rawProducts.map((p) => @map.mapProduct p)
+
+          if _.size(@map.errors) isnt 0
+            return Promise.reject @map.errors
+          console.warn "Mapping done. About to process existing product(s) ..."
+
+          p = if @validator.updateVariantsOnly
+            p = (p) => @processProductsBasesOnSkus(p)
+          else
+            (p) => @processProducts(p)
+          Promise.map(_.batchList(products, 20), p, { concurrency: 20 })
           .then((results) => results.reduce((agg, r) ->
             agg.concat(r)
           , []))
 
   processProducts: (products) ->
-    console.warn "Mapping done. About to process existing product(s) ..."
     filterInput = QueryUtils.mapMatchFunction(@matchBy)(products)
-    @client.productProjections.staged().filter(filterInput).fetch()
+    console.warn "filterInput", filterInput
+    @client.productProjections.staged().where(filterInput).fetch()
     .then (payload) =>
       existingProducts = payload.body.results
-      console.warn "Comparing against #{payload.body.total} existing product(s) ..."
-      @initMatcher existingProducts
+      console.warn "existingProducts", existingProducts
+      console.warn "Comparing against #{payload.body.count} existing product(s) ..."
+      matchFn = MatchUtils.initMatcher @matchBy, existingProducts
       productsToUpdate =
       if @validator.updateVariantsOnly
+        # TODO: reactive this - currently broken!
         @mapVariantsBasedOnSKUs existingProducts, products
       else
         products
       console.warn "Processing #{_.size productsToUpdate} product(s) ..."
-      @createOrUpdate(productsToUpdate, @validator.types)
+      @createOrUpdate(productsToUpdate, @validator.types, matchFn)
     .then (result) ->
       # TODO: resolve with a summary of the import
       console.warn "Finished processing #{_.size result} product(s)"
       Promise.resolve result
+
+  processProductsBasesOnSkus: (products) ->
+    filterInput = QueryUtils.mapMatchFunction("sku")(products)
+    @client.productProjections.staged().where(filterInput).fetch()
+    .then((payload) =>
+      existingProducts = payload.body.results
+      console.warn "Comparing against #{payload.body.count} existing product(s) ..."
+      matchFn = MatchUtils.initMatcher("sku", existingProducts)
+      productsToUpdate = @mapVariantsBasedOnSKUs(existingProducts, products)
+      console.warn "productsToUpdate", _.prettify(productsToUpdate)
+      Promise.all(_.map(productsToUpdate, (entry) =>
+        @repeater.execute( =>
+          existingProduct = matchFn(entry)
+          if existingProduct?
+            @update(entry.product, existingProduct, [], entry.header, entry.rowIndex)
+          else
+            console.warn("Ignoring not matched product")
+        , (e) ->
+          if e.code is 504
+            console.warn 'Got a timeout, will retry again...'
+            Promise.resolve() # will retry in case of Gateway Timeout
+          else
+            Promise.reject e)))
+      .then((result) ->
+        console.warn "Finished processing #{_.size result} product(s)"
+        Promise.resolve result
+      )
+    )
+
+  mapVariantsBasedOnSKUs: (existingProducts, products) ->
+    console.warn "Mapping variants for #{_.size products} product(s) ..."
+    # console.warn "existingProducts", _.prettify(existingProducts)
+    # console.warn "products", _.prettify(products)
+    [sku2index, sku2variantInfo] = existingProducts.reduce((aggr, p, i) ->
+      ([p.masterVariant].concat(p.variants)).reduce(([s2i, s2v], v, vi) ->
+        s2i[v.sku] = i
+        s2v[v.sku] = {
+          index: vi - 1, # we reduce by one because of the masterVariant
+          id: v.id
+        }
+        [s2i, s2v]
+      , aggr)
+    , [{}, {}])
+    console.warn "sku2index", _.prettify(sku2index)
+    console.warn "sku2variantInfo", _.prettify(sku2variantInfo)
+    productsToUpdate = {}
+    _.each products, (entry) =>
+      variant = entry.product.masterVariant
+      console.warn "variant", variant
+      productIndex = sku2index[variant.sku]
+      console.warn "variant.sku", variant.sku
+      console.warn "productIndex", productIndex
+      if productIndex?
+        existingProduct = productsToUpdate[productIndex]?.product or _.deepClone existingProducts[productIndex]
+
+        variantInfo = sku2variantInfo[variant.sku]
+        variant.id = variantInfo.id
+        if variant.id is 1
+          existingProduct.masterVariant = variant
+        else
+          existingProduct.variants[variantInfo.index] = variant
+        productsToUpdate[productIndex] =
+          product: existingProduct
+          header: entry.header
+          rowIndex: entry.rowIndex
+      else
+        console.warn "Ignoring variant as no match by SKU found for: ", variant
+    _.map productsToUpdate
 
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true
@@ -126,101 +217,12 @@ class Import
       else
         Promise.resolve filteredResult
 
-  initMatcher: (existingProducts) ->
-    @existingProducts = existingProducts
-    @id2index = {}
-    @customAttributeValue2index = {}
-    @sku2index = {}
-    @sku2variantInfo = {}
-    @slug2index = {}
-    _.each existingProducts, (product, productIndex) =>
-      @id2index[product.id] = productIndex
-      if product.slug?
-        slug = product.slug[GLOBALS.DEFAULT_LANGUAGE]
-        @slug2index[slug] = productIndex if slug?
-
-      product.variants or= []
-      variants = [product.masterVariant].concat(product.variants)
-
-      _.each variants, (variant, variantIndex) =>
-        sku = variant.sku
-        if sku?
-          @sku2index[sku] = productIndex
-          @sku2variantInfo[sku] =
-            index: variantIndex - 1 # we reduce by one because of the masterVariant
-            id: variant.id
-        @customAttributeValue2index[@getCustomAttributeValue variant] = productIndex if @customAttributeNameToMatch?
-
-    #console.warn "id2index", @id2index
-    #console.warn "customAttributeValue2index", @customAttributeValue2index
-    #console.warn "sku2index", @sku2index
-    #console.warn "slug2index", @slug2index
-    #console.warn "sku2variantInfo", @sku2variantInfo
-
-  mapVariantsBasedOnSKUs: (existingProducts, products) ->
-    console.warn "Mapping variants for #{_.size products} product type(s) ..."
-    productsToUpdate = {}
-    _.each products, (entry) =>
-      _.each entry.product.variants, (variant) =>
-        productIndex = @sku2index[variant.sku]
-        if productIndex?
-          existingProduct = productsToUpdate[productIndex]?.product or _.deepClone existingProducts[productIndex]
-          variantInfo = @sku2variantInfo[variant.sku]
-          variant.id = variantInfo.id
-          if variant.id is 1
-            existingProduct.masterVariant = variant
-          else
-            existingProduct.variants[variantInfo.index] = variant
-          productsToUpdate[productIndex] =
-            product: existingProduct
-            header: entry.header
-            rowIndex: entry.rowIndex
-        else
-          console.warn "Ignoring variant as no match by SKU found for: ", variant
-    _.map productsToUpdate
-
-  getCustomAttributeValue: (variant, name) ->
-    variant.attributes or= []
-    attrib = _.find variant.attributes, (attribute) =>
-      attribute.name is (@customAttributeNameToMatch unless name)
-    attrib?.value
-
-  match: (entry) ->
-    product = entry.product
-    # 1. match by id
-    index = @id2index[product.id] if product.id?
-    if not index
-      # 2. match by custom attribute
-      index = @_matchOnCustomAttribute product
-    if not index
-      # 3. match by sku
-      index = @sku2index[product.masterVariant.sku] if product.masterVariant.sku?
-    if not index and (entry.header.has(CONS.HEADER_SLUG) or entry.header.hasLanguageForBaseAttribute(CONS.HEADER_SLUG))
-      # 4. match by slug (if header is present)
-      index = @slug2index[product.slug[GLOBALS.DEFAULT_LANGUAGE]] if product.slug? and product.slug[GLOBALS.DEFAULT_LANGUAGE]?
-
-    return @existingProducts[index] if index > -1
-
-  _matchOnCustomAttribute: (product) ->
-    attribute = undefined
-    if @customAttributeNameToMatch?
-      product.variants or= []
-      variants = [product.masterVariant].concat(product.variants)
-      _.find variants, (variant) =>
-        variant.attributes or= []
-        attribute = _.find variant.attributes, (attrib) =>
-          attrib.name is @customAttributeNameToMatch
-        attribute?
-
-    if attribute?
-      @customAttributeValue2index[attribute.value]
-
-  createOrUpdate: (products, types) ->
+  createOrUpdate: (products, types, matchFn) ->
     Promise.all _.map products, (entry) =>
       @repeater.execute =>
-        existingProduct = @match(entry)
+        existingProduct = matchFn(entry)
         if existingProduct?
-          @update(entry.product, existingProduct, types, entry.header, entry.rowIndex)
+          @update(entry.product, existingProduct, types.id2SameForAllAttributes, entry.header, entry.rowIndex)
         else
           @create(entry.product, entry.rowIndex)
       , (e) ->
@@ -230,15 +232,14 @@ class Import
         else
           Promise.reject e
 
-
   _isBlackListedForUpdate: (attributeName) ->
     if _.isEmpty @blackListedCustomAttributesForUpdate
       false
     else
       _.contains @blackListedCustomAttributesForUpdate, attributeName
 
-  update: (product, existingProduct, types, header, rowIndex) ->
-    allSameValueAttributes = types.id2SameForAllAttributes[product.productType.id]
+  update: (product, existingProduct, id2SameForAllAttributes, header, rowIndex) ->
+    allSameValueAttributes = id2SameForAllAttributes[product.productType.id]
     config = [
       { type: 'base', group: 'white' }
       { type: 'references', group: 'white' }

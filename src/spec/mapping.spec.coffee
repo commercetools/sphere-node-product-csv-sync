@@ -3,10 +3,24 @@ CONS = require '../lib/constants'
 {Header, Mapping, Validator} = require '../lib/main'
 Categories = require '../lib/categories'
 
+# API Types
+Types = require '../lib/types'
+Categories = require '../lib/categories'
+CustomerGroups = require '../lib/customergroups'
+Taxes = require '../lib/taxes'
+Channels = require '../lib/channels'
+
 describe 'Mapping', ->
   beforeEach ->
-    @validator = new Validator()
-    @map = @validator.map
+    options = {
+      types : new Types(),
+      customerGroups : new CustomerGroups(),
+      categories : new Categories(),
+      taxes : new Taxes(),
+      channels : new Channels(),
+    }
+    @validator = new Validator(options)
+    @map = new Mapping(options)
 
   describe '#constructor', ->
     it 'should initialize', ->
@@ -94,7 +108,7 @@ describe 'Mapping', ->
         id: '123'
       @validator.parse csv, (content, count) =>
         @validator.validateOffline content
-        product = @validator.map.mapBaseProduct @validator.rawProducts[0].master, pt
+        product = @map.mapBaseProduct @validator.rawProducts[0].master, pt
 
         expectedProduct =
           id: 'xyz'
@@ -128,7 +142,7 @@ describe 'Mapping', ->
         @categories = new Categories
         @categories.buildMaps cts
         @validator.validateOffline content
-        product = @validator.map.mapBaseProduct @validator.rawProducts[0].master, pt
+        product = @map.mapBaseProduct @validator.rawProducts[0].master, pt
 
         expectedProduct =
           id: 'xyz'
@@ -465,53 +479,53 @@ describe 'Mapping', ->
 
   describe '#mapNumber', ->
     it 'should map integer', ->
-      expect(@validator.map.mapNumber('0')).toBe 0
+      expect(@map.mapNumber('0')).toBe 0
 
     it 'should map negative integer', ->
-      expect(@validator.map.mapNumber('-100')).toBe -100
+      expect(@map.mapNumber('-100')).toBe -100
 
     it 'should map float', ->
-      expect(@validator.map.mapNumber('0.99')).toBe 0.99
+      expect(@map.mapNumber('0.99')).toBe 0.99
 
     it 'should map negative float', ->
-      expect(@validator.map.mapNumber('-13.3333')).toBe -13.3333
+      expect(@map.mapNumber('-13.3333')).toBe -13.3333
 
     it 'should fail when input is not a valid number', ->
-      number = @validator.map.mapNumber '-10e5', 'myAttrib', 4
+      number = @map.mapNumber '-10e5', 'myAttrib', 4
       expect(number).toBeUndefined()
-      expect(@validator.map.errors.length).toBe 1
-      expect(@validator.map.errors[0]).toBe "[row 4:myAttrib] The number '-10e5' isn't valid!"
+      expect(@map.errors.length).toBe 1
+      expect(@map.errors[0]).toBe "[row 4:myAttrib] The number '-10e5' isn't valid!"
 
   describe '#mapInteger', ->
     it 'should map integer', ->
-      expect(@validator.map.mapInteger('11')).toBe 11
+      expect(@map.mapInteger('11')).toBe 11
 
     it 'should not map floats', ->
-      number = @validator.map.mapInteger '-0.1', 'foo', 7
-      expect(@validator.map.errors.length).toBe 1
-      expect(@validator.map.errors[0]).toBe "[row 7:foo] The number '-0.1' isn't valid!"
+      number = @map.mapInteger '-0.1', 'foo', 7
+      expect(@map.errors.length).toBe 1
+      expect(@map.errors[0]).toBe "[row 7:foo] The number '-0.1' isn't valid!"
 
   describe '#mapBoolean', ->
     it 'should map true', ->
-      expect(@validator.map.mapBoolean('true')).toBe true
+      expect(@map.mapBoolean('true')).toBe true
 
     it 'should map case insensitive', ->
-      expect(@validator.map.mapBoolean('false')).toBe false
-      expect(@validator.map.mapBoolean('False')).toBe false
-      expect(@validator.map.mapBoolean('False')).toBe false
+      expect(@map.mapBoolean('false')).toBe false
+      expect(@map.mapBoolean('False')).toBe false
+      expect(@map.mapBoolean('False')).toBe false
 
     it 'should map the empty string', ->
-      expect(@validator.map.mapBoolean('')).toBeUndefined()
+      expect(@map.mapBoolean('')).toBeUndefined()
 
     it 'should map undefined', ->
-      expect(@validator.map.mapBoolean()).toBeUndefined()
+      expect(@map.mapBoolean()).toBeUndefined()
 
   describe '#mapReference', ->
     it 'should map a single reference', ->
       attribute =
         type:
           referenceTypeId: 'product'
-      expect(@validator.map.mapReference('123-456', attribute)).toEqual { id: '123-456', typeId: 'product' }
+      expect(@map.mapReference('123-456', attribute)).toEqual { id: '123-456', typeId: 'product' }
 
   describe '#mapProduct', ->
     it 'should map a product', ->
@@ -527,7 +541,7 @@ describe 'Mapping', ->
         """
       @validator.parse csv, (content, count) =>
         @validator.validateOffline content
-        data = @validator.map.mapProduct @validator.rawProducts[0], productType
+        data = @map.mapProduct @validator.rawProducts[0], productType
 
         expectedProduct =
           productType:

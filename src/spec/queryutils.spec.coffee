@@ -114,7 +114,7 @@ describe "QueryUtils", ->
     it "should return query predicte based on products provided", ->
       GLOBALS.DEFAULT_LANGUAGE = "en"
       predicate = QueryUtils.matchBySlug products
-      expect(predicate).toEqual "slug in (\"1\", \"2\")"
+      expect(predicate).toEqual "slug(en in (\"1\", \"2\"))"
 
   describe "matchBySku", ->
     it "should return query predicte based on products provided", ->
