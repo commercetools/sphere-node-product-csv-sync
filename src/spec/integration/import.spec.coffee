@@ -734,7 +734,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
-        expect(result[0]).toBe '[row 2] Product updated.'
+        expect(result[0]).toBe '[row 3] Product updated.'
         @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
       .then (result) =>
         expect(_.size result.body.results).toBe 1
