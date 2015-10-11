@@ -15,6 +15,23 @@ Feature: Export products
     Finished processing 3 product(s)
     """
 
+  @wip
+  Scenario: Export products with --fileAllRows
+    Given a file named "t.csv" with:
+    """
+    productType,name,sku
+    """
+    When I run `../../bin/product-csv-sync export --projectKey sphere-node-product-csv-sync-94 --template 't.csv' --out 'exported.csv' --fillAllRows`
+    Then the exit status should be 0
+    And the output should contain:
+    """
+    Fetched 3 product(s)
+    """
+    Then a file named "exported.csv" should exist
+    And the file "exported.csv" should match /^productType,name,sku$/
+    And the file "exported.csv" should match /^ImpEx with all types,Product 3,0123$/
+    And the file "exported.csv" should match /^ImpEx with all types,Product 3,2345$/
+
   Scenario: Export products by query
     When I run `../../bin/product-csv-sync export --projectKey sphere-node-product-csv-sync-94 --template '../../data/template_sample.csv' --out '../../data/exported.csv' --queryString 'where=name(en = "Product 1")&staged=true'`
     Then the exit status should be 0

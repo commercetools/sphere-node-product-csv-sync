@@ -271,19 +271,18 @@ module.exports = class
       .option '-l, --language [lang]', 'Language used on export for category names (default is en)', 'en'
       .option '--queryType <type>', 'Whether to do a query or a search request', 'query'
       .option '--queryEncoded', 'Whether the given query string is already encoded or not', false
-      .option '--fillAllRows', 'When given product attributes like name will be added to each variant row.', false
-      .option '--categoryBy', 'Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.'
+      .option '--fillAllRows', 'When given product attributes like name will be added to each variant row.'
+      .option '--categoryBy <name>', 'Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) ->
         GLOBALS.DEFAULT_LANGUAGE = opts.language
 
         return _subCommandHelp('export') unless program.projectKey
-
         ProjectCredentialsConfig.create()
         .then (credentials) ->
           options =
-            fillAllRows: program.fillAllRows
-            categoryBy: program.categoryBy
+            fillAllRows: opts.fillAllRows
+            categoryBy: opts.categoryBy
             client:
               config: credentials.enrichCredentials
                 project_key: program.projectKey
