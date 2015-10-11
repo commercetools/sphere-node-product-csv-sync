@@ -145,7 +145,7 @@ class Import
     )
 
   mapVariantsBasedOnSKUs: (existingProducts, products) ->
-    console.warn "Mapping variants for #{_.size products} product type(s) ..."
+    console.warn "Mapping variants for #{_.size products} product(s) ..."
     # console.warn "existingProducts", _.prettify(existingProducts)
     # console.warn "products", _.prettify(products)
     [sku2index, sku2variantInfo] = existingProducts.reduce((aggr, p, i) ->
@@ -163,7 +163,7 @@ class Import
     productsToUpdate = {}
     _.each products, (entry) =>
       variant = entry.product.masterVariant
-      console.warn "variant", entry
+      console.warn "variant", variant
       productIndex = sku2index[variant.sku]
       console.warn "variant.sku", variant.sku
       console.warn "productIndex", productIndex

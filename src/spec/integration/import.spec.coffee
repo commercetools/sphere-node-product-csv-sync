@@ -440,7 +440,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    xit 'should do a partial update of product base attributes', (done) ->
+    it 'should do a partial update of product base attributes', (done) ->
       csv =
         """
         productType,name.en,description.en,slug.en,variantId
@@ -456,6 +456,7 @@ describe 'Import integration test', ->
           #{@productType.id},#{@newProductSlug},1
           """
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -466,6 +467,7 @@ describe 'Import integration test', ->
           #{@productType.id},#{@newProductSlug},#{@newProductName+'_changed'},1,#{@newProductSku}
           """
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -482,7 +484,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    xit 'should do a partial update of localized attributes', (done) ->
+    it 'should do a partial update of localized attributes', (done) ->
       csv =
         """
         productType,variantId,sku,name,description.en,description.de,description.fr,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.de,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.it
@@ -580,7 +582,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    xit 'partial update should not overwrite name, prices and images', (done) ->
+    it 'partial update should not overwrite name, prices and images', (done) ->
       csv =
         """
         productType,name,slug,variantId,prices,images
@@ -598,6 +600,7 @@ describe 'Import integration test', ->
           ,,2
           """
         im = createImporter()
+        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
@@ -708,7 +711,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    xit 'should do a partial update of prices based on SKUs', (done) ->
+    it 'should do a partial update of prices based on SKUs', (done) ->
       csv =
         """
         productType,name,sku,variantId,prices
