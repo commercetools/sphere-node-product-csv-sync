@@ -209,8 +209,8 @@ class Mapping
       country = matchedPrice[2]
       currencyCode = matchedPrice[3]
       centAmount = matchedPrice[4]
-      customerGroupName = matchedPrice[6]
-      channelKey = matchedPrice[8]
+      customerGroupName = matchedPrice[8]
+      channelKey = matchedPrice[10]
       price =
         value: @mapMoney "#{currencyCode} #{centAmount}", CONS.HEADER_PRICES, rowIndex
       price.country = country if country
