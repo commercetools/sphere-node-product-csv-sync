@@ -66,11 +66,11 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should import a product with prices', (done) ->
+    it 'should import a product with prices (even when one of them is discounted)', (done) ->
       csv =
         """
         productType,name,variantId,slug,prices
-        #{@productType.id},#{@newProductName},1,#{@newProductSlug},EUR 899;CH-EUR 999;CH-USD 77777700 ##{CHANNEL_KEY}
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug},EUR 899;CH-EUR 999;DE-EUR 999|799;CH-USD 77777700 ##{CHANNEL_KEY}
         """
 
       @importer.import(csv)
@@ -81,13 +81,15 @@ describe 'Import integration test', ->
       .then (result) ->
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
-        expect(_.size p.masterVariant.prices).toBe 3
+        expect(_.size p.masterVariant.prices).toBe 4
         prices = p.masterVariant.prices
         expect(prices[0].value).toEqual { currencyCode: 'EUR', centAmount: 899 }
         expect(prices[1].value).toEqual { currencyCode: 'EUR', centAmount: 999 }
         expect(prices[1].country).toBe 'CH'
-        expect(prices[2].channel.typeId).toBe 'channel'
-        expect(prices[2].channel.id).toBeDefined()
+        expect(prices[2].country).toBe 'DE'
+        expect(prices[2].value).toEqual { currencyCode: 'EUR', centAmount: 999 }
+        expect(prices[3].channel.typeId).toBe 'channel'
+        expect(prices[3].channel.id).toBeDefined()
         done()
       .catch (err) -> done _.prettify(err)
 
