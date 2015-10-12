@@ -96,21 +96,13 @@ class Import
 
   processProducts: (products) ->
     filterInput = QueryUtils.mapMatchFunction(@matchBy)(products)
-    console.warn "filterInput", filterInput
     @client.productProjections.staged().where(filterInput).fetch()
     .then (payload) =>
       existingProducts = payload.body.results
-      console.warn "existingProducts", existingProducts
       console.warn "Comparing against #{payload.body.count} existing product(s) ..."
       matchFn = MatchUtils.initMatcher @matchBy, existingProducts
-      productsToUpdate =
-      if @validator.updateVariantsOnly
-        # TODO: reactive this - currently broken!
-        @mapVariantsBasedOnSKUs existingProducts, products
-      else
-        products
-      console.warn "Processing #{_.size productsToUpdate} product(s) ..."
-      @createOrUpdate(productsToUpdate, @validator.types, matchFn)
+      console.warn "Processing #{_.size products} product(s) ..."
+      @createOrUpdate(products, @validator.types, matchFn)
     .then (result) ->
       # TODO: resolve with a summary of the import
       console.warn "Finished processing #{_.size result} product(s)"
@@ -124,12 +116,11 @@ class Import
       console.warn "Comparing against #{payload.body.count} existing product(s) ..."
       matchFn = MatchUtils.initMatcher("sku", existingProducts)
       productsToUpdate = @mapVariantsBasedOnSKUs(existingProducts, products)
-      console.warn "productsToUpdate", _.prettify(productsToUpdate)
       Promise.all(_.map(productsToUpdate, (entry) =>
         @repeater.execute( =>
           existingProduct = matchFn(entry)
           if existingProduct?
-            @update(entry.product, existingProduct, [], entry.header, entry.rowIndex)
+            @update(entry.product, existingProduct, @validator.types.id2SameForAllAttributes, entry.header, entry.rowIndex)
           else
             console.warn("Ignoring not matched product")
         , (e) ->
