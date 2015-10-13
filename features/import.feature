@@ -143,28 +143,34 @@ Feature: Import products
 
       Given a file named "i.csv" with:
       """
-      productType,slug.en,variantId,name,sku,attr-text-n
-      ImpEx with all types,slug_1,1,myProduct,1,key_1
-      ImpEx with all types,slug_2,1,myProduct,2,key_1
-      ImpEx with all types,slug_3,1,myProduct,3,key_1
-      ImpEx with all types,slug_4,1,myProduct,4,key_1
-      ImpEx with all types,slug_5,1,myProduct,5,key_1
-      ImpEx with all types,slug_6,1,myProduct,6,key_1
-      ImpEx with all types,slug_7,1,myProduct,7,key_1
-      ImpEx with all types,slug_8,1,myProduct,8,key_1
-      ImpEx with all types,slug_9,1,myProduct,9,key_1
-      ImpEx with all types,slug_10,1,myProduct,10,key_1
-      ImpEx with all types,slug_11,1,myProduct,11,key_1
-      ImpEx with all types,slug_12,1,myProduct,12,key_1
-      ImpEx with all types,slug_13,1,myProduct,13,key_1
-      ImpEx with all types,slug_14,1,myProduct,14,key_1
-      ImpEx with all types,slug_15,1,myProduct,15,key_1
-      ImpEx with all types,slug_16,1,myProduct,16,key_1
-      ImpEx with all types,slug_17,1,myProduct,17,key_1
-      ImpEx with all types,slug_18,1,myProduct,18,key_1
-      ImpEx with all types,slug_19,1,myProduct,19,key_1
-      ImpEx with all types,slug_20,1,myProduct,20,key_1
-      ImpEx with all types,slug_21,1,myProduct,21,key_1
+      productType,slug.en,name,variantId,sku,attr-text-n
+      ImpEx with all types,slug_1,myProduct,1,1,key_1
+      ,,,2,1_1,key_1_1
+      ,,,2,1_2,key_1_2
+      ImpEx with all types,slug_2,myProduct,1,2,key_1
+      ,,,2,2_1,key_2_1
+      ,,,2,2_2,key_2_2
+      ImpEx with all types,slug_3,myProduct,1,3,key_1
+      ImpEx with all types,slug_4,myProduct,1,4,key_1
+      ImpEx with all types,slug_5,myProduct,1,5,key_1
+      ImpEx with all types,slug_6,myProduct,1,6,key_1
+      ImpEx with all types,slug_7,myProduct,1,7,key_1
+      ImpEx with all types,slug_8,myProduct,1,8,key_1
+      ImpEx with all types,slug_9,myProduct,1,9,key_1
+      ImpEx with all types,slug_10,myProduct,1,10,key_1
+      ImpEx with all types,slug_11,myProduct,1,11,key_1
+      ImpEx with all types,slug_12,myProduct,1,12,key_1
+      ImpEx with all types,slug_13,myProduct,1,13,key_1
+      ImpEx with all types,slug_14,myProduct,1,14,key_1
+      ImpEx with all types,slug_15,myProduct,1,15,key_1
+      ImpEx with all types,slug_16,myProduct,1,16,key_1
+      ImpEx with all types,slug_17,myProduct,1,17,key_1
+      ImpEx with all types,slug_18,myProduct,1,18,key_1
+      ImpEx with all types,slug_19,myProduct,1,19,key_1
+      ImpEx with all types,slug_20,myProduct,1,20,key_1
+      ImpEx with all types,slug_21,myProduct,1,21,key_1
+      ,,,2,21_1,key_21_1
+      ,,,2,21_2,key_21_2
       """
       When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv i.csv --matchBy slug`
       Then the exit status should be 0
