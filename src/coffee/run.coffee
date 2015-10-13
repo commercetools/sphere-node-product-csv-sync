@@ -91,7 +91,9 @@ module.exports = class
       .option '-s, --clientSecret <secret>', 'your OAuth client secret for the SPHERE.IO API'
       .option '--accessToken <token>', 'an OAuth access token for the SPHERE.IO API, used instead of clientId and clientSecret'
       .option '--sphereHost <host>', 'SPHERE.IO API host to connect to'
+      .option '--sphereProtocol <protocol>', 'SPHERE.IO API protocol to connect to'
       .option '--sphereAuthHost <host>', 'SPHERE.IO OAuth host to connect to'
+      .option '--sphereAuthProtocol <protocol>', 'SPHERE.IO OAuth protocol to connect to'
       .option '--timeout [millis]', 'Set timeout for requests (default is 300000)', parseInt, 300000
       .option '--verbose', 'give more feedback during action'
       .option '--debug', 'give as many feedback as possible'
@@ -133,9 +135,11 @@ module.exports = class
             csvDelimiter: opts.csvDelimiter
 
           options.host = program.sphereHost if program.sphereHost
+          options.protocol = program.sphereProtocol if program.sphereProtocol
           if program.sphereAuthHost
             options.oauth_host = program.sphereAuthHost
             options.rejectUnauthorized = false
+          options.oauth_protocol = program.sphereAuthProtocol if program.sphereAuthProtocol
 
           options.continueOnProblems = opts.continueOnProblems or false
 

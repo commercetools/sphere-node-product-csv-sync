@@ -62,16 +62,18 @@ General command line options can be seen by simply executing the command `node l
 
   Options:
 
-    -h, --help                   output usage information
-    -V, --version                output the version number
-    -p, --projectKey <key>       your SPHERE.IO project-key
-    -i, --clientId <id>          your OAuth client id for the SPHERE.IO API
-    -s, --clientSecret <secret>  your OAuth client secret for the SPHERE.IO API
-    --sphereHost <host>          SPHERE.IO API host to connect to
-    --sphereAuthHost <host>      SPHERE.IO OAuth host to connect to
-    --timeout [millis]           Set timeout for requests (default is 300000)
-    --verbose                    give more feedback during action
-    --debug                      give as many feedback as possible
+    -h, --help                       output usage information
+    -V, --version                    output the version number
+    -p, --projectKey <key>           your SPHERE.IO project-key
+    -i, --clientId <id>              your OAuth client id for the SPHERE.IO API
+    -s, --clientSecret <secret>      your OAuth client secret for the SPHERE.IO API
+    --sphereHost <host>              SPHERE.IO API host to connect to
+    --sphereProtocol <protocol>      SPHERE.IO API protocol to connect to
+    --sphereAuthHost <host>          SPHERE.IO OAuth host to connect to
+    --sphereAuthProtocol <protocol   SPHERE.IO OAuth protocol to connect to
+    --timeout [millis]               Set timeout for requests (default is 300000)
+    --verbose                        give more feedback during action
+    --debug                          give as many feedback as possible
 ```
 
 For all sub command specific options please call `./bin/product-csv-sync <sub command> --help`.
