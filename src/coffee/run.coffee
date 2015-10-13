@@ -62,6 +62,21 @@ module.exports = class
         f = (product) -> true
         resolve f
 
+  @_ensureCredentials: (argv) ->
+    if argv.accessToken
+      Promise.resolve
+        config:
+          project_key: argv.projectKey
+        access_token: argv.accessToken
+    else
+      ProjectCredentialsConfig.create()
+      .then (credentials) ->
+        Promise.resolve
+          config: credentials.enrichCredentials
+            project_key: argv.projectKey
+            client_id: argv.clientId
+            client_secret: argv.clientSecret
+
   @run: (argv) ->
 
     _subCommandHelp = (cmd) ->
@@ -74,6 +89,7 @@ module.exports = class
       .option '-p, --projectKey <key>', 'your SPHERE.IO project-key'
       .option '-i, --clientId <id>', 'your OAuth client id for the SPHERE.IO API'
       .option '-s, --clientSecret <secret>', 'your OAuth client secret for the SPHERE.IO API'
+      .option '--accessToken <token>', 'an OAuth access token for the SPHERE.IO API, used instead of clientId and clientSecret'
       .option '--sphereHost <host>', 'SPHERE.IO API host to connect to'
       .option '--sphereAuthHost <host>', 'SPHERE.IO OAuth host to connect to'
       .option '--timeout [millis]', 'Set timeout for requests (default is 300000)', parseInt, 300000
@@ -98,19 +114,15 @@ module.exports = class
       .option '--dryRun', 'Will list all action that would be triggered, but will not POST them to SPHERE.IO'
       .option '-m, --matchBy [value]', 'Product attribute name which will be used to match products. Possible values: id, slug, sku, <custom_attribute_name>. Default: id. Localized attribute types are not supported for <custom_attribute_name> option', 'id'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>'
-      .action (opts) ->
+      .action (opts) =>
         GLOBALS.DEFAULT_LANGUAGE = opts.language
         GLOBALS.DELIM_MULTI_VALUE = opts.multiValueDelimiter ? GLOBALS.DELIM_MULTI_VALUE
 
         return _subCommandHelp('import') unless program.projectKey
 
-        ProjectCredentialsConfig.create()
+        @_ensureCredentials(program)
         .then (credentials) ->
-          options =
-            config: credentials.enrichCredentials
-              project_key: program.projectKey
-              client_id: program.clientId
-              client_secret: program.clientSecret
+          options = _.extend credentials,
             timeout: program.timeout
             show_progress: true
             user_agent: "#{package_json.name} - Import - #{package_json.version}"
@@ -181,13 +193,9 @@ module.exports = class
 
         return _subCommandHelp('state') unless program.projectKey
 
-        ProjectCredentialsConfig.create()
+        @_ensureCredentials(program)
         .then (credentials) =>
-          options =
-            config: credentials.enrichCredentials
-              project_key: program.projectKey
-              client_id: program.clientId
-              client_secret: program.clientSecret
+          options = _.extend credentials,
             timeout: program.timeout
             show_progress: true
             user_agent: "#{package_json.name} - State - #{package_json.version}"
@@ -274,20 +282,17 @@ module.exports = class
       .option '--fillAllRows', 'When given product attributes like name will be added to each variant row.'
       .option '--categoryBy <name>', 'Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
-      .action (opts) ->
+      .action (opts) =>
         GLOBALS.DEFAULT_LANGUAGE = opts.language
 
         return _subCommandHelp('export') unless program.projectKey
-        ProjectCredentialsConfig.create()
+
+        @_ensureCredentials(program)
         .then (credentials) ->
           options =
             fillAllRows: opts.fillAllRows
             categoryBy: opts.categoryBy
-            client:
-              config: credentials.enrichCredentials
-                project_key: program.projectKey
-                client_id: program.clientId
-                client_secret: program.clientSecret
+            client: _.extend credentials,
               timeout: program.timeout
               user_agent: "#{package_json.name} - Export - #{package_json.version}"
             export:
@@ -343,18 +348,14 @@ module.exports = class
       .option '-l, --languages [lang,lang]', 'List of languages to use for template (default is [en])', @_list, ['en']
       .option '--all', 'Generates one template for all product types - if not given you will be ask which product type to use'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --out <file>'
-      .action (opts) ->
+      .action (opts) =>
 
         return _subCommandHelp('template') unless program.projectKey
 
-        ProjectCredentialsConfig.create()
+        @_ensureCredentials(program)
         .then (credentials) ->
           options =
-            client:
-              config: credentials.enrichCredentials
-                project_key: program.projectKey
-                client_id: program.clientId
-                client_secret: program.clientSecret
+            client: credentials
             timeout: program.timeout
             show_progress: true
             user_agent: "#{package_json.name} - Template - #{package_json.version}"
