@@ -70,7 +70,7 @@ General command line options can be seen by simply executing the command `node l
     --sphereHost <host>              SPHERE.IO API host to connect to
     --sphereProtocol <protocol>      SPHERE.IO API protocol to connect to
     --sphereAuthHost <host>          SPHERE.IO OAuth host to connect to
-    --sphereAuthProtocol <protocol   SPHERE.IO OAuth protocol to connect to
+    --sphereAuthProtocol <protocol>  SPHERE.IO OAuth protocol to connect to
     --timeout [millis]               Set timeout for requests (default is 300000)
     --verbose                        give more feedback during action
     --debug                          give as many feedback as possible
