@@ -159,7 +159,7 @@ Feature: Import products
       ImpEx with all types,slug_13,1,myProduct,13,key_1
       ImpEx with all types,slug_14,1,myProduct,14,key_1
       ImpEx with all types,slug_15,1,myProduct,15,key_1
-      ImpEx with all types,slug_15,1,myProduct,16,key_1
+      ImpEx with all types,slug_16,1,myProduct,16,key_1
       ImpEx with all types,slug_17,1,myProduct,17,key_1
       ImpEx with all types,slug_18,1,myProduct,18,key_1
       ImpEx with all types,slug_19,1,myProduct,19,key_1
@@ -170,26 +170,27 @@ Feature: Import products
       Then the exit status should be 0
       And the output should contain:
       """
-      [ '[row 2] New product created.' ]
-      [ '[row 3] New product created.' ]
-      [ '[row 4] New product created.' ]
-      [ '[row 5] New product created.' ]
-      [ '[row 6] New product created.' ]
-      [ '[row 7] New product created.' ]
-      [ '[row 8] New product created.' ]
-      [ '[row 9] New product created.' ]
-      [ '[row 10] New product created.' ]
-      [ '[row 11] New product created.' ]
-      [ '[row 12] New product created.' ]
-      [ '[row 13] New product created.' ]
-      [ '[row 14] New product created.' ]
-      [ '[row 15] New product created.' ]
-      [ '[row 16] New product created.' ]
-      [ '[row 17] New product created.' ]
-      [ '[row 18] New product created.' ]
-      [ '[row 19] New product created.' ]
-      [ '[row 20] New product created.' ]
-      [ '[row 21] New product created.' ]
+      [ '[row 2] New product created.',
+        '[row 3] New product created.',
+        '[row 4] New product created.',
+        '[row 5] New product created.',
+        '[row 6] New product created.',
+        '[row 7] New product created.',
+        '[row 8] New product created.',
+        '[row 9] New product created.',
+        '[row 10] New product created.',
+        '[row 11] New product created.',
+        '[row 12] New product created.',
+        '[row 13] New product created.',
+        '[row 14] New product created.',
+        '[row 15] New product created.',
+        '[row 16] New product created.',
+        '[row 17] New product created.',
+        '[row 18] New product created.',
+        '[row 19] New product created.',
+        '[row 20] New product created.',
+        '[row 21] New product created.',
+        '[row 22] New product created.' ]
       """
 
       When I run `../../bin/product-csv-sync state --projectKey sphere-node-product-csv-sync-94 --changeTo delete` interactively
