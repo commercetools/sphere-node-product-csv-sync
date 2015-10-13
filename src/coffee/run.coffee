@@ -193,13 +193,9 @@ module.exports = class
 
         return _subCommandHelp('state') unless program.projectKey
 
-        ProjectCredentialsConfig.create()
+        @_ensureCredentials(program)
         .then (credentials) =>
-          options =
-            config: credentials.enrichCredentials
-              project_key: program.projectKey
-              client_id: program.clientId
-              client_secret: program.clientSecret
+          options = _.extend credentials,
             timeout: program.timeout
             show_progress: true
             user_agent: "#{package_json.name} - State - #{package_json.version}"
@@ -286,20 +282,17 @@ module.exports = class
       .option '--fillAllRows', 'When given product attributes like name will be added to each variant row.'
       .option '--categoryBy <name>', 'Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
-      .action (opts) ->
+      .action (opts) =>
         GLOBALS.DEFAULT_LANGUAGE = opts.language
 
         return _subCommandHelp('export') unless program.projectKey
-        ProjectCredentialsConfig.create()
+
+        @_ensureCredentials(program)
         .then (credentials) ->
           options =
             fillAllRows: opts.fillAllRows
             categoryBy: opts.categoryBy
-            client:
-              config: credentials.enrichCredentials
-                project_key: program.projectKey
-                client_id: program.clientId
-                client_secret: program.clientSecret
+            client: _.extend credentials,
               timeout: program.timeout
               user_agent: "#{package_json.name} - Export - #{package_json.version}"
             export:
@@ -355,18 +348,14 @@ module.exports = class
       .option '-l, --languages [lang,lang]', 'List of languages to use for template (default is [en])', @_list, ['en']
       .option '--all', 'Generates one template for all product types - if not given you will be ask which product type to use'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --out <file>'
-      .action (opts) ->
+      .action (opts) =>
 
         return _subCommandHelp('template') unless program.projectKey
 
-        ProjectCredentialsConfig.create()
+        @_ensureCredentials(program)
         .then (credentials) ->
           options =
-            client:
-              config: credentials.enrichCredentials
-                project_key: program.projectKey
-                client_id: program.clientId
-                client_secret: program.clientSecret
+            client: credentials
             timeout: program.timeout
             show_progress: true
             user_agent: "#{package_json.name} - Template - #{package_json.version}"
