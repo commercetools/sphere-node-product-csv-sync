@@ -177,11 +177,7 @@ Feature: Import products
       And the output should contain:
       """
       [ '[row 2] New product created.',
-        '[row 3] New product created.',
-        '[row 4] New product created.',
         '[row 5] New product created.',
-        '[row 6] New product created.',
-        '[row 7] New product created.',
         '[row 8] New product created.',
         '[row 9] New product created.',
         '[row 10] New product created.',
@@ -196,7 +192,11 @@ Feature: Import products
         '[row 19] New product created.',
         '[row 20] New product created.',
         '[row 21] New product created.',
-        '[row 22] New product created.' ]
+        '[row 22] New product created.',
+        '[row 23] New product created.',
+        '[row 24] New product created.',
+        '[row 25] New product created.',
+        '[row 26] New product created.' ]
       """
 
       When I run `../../bin/product-csv-sync state --projectKey sphere-node-product-csv-sync-94 --changeTo delete` interactively
