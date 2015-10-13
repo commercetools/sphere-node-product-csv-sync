@@ -209,11 +209,11 @@ module.exports = class
             #   ]
 
           options.host = program.sphereHost if program.sphereHost
+          options.protocol = program.sphereProtocol if program.sphereProtocol
           if program.sphereAuthHost
             options.oauth_host = program.sphereAuthHost
             options.rejectUnauthorized = false
-
-          options.host = program.sphereHost if program.sphereHost
+          options.oauth_protocol = program.sphereAuthProtocol if program.sphereAuthProtocol
 
           # if program.verbose
           #   options.logConfig.streams = [
@@ -305,9 +305,11 @@ module.exports = class
               queryType: opts.queryType
               isQueryEncoded: opts.queryEncoded or false
           options.client.host = program.sphereHost if program.sphereHost
+          options.client.protocol = program.sphereProtocol if program.sphereProtocol
           if program.sphereAuthHost
             options.client.oauth_host = program.sphereAuthHost
             options.client.rejectUnauthorized = false
+          options.client.oauth_protocol = program.sphereAuthProtocol if program.sphereAuthProtocol
 
           exporter = new Exporter options
           if 'json' in opts
@@ -369,9 +371,11 @@ module.exports = class
             #   ]
 
           options.client.host = program.sphereHost if program.sphereHost
+          options.client.protocol = program.sphereProtocol if program.sphereProtocol
           if program.sphereAuthHost
             options.client.oauth_host = program.sphereAuthHost
             options.client.rejectUnauthorized = false
+          options.client.oauth_protocol = program.sphereAuthProtocol if program.sphereAuthProtocol
 
 
           # if program.verbose
