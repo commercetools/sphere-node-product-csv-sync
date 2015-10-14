@@ -74,9 +74,9 @@ class ExportMapping
     if @header.has(CONS.HEADER_CATEGORIES)
       row[@header.toIndex CONS.HEADER_CATEGORIES] = _.reduce(product.categories or [], (memo, category, index) =>
         memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
-        memo + if @categoryBy = CONS.HEADER_SLUG
+        memo + if @categoryBy is CONS.HEADER_SLUG
           @categoryService.id2slug[category.id]
-        else if @categoryBy = CONS.HEADER_EXTERNAL_ID
+        else if @categoryBy is CONS.HEADER_EXTERNAL_ID
           @categoryService.id2slug[category.id]
         else
           @categoryService.id2fqName[category.id]
