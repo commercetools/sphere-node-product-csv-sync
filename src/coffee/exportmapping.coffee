@@ -91,7 +91,13 @@ class ExportMapping
     for attribName, h2i of @header.toLanguageIndex()
       for lang, index of h2i
         if product[attribName]
-          row[index] = product[attribName][lang]
+          if attribName is CONS.HEADER_SEARCH_KEYWORDS
+            row[index] = _.reduce(product[attribName][lang], (memo, val, index) ->
+              memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
+              memo + val.text
+            , '')
+          else
+            row[index] = product[attribName][lang]
 
     row
 
@@ -162,6 +168,16 @@ class ExportMapping
           row[index] = attribute.value[lang]
 
     row
+
+  _mapSearchKeywords: (attribute, productType, row) ->
+    h2i = @header.productTypeAttributeToIndex productType, attribute
+    if h2i
+      for lang, index of h2i
+        if attribute.value
+          _.reduce(attribute.value, (memo, val, index) ->
+            memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
+            memo + val.text
+          , '')
 
   _mapSetAttribute: (attribute, attributeTypeDef) ->
     switch attributeTypeDef.elementType.name
