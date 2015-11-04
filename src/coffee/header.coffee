@@ -79,13 +79,16 @@ class Header
     langH2i
 
   # Stores the map between the id of product types and the language header index
+  # Lenum and Set of Lenum are now first class localised citizens
   _productTypeLanguageIndexes: (productType) ->
     @productTypeId2HeaderIndex or= {}
     langH2i = @productTypeId2HeaderIndex[productType.id]
     unless langH2i
       ptLanguageAttributes = _.map productType.attributes, (attribute) ->
         if (attribute.type.name is CONS.ATTRIBUTE_TYPE_LTEXT) or
-        (attribute.type.name is CONS.ATTRIBUTE_TYPE_SET and attribute.type.elementType?.name is CONS.ATTRIBUTE_TYPE_LTEXT) or (attribute.type.name is CONS.ATTRIBUTE_TYPE_LENUM)
+        (attribute.type.name is CONS.ATTRIBUTE_TYPE_SET and attribute.type.elementType?.name is CONS.ATTRIBUTE_TYPE_LTEXT) or
+        (attribute.type.name is CONS.ATTRIBUTE_TYPE_LENUM) or
+        (attribute.type.name is CONS.ATTRIBUTE_TYPE_SET and attribute.type.elementType?.name is CONS.ATTRIBUTE_TYPE_LENUM)
           attribute.name
       langH2i = @_languageToIndex ptLanguageAttributes
       console.log("got ptLanguageAttributes " + ptLanguageAttributes)

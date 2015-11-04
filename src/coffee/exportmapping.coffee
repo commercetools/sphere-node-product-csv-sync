@@ -119,7 +119,10 @@ class ExportMapping
         attributeTypeDef = @typesService.id2nameAttributeDefMap[productType.id][attribute.name].type
         if attributeTypeDef.name is CONS.ATTRIBUTE_TYPE_LTEXT
           row = @_mapLocalizedAttribute attribute, productType, row
-        else if attributeTypeDef.name is CONS.ATTRIBUTE_TYPE_LENUM
+        else if attributeTypeDef.name is CONS.ATTRIBUTE_TYPE_SET and attributeTypeDef.elementType?.name is CONS.ATTRIBUTE_TYPE_LENUM
+          # we need special treatment for set of lenums
+          row = @_mapSetOfLenum(attribute, productType, row)
+        else if attributeTypeDef.name is CONS.ATTRIBUTE_TYPE_LENUM  # we need special treatnemt for lenums
           row = @_mapLenum(attribute, productType, row)
         else if @header.has attribute.name
           row[@header.toIndex attribute.name] = @_mapAttribute(attribute, attributeTypeDef)
@@ -172,6 +175,7 @@ class ExportMapping
 
   _mapLenum: (attribute, productType, row) ->
     noneLangIndex = @header.toIndex(attribute.name)
+    # if my attribute has no language index, I want the key only
     if noneLangIndex
       row[noneLangIndex] = attribute.value.key
     h2i = @header.productTypeAttributeToIndex productType, attribute
@@ -184,9 +188,30 @@ class ExportMapping
       row[index] = attribute.value.key
     row
 
+  _mapSetOfLenum: (attribute, productType, row) ->
+    # if my attribute has no language index, I want the keys only
+    noneLangIndex = @header.toIndex(attribute.name)
+    if noneLangIndex
+      row[noneLangIndex] = _.reduce(attribute.value, (memo, val, index) ->
+        memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
+        memo + val.key
+      , '')
+    h2i = @header.productTypeAttributeToIndex productType, attribute
+    console.log("got lenum with h2i " + JSON.stringify(h2i))
+    if h2i
+      for lang, index of h2i
+        if attribute.value
+          row[index] = _.reduce(attribute.value, (memo, val, index) ->
+            memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
+            memo + val.label[lang]
+          , '')
+    else
+      row[index] = attribute.value.key
+    row
+
   _mapSetAttribute: (attribute, attributeTypeDef) ->
     switch attributeTypeDef.elementType.name
-      when CONS.ATTRIBUTE_TYPE_ENUM, CONS.ATTRIBUTE_TYPE_LENUM
+      when CONS.ATTRIBUTE_TYPE_ENUM
         _.reduce(attribute.value, (memo, val, index) ->
           memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
           memo + val.key
