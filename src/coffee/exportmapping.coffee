@@ -119,6 +119,8 @@ class ExportMapping
         attributeTypeDef = @typesService.id2nameAttributeDefMap[productType.id][attribute.name].type
         if attributeTypeDef.name is CONS.ATTRIBUTE_TYPE_LTEXT
           row = @_mapLocalizedAttribute attribute, productType, row
+        else if attributeTypeDef.name is CONS.ATTRIBUTE_TYPE_LENUM
+          row = @_mapLenum(attribute, productType, row)
         else if @header.has attribute.name
           row[@header.toIndex attribute.name] = @_mapAttribute(attribute, attributeTypeDef)
 
@@ -154,7 +156,7 @@ class ExportMapping
   _mapAttribute: (attribute, attributeTypeDef) ->
     switch attributeTypeDef.name
       when CONS.ATTRIBUTE_TYPE_SET then @_mapSetAttribute(attribute, attributeTypeDef)
-      when CONS.ATTRIBUTE_TYPE_ENUM, CONS.ATTRIBUTE_TYPE_LENUM then attribute.value.key
+      when CONS.ATTRIBUTE_TYPE_ENUM then attribute.value.key
       when CONS.ATTRIBUTE_TYPE_MONEY then @_mapMoney attribute.value
       when CONS.ATTRIBUTE_TYPE_REFERENCE then attribute.value?.id
       when CONS.ATTRIBUTE_TYPE_BOOLEAN then attribute.value.toString()
@@ -166,18 +168,21 @@ class ExportMapping
       for lang, index of h2i
         if attribute.value
           row[index] = attribute.value[lang]
-
     row
 
-  _mapSearchKeywords: (attribute, productType, row) ->
+  _mapLenum: (attribute, productType, row) ->
+    noneLangIndex = @header.toIndex(attribute.name)
+    if noneLangIndex
+      row[noneLangIndex] = attribute.value.key
     h2i = @header.productTypeAttributeToIndex productType, attribute
+    console.log("got lenum with h2i " + JSON.stringify(h2i))
     if h2i
       for lang, index of h2i
         if attribute.value
-          _.reduce(attribute.value, (memo, val, index) ->
-            memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
-            memo + val.text
-          , '')
+          row[index] = attribute.value.label[lang]
+    else
+      row[index] = attribute.value.key
+    row
 
   _mapSetAttribute: (attribute, attributeTypeDef) ->
     switch attributeTypeDef.elementType.name

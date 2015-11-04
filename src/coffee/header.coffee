@@ -85,9 +85,10 @@ class Header
     unless langH2i
       ptLanguageAttributes = _.map productType.attributes, (attribute) ->
         if (attribute.type.name is CONS.ATTRIBUTE_TYPE_LTEXT) or
-        (attribute.type.name is CONS.ATTRIBUTE_TYPE_SET and attribute.type.elementType?.name is CONS.ATTRIBUTE_TYPE_LTEXT)
+        (attribute.type.name is CONS.ATTRIBUTE_TYPE_SET and attribute.type.elementType?.name is CONS.ATTRIBUTE_TYPE_LTEXT) or (attribute.type.name is CONS.ATTRIBUTE_TYPE_LENUM)
           attribute.name
       langH2i = @_languageToIndex ptLanguageAttributes
+      console.log("got ptLanguageAttributes " + ptLanguageAttributes)
       @productTypeId2HeaderIndex[productType.id] = langH2i
     langH2i
 
