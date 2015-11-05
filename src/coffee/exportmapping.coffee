@@ -179,7 +179,6 @@ class ExportMapping
     if noneLangIndex
       row[noneLangIndex] = attribute.value.key
     h2i = @header.productTypeAttributeToIndex productType, attribute
-    console.log("got lenum with h2i " + JSON.stringify(h2i))
     if h2i
       for lang, index of h2i
         if attribute.value
@@ -197,7 +196,6 @@ class ExportMapping
         memo + val.key
       , '')
     h2i = @header.productTypeAttributeToIndex productType, attribute
-    console.log("got lenum with h2i " + JSON.stringify(h2i))
     if h2i
       for lang, index of h2i
         if attribute.value

@@ -91,7 +91,6 @@ class Header
         (attribute.type.name is CONS.ATTRIBUTE_TYPE_SET and attribute.type.elementType?.name is CONS.ATTRIBUTE_TYPE_LENUM)
           attribute.name
       langH2i = @_languageToIndex ptLanguageAttributes
-      console.log("got ptLanguageAttributes " + ptLanguageAttributes)
       @productTypeId2HeaderIndex[productType.id] = langH2i
     langH2i
 

@@ -90,8 +90,10 @@ describe 'ExportMapping', ->
         attributes: [
           { name: 'myTextAttrib', type: { name: 'text' } }
           { name: 'myEnumAttrib', type: { name: 'enum' } }
+          { name: 'myLenumAttrib', type: { name: 'lenum' } }
           { name: 'myTextSetAttrib', type: { name: 'set', elementType: { name: 'text' } } }
-          { name: 'myEnumSetAttrib', type: { name: 'set', elementType: { name: 'lenum' } } }
+          { name: 'myEnumSetAttrib', type: { name: 'set', elementType: { name: 'enum' } } }
+          { name: 'myLenumSetAttrib', type: { name: 'set', elementType: { name: 'lenum' } } }
         ]
       @exportMapping.typesService.buildMaps [@productType]
 
@@ -114,11 +116,11 @@ describe 'ExportMapping', ->
       attribute =
         name: 'myTextSetAttrib'
         value: [ 'x', 'y', 'z' ]
-      expect(@exportMapping._mapAttribute attribute, @productType.attributes[2].type).toBe 'x;y;z'
+      expect(@exportMapping._mapAttribute attribute, @productType.attributes[3].type).toBe 'x;y;z'
 
     it 'should map enum set attribute', ->
       attribute =
-        name: 'foo'
+        name: 'myEnumSetAttrib'
         value: [
           { label:
               en: 'bla'
@@ -127,7 +129,7 @@ describe 'ExportMapping', ->
               en: 'foo'
             key: 'myEnum2' }
         ]
-      expect(@exportMapping._mapAttribute attribute, @productType.attributes[3].type).toBe 'myEnum;myEnum2'
+      expect(@exportMapping._mapAttribute attribute, @productType.attributes[4].type).toBe 'myEnum;myEnum2'
 
   describe '#mapVariant', ->
     it 'should map variant id and sku', ->
@@ -218,7 +220,7 @@ describe 'ExportMapping', ->
 
 
     it 'should map localized base attributes', ->
-      @exportMapping.header = new Header(['name.de','slug.it','description.en'])
+      @exportMapping.header = new Header(['name.de','slug.it','description.en','searchKeywords.de'])
       @exportMapping.header.toIndex()
       product =
         id: '123'
@@ -236,9 +238,112 @@ describe 'ExportMapping', ->
           de: 'Bla bla'
           en: 'Foo bar'
           it: 'Ciao Bella'
-
+        searchKeywords:
+          de:
+            [
+              (text: "test")
+              (text: "sample")
+            ]
+          en:
+            [
+              (text: "drops")
+              (text: "kocher")
+            ]
+          it:
+            [
+              (text: "bla")
+              (text: "foo")
+              (text: "bar")
+            ]
       row = @exportMapping._mapBaseProduct(product, {})
-      expect(row).toEqual [ 'Hallo', 'ciao', 'Foo bar' ]
+      expect(row).toEqual [ 'Hallo', 'ciao', 'Foo bar','test;sample']
+
+  describe '#mapLenumAndSetOfLenum', ->
+    beforeEach ->
+      @exportMapping.typesService = new Types()
+      @productType =
+        id: '123'
+        attributes: [
+          { name: 'myLenumAttrib', type: { name: 'lenum' } }
+          { name: 'myLenumSetAttrib', type: { name: 'set', elementType: { name: 'lenum' } } }
+        ]
+      @exportMapping.typesService.buildMaps [@productType]
+    it 'should map key of lenum and set of lenum if no language is given', ->
+      @exportMapping.header = new Header(['myLenumAttrib.en','myLenumAttrib','myLenumSetAttrib.fr-BE','myLenumSetAttrib'])
+      @exportMapping.header.toIndex()
+      variant =
+        attributes: [
+          {
+            name: 'myLenumAttrib'
+            value:
+              key: 'myEnum'
+              label:
+                en: 'bla'
+                de: 'blub'
+          },
+          {
+            name: 'myLenumSetAttrib'
+            value: [
+              {
+                key: 'drops',
+                label: {
+                  "fr-BE": 'le drops',
+                  de: 'der drops',
+                  en: 'the drops'
+                }
+              },
+              {
+                "key": "honk",
+                "label": {
+                  "en": "the honk",
+                  "fr-BE": "le honk",
+                  "de-DE": "der honk"
+                }
+              }
+            ]
+          }
+        ]
+      row = @exportMapping._mapVariant(variant, @productType)
+      expect(row).toEqual [ 'bla','myEnum','le drops;le honk','drops;honk']
+
+    it 'should map the labels of lenum and set of lenum if language is given', ->
+      @exportMapping.header = new Header(['myLenumAttrib.en','myLenumSetAttrib.fr-BE'])
+      @exportMapping.header.toIndex()
+      variant =
+        attributes: [
+          {
+            name: 'myLenumAttrib'
+            value:
+              key: 'myEnum'
+              label:
+                en: 'bla'
+                de: 'blub'
+          },
+          {
+            name: 'myLenumSetAttrib'
+            value: [
+              {
+                key: 'drops',
+                label: {
+                  "fr-BE": 'le drops',
+                  de: 'der drops',
+                  en: 'the drops'
+                }
+              },
+              {
+                "key": "honk",
+                "label": {
+                  "en": "the honk",
+                  "fr-BE": "le honk",
+                  "de-DE": "der honk"
+                }
+              }
+            ]
+          }
+        ]
+      row = @exportMapping._mapVariant(variant, @productType)
+      expect(row).toEqual [ 'bla','le drops;le honk' ]
+
 
   describe '#createTemplate', ->
     beforeEach ->
