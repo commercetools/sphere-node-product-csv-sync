@@ -49,14 +49,17 @@ class Mapping
     product.taxCategory = tax if tax
 
     for attribName in CONS.BASE_LOCALIZED_HEADERS
-      val = @mapLocalizedAttrib rawMaster, attribName, @header.toLanguageIndex()
+      if attribName is CONS.HEADER_SEARCH_KEYWORDS
+        val = @mapSearchKeywords rawMaster, attribName,  @header.toLanguageIndex()
+      else
+        val = @mapLocalizedAttrib rawMaster, attribName, @header.toLanguageIndex()
       product[attribName] = val if val
 
     unless product.slug
       product.slug = {}
       if product.name? and product.name[GLOBALS.DEFAULT_LANGUAGE]?
         product.slug[GLOBALS.DEFAULT_LANGUAGE] = @ensureValidSlug(_.slugify product.name[GLOBALS.DEFAULT_LANGUAGE], rowIndex)
-
+    console.log "got product" + JSON.stringify(product)
     product
 
   ensureValidSlug: (slug, rowIndex, appendix = '') ->
@@ -297,6 +300,38 @@ class Mapping
 
     return if _.isEmpty values
     values
+
+  # "a.en,a.de,a.it"
+  # "hi,Hallo,ciao"
+  # values:
+  #   de: 'Hallo'
+  #   en: 'hi'
+  #   it: 'ciao'
+  mapSearchKeywords: (row, attribName, langH2i) ->
+    values = {}
+    if _.has langH2i, attribName
+      _.each langH2i[attribName], (index, language) ->
+        val = row[index]
+        console.log('got attribute ' + JSON.stringify(attribName))
+        console.log('got language ' + JSON.stringify(language))
+        console.log('got search keywords ' + JSON.stringify(val))
+        singleValues = val.split GLOBALS.DELIM_MULTI_VALUE
+        texts = []
+        _.each singleValues, (v, index) ->
+          console.log('got single search keywords ' + JSON.stringify(v))
+          texts.push { text: v}
+        values[language] = texts
+        console.log('got values ' + JSON.stringify(values))
+    # fall back to non localized column if language columns could not be found
+    if _.size(values) is 0
+      return unless @header.has(attribName)
+      val = row[@header.toIndex attribName]
+      values[GLOBALS.DEFAULT_LANGUAGE].text = val if val
+
+    return if _.isEmpty values
+    values
+
+
 
   mapImages: (rawVariant, variantId, rowIndex) ->
     images = []
