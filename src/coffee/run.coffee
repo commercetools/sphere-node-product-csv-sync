@@ -280,7 +280,7 @@ module.exports = class
       .option '-o, --out <file>', 'Path to the file the exporter will write the resulting CSV in'
       .option '-j, --json', 'Export in JSON format'
       .option '-q, --queryString <query>', 'Query string to specify the sub-set of products to export'
-      .option '-l, --language [lang]', 'Language used on export for category names (default is en)', 'en'
+      .option 'Language used on export for localised attributes (except lenums) and category names (default is en)'
       .option '--queryType <type>', 'Whether to do a query or a search request', 'query'
       .option '--queryEncoded', 'Whether the given query string is already encoded or not', false
       .option '--fillAllRows', 'When given product attributes like name will be added to each variant row.'

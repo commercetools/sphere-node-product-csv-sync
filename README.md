@@ -159,6 +159,7 @@ The following product attributes can be localized:
 - metaTitle
 - metaDescriptions
 - metaKeywords
+- searchKeywords
 
 > Further any custom attribute of type `ltext` can be filled with several language values.
 
@@ -356,7 +357,7 @@ productType,name.en,variantId
     -o, --out <file>           Path to the file the exporter will write the resulting CSV in
     -j, --json                 Export in JSON format
     -q, --queryString <query>  Query string to specify the sub-set of products to export
-    -l, --language [lang]      Language used on export for category names (default is en)
+    -l, --language [lang]      Language used on export for localised attributes (except lenums) and category names (default is en)
     --queryType <type>         Whether to do a query or a search request
     --queryEncoded             Whether the given query string is already encoded or not
     --fillAllRows              When given product attributes like name will be added to each variant row.
@@ -387,6 +388,26 @@ Query first 10 products of a specific product type
 limit=10&where=productType(id%3D%2224da8abf-7be6-4b27-9ce6-69ee4b026513%22)
 # decoded: limit=0&where=productType(id="24da8abf-7be6-4b27-9ce6-69ee4b026513")
 ```
+
+#### Export of Localized Enum Labels and Set of Localized Enum Labels
+
+You can export the values of Lenum Labels and Set of Lenum labels by specifying the locale of the labels you want to export. If you don't specify a locale, the key of the lenum will be exported.
+
+> Please refer to the [API documentation of SPHERE.IO](http://dev.sphere.io/http-api-projects-productTypes.html#localizable-enum-type) for further information regarding lenum data types.
+
+
+##### Example
+
+Export the key and the english label of the attributes `myLenum` and `mySetOfLenum`
+
+```csv
+variantId,myLenum,myLenum.en,mySetOfLenum,mySetOfLenum.en
+1,myLenumKey,My English Lenum Label,mySetOfLenumKey1;mySetOfLenumKey2,My Set of Lenum English Label 1, my Set of Lenum English Label 2
+```
+
+
+
+
 
 ## General CSV notes
 
