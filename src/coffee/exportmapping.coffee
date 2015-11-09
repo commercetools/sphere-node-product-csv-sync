@@ -91,7 +91,13 @@ class ExportMapping
     for attribName, h2i of @header.toLanguageIndex()
       for lang, index of h2i
         if product[attribName]
-          row[index] = product[attribName][lang]
+          if attribName is CONS.HEADER_SEARCH_KEYWORDS
+            row[index] = _.reduce(product[attribName][lang], (memo, val, index) ->
+              memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
+              memo + val.text
+            , '')
+          else
+            row[index] = product[attribName][lang]
 
     row
 
@@ -113,6 +119,11 @@ class ExportMapping
         attributeTypeDef = @typesService.id2nameAttributeDefMap[productType.id][attribute.name].type
         if attributeTypeDef.name is CONS.ATTRIBUTE_TYPE_LTEXT
           row = @_mapLocalizedAttribute attribute, productType, row
+        else if attributeTypeDef.name is CONS.ATTRIBUTE_TYPE_SET and attributeTypeDef.elementType?.name is CONS.ATTRIBUTE_TYPE_LENUM
+          # we need special treatment for set of lenums
+          row = @_mapSetOfLenum(attribute, productType, row)
+        else if attributeTypeDef.name is CONS.ATTRIBUTE_TYPE_LENUM  # we need special treatnemt for lenums
+          row = @_mapLenum(attribute, productType, row)
         else if @header.has attribute.name
           row[@header.toIndex attribute.name] = @_mapAttribute(attribute, attributeTypeDef)
 
@@ -148,7 +159,7 @@ class ExportMapping
   _mapAttribute: (attribute, attributeTypeDef) ->
     switch attributeTypeDef.name
       when CONS.ATTRIBUTE_TYPE_SET then @_mapSetAttribute(attribute, attributeTypeDef)
-      when CONS.ATTRIBUTE_TYPE_ENUM, CONS.ATTRIBUTE_TYPE_LENUM then attribute.value.key
+      when CONS.ATTRIBUTE_TYPE_ENUM then attribute.value.key
       when CONS.ATTRIBUTE_TYPE_MONEY then @_mapMoney attribute.value
       when CONS.ATTRIBUTE_TYPE_REFERENCE then attribute.value?.id
       when CONS.ATTRIBUTE_TYPE_BOOLEAN then attribute.value.toString()
@@ -160,12 +171,45 @@ class ExportMapping
       for lang, index of h2i
         if attribute.value
           row[index] = attribute.value[lang]
+    row
 
+  _mapLenum: (attribute, productType, row) ->
+    noneLangIndex = @header.toIndex(attribute.name)
+    # if my attribute has no language index, I want the key only
+    if noneLangIndex
+      row[noneLangIndex] = attribute.value.key
+    h2i = @header.productTypeAttributeToIndex productType, attribute
+    if h2i
+      for lang, index of h2i
+        if attribute.value
+          row[index] = attribute.value.label[lang]
+    else
+      row[index] = attribute.value.key
+    row
+
+  _mapSetOfLenum: (attribute, productType, row) ->
+    # if my attribute has no language index, I want the keys only
+    noneLangIndex = @header.toIndex(attribute.name)
+    if noneLangIndex
+      row[noneLangIndex] = _.reduce(attribute.value, (memo, val, index) ->
+        memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
+        memo + val.key
+      , '')
+    h2i = @header.productTypeAttributeToIndex productType, attribute
+    if h2i
+      for lang, index of h2i
+        if attribute.value
+          row[index] = _.reduce(attribute.value, (memo, val, index) ->
+            memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
+            memo + val.label[lang]
+          , '')
+    else
+      row[index] = attribute.value.key
     row
 
   _mapSetAttribute: (attribute, attributeTypeDef) ->
     switch attributeTypeDef.elementType.name
-      when CONS.ATTRIBUTE_TYPE_ENUM, CONS.ATTRIBUTE_TYPE_LENUM
+      when CONS.ATTRIBUTE_TYPE_ENUM
         _.reduce(attribute.value, (memo, val, index) ->
           memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
           memo + val.key

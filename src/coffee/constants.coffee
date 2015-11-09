@@ -11,6 +11,7 @@ constants =
   HEADER_META_TITLE: 'metaTitle'
   HEADER_META_DESCRIPTION: 'metaDescription'
   HEADER_META_KEYWORDS: 'metaKeywords'
+  HEADER_SEARCH_KEYWORDS: 'searchKeywords'
 
   HEADER_TAX: 'tax'
   HEADER_CATEGORIES: 'categories'
@@ -57,7 +58,8 @@ exports.BASE_LOCALIZED_HEADERS = [
   constants.HEADER_SLUG,
   constants.HEADER_META_TITLE,
   constants.HEADER_META_DESCRIPTION,
-  constants.HEADER_META_KEYWORDS
+  constants.HEADER_META_KEYWORDS,
+  constants.HEADER_SEARCH_KEYWORDS
 ]
 
 exports.SPECIAL_HEADERS = [

@@ -161,6 +161,33 @@ describe 'Mapping', ->
           ]
 
         expect(product).toEqual expectedProduct
+    it 'should map search keywords', ->
+      csv =
+      """
+        productType,variantId,id,searchKeywords.en,searchKeywords.fr-FR
+        product-type,1,xyz,some;new;search;keywords,bruxelle;liege;brugge,
+        """
+      pt =
+        id: '123'
+      @validator.parse csv, (content, count) =>
+        @validator.validateOffline content
+        product = @map.mapBaseProduct @validator.rawProducts[0].master, pt
+
+        expectedProduct =
+          id: 'xyz'
+          productType:
+            typeId: 'product-type'
+            id: '123'
+          name:
+            en: 'myProduct'
+          slug:
+            en: 'myproduct'
+          masterVariant: {}
+          variants: []
+          categories: []
+          searchKeywords: {"en":[{"text":"some"},{"text":"new"},{"text":"search"},{"text":"keywords"}],"fr-FR":[{"text":"bruxelle"},{"text":"liege"},{"text":"brugge"}]}
+
+        expect(product).toEqual expectedProduct
 
   describe '#mapVariant', ->
     it 'should give feedback on bad variant id', ->
