@@ -77,10 +77,10 @@ describe 'Impex integration tests', ->
     .catch (err) -> done _.prettify(err)
 
   it 'should import and re-export SEO attributes', (done) ->
-    header = "productType,variantId,name.en,description.en,slug.en,metaTitle.en,metaDescription.en,metaKeywords.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en"
+    header = "productType,variantId,name.en,description.en,slug.en,metaTitle.en,metaDescription.en,metaKeywords.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,searchKeywords.en"
     p1 =
       """
-      #{@productType.name},1,seoName,seoDescription,seoSlug,seoMetaTitle,seoMetaDescription,seoMetaKeywords,foo
+      #{@productType.name},1,seoName,seoDescription,seoSlug,seoMetaTitle,seoMetaDescription,seoMetaKeywords,foo,new;search;keywords
       ,2,,,,,,,bar
       """
     csv =

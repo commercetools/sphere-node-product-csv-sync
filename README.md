@@ -395,10 +395,11 @@ You can export the values of Lenum Labels and Set of Lenum labels by specifying 
 
 > Please refer to the [API documentation of SPHERE.IO](http://dev.sphere.io/http-api-projects-productTypes.html#localizable-enum-type) for further information regarding lenum data types.
 
+The labels of localized enums can not be imported - instead they need to be managed in the ProductType metadata.
 
 ##### Example
 
-Export the key and the english label of the attributes `myLenum` and `mySetOfLenum`
+Export the key and the english label of the attributes `myLenum` and `mySetOfLenum`. 
 
 ```csv
 variantId,myLenum,myLenum.en,mySetOfLenum,mySetOfLenum.en

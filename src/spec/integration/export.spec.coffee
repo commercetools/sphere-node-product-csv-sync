@@ -31,6 +31,32 @@ describe 'Export integration tests', ->
         en: 'foo'
       variants: [
         sku: '123'
+        attributes: [
+          {
+            name: "attr-lenum-n"
+            value: {
+              key: "lenum1"
+              label: {
+                en: "Enum1"
+              }
+            }
+          }
+          name: "attr-set-lenum-n"
+          value: [
+            {
+              key: "lenum1"
+              label: {
+                en: "Enum1"
+              }
+            },
+            {
+              key: "lenum2"
+              label: {
+                en: "Enum2"
+              }
+            }
+          ]
+        ]
       ]
 
     TestHelpers.setupProductType(@client, @productType, @product)
@@ -85,6 +111,28 @@ describe 'Export integration tests', ->
       productType,name,variantId
       #{@productType.name},,1
       ,,2
+
+      """
+    @export.export(template, file)
+    .then (result) ->
+      expect(result).toBe 'Export done.'
+      fs.readFileAsync file, {encoding: 'utf8'}
+    .then (content) ->
+      expect(content).toBe expectedCSV
+      done()
+    .catch (err) -> done _.prettify(err)
+
+  it 'should export labels of lenum and set of lenum', (done) ->
+    template =
+    '''
+      productType,name,variantId,attr-lenum-n.en,attr-set-lenum-n.en
+      '''
+    file = '/tmp/output.csv'
+    expectedCSV =
+    """
+      productType,name,variantId,attr-lenum-n.en,attr-set-lenum-n.en
+      #{@productType.name},,1
+      ,,2,Enum1,Enum1;Enum2
 
       """
     @export.export(template, file)
