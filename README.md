@@ -406,10 +406,6 @@ variantId,myLenum,myLenum.en,mySetOfLenum,mySetOfLenum.en
 1,myLenumKey,My English Lenum Label,mySetOfLenumKey1;mySetOfLenumKey2,My Set of Lenum English Label 1, my Set of Lenum English Label 2
 ```
 
-
-
-
-
 ## General CSV notes
 
 Please make sure to read the following lines use valid CSV format.
