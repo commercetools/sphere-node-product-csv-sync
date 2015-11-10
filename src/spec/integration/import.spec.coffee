@@ -445,8 +445,8 @@ describe 'Import integration test', ->
     it 'should do a partial update of product base attributes', (done) ->
       csv =
         """
-        productType,name.en,description.en,slug.en,variantId
-        #{@productType.id},#{@newProductName},foo bar,#{@newProductSlug},1
+        productType,name.en,description.en,slug.en,variantId,searchKeywords.en,searchKeywords.fr
+        #{@productType.id},#{@newProductName},foo bar,#{@newProductSlug},1,new;search;keywords,nouvelle;trouve
         """
       @importer.import(csv)
       .then (result) =>
@@ -454,8 +454,8 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,slug.en,variantId
-          #{@productType.id},#{@newProductSlug},1
+          productType,slug.en,variantId,searchKeywords.en,searchKeywords.fr
+          #{@productType.id},#{@newProductSlug},1,new;search;keywords,nouvelle;trouve
           """
         im = createImporter()
         im.matchBy = 'slug'
@@ -465,8 +465,8 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         csv =
           """
-          productType,slug,name,variantId,sku
-          #{@productType.id},#{@newProductSlug},#{@newProductName+'_changed'},1,#{@newProductSku}
+          productType,slug,name,variantId,sku,searchKeywords.de
+          #{@productType.id},#{@newProductSlug},#{@newProductName+'_changed'},1,#{@newProductSku},neue;such;schlagwoerter
           """
         im = createImporter()
         im.matchBy = 'slug'
