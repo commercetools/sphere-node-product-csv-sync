@@ -99,6 +99,13 @@ class ExportMapping
           else
             row[index] = product[attribName][lang]
 
+    if @header.has(CONS.HEADER_CATEGORY_ORDER_HINTS)
+      categoryIds = Object.keys product.categoryOrderHints
+      categoryOrderHints = []
+      _.each categoryIds, (categoryId) ->
+        categoryOrderHints.push("#{categoryId}:#{product.categoryOrderHints[categoryId]}")
+      row[@header.toIndex CONS.HEADER_CATEGORY_ORDER_HINTS] = categoryOrderHints.join ';'
+
     row
 
   _mapVariant: (variant, productType, row = []) ->
