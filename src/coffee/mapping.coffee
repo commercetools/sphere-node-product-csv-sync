@@ -128,6 +128,8 @@ class Mapping
       catId =
         if _.has(@categories.id2fqName, rawCatId)
           rawCatId
+        else if _.has(@categories.externalId2id, rawCatId)
+          @categories.externalId2id[rawCatId]
         # in case the category was provided as the category name
         # check if the product is actually assigend to the category
         else if _.has(@categories.name2id, rawCatId)
