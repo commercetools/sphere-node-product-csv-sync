@@ -120,25 +120,25 @@ class Mapping
     return catOrderHints unless @hasValidValueForHeader(rawMaster, CONS.HEADER_CATEGORY_ORDER_HINTS)
     # parse the value to get a list of all catOrderHints
     rawCatOrderHints = rawMaster[@header.toIndex CONS.HEADER_CATEGORY_ORDER_HINTS].split GLOBALS.DELIM_MULTI_VALUE
-    for rawCatOrderHint in rawCatOrderHints
+    _.each rawCatOrderHints, (rawCatOrderHint) =>
       # extract the category id and the order hint from the raw value
       [rawCatId, rawOrderHint] = rawCatOrderHint.split ':'
       orderHint = parseFloat(rawOrderHint)
       # check if the product is actually assigned to the category
-      if _.has(@categories.id2fqName, rawCatId)
-        catId = rawCatId
-      # in case the category was provided as the category name
-      # check if the product is actually assigend to the category
-      else if _.has(@categories.name2id, rawCatId)
-        # get the actual category id instead of the category name
-        catId = @categories.name2id[rawCatId]
-      else
-        catId = rawCatId
-        msg = "[row #{rowIndex}:#{CONS.HEADER_CATEGORY_ORDER_HINTS}] Can not find category for ID '#{rawCatId}'!"
-        if @continueOnProblems
-          console.warn msg
+      catId =
+        if _.has(@categories.id2fqName, rawCatId)
+          rawCatId
+        # in case the category was provided as the category name
+        # check if the product is actually assigend to the category
+        else if _.has(@categories.name2id, rawCatId)
+          # get the actual category id instead of the category name
+          @categories.name2id[rawCatId]
         else
-          @errors.push msg
+          msg = "[row #{rowIndex}:#{CONS.HEADER_CATEGORY_ORDER_HINTS}] Can not find category for ID '#{rawCatId}'!"
+          if @continueOnProblems
+            console.warn msg
+          else
+            @errors.push msg
 
       if orderHint == NaN
         msg = "[row #{rowIndex}:#{CONS.HEADER_CATEGORY_ORDER_HINTS}] Order hint has to be a valid number!"
@@ -152,8 +152,10 @@ class Mapping
           console.warn msg
         else
           @errors.push msg
-
-      catOrderHints[catId] = rawOrderHint
+      else
+        if catId
+          # orderHint and catId are ensured to be valid
+          catOrderHints[catId] = rawOrderHint
 
     catOrderHints
 

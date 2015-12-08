@@ -101,10 +101,9 @@ class ExportMapping
 
     if @header.has(CONS.HEADER_CATEGORY_ORDER_HINTS)
       categoryIds = Object.keys product.categoryOrderHints
-      categoryOrderHints = []
-      _.each categoryIds, (categoryId) ->
-        categoryOrderHints.push("#{categoryId}:#{product.categoryOrderHints[categoryId]}")
-      row[@header.toIndex CONS.HEADER_CATEGORY_ORDER_HINTS] = categoryOrderHints.join ';'
+      categoryOrderHints = _.map categoryIds, (categoryId) ->
+        return "#{categoryId}:#{product.categoryOrderHints[categoryId]}"
+      row[@header.toIndex CONS.HEADER_CATEGORY_ORDER_HINTS] = categoryOrderHints.join GLOBALS.DELIM_MULTI_VALUE
 
     row
 
