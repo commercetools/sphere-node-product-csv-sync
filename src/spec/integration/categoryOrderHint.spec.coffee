@@ -64,7 +64,7 @@ describe 'Import', ->
     .catch (error) -> done(_.prettify(error))
   , 60000 # 1min
 
-  it 'should update categoryOrderHints', (done) ->
+  it 'should add categoryOrderHints', (done) ->
 
     @client.products.save(
       name:
@@ -95,5 +95,77 @@ describe 'Import', ->
       @client.products.byId(@product.id).fetch()
     .then (result) =>
       expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@categoryId}": '0.5'}
+      done()
+    .catch (err) -> done _.prettify(err)
+
+  it 'should remove categoryOrderHints', (done) ->
+
+    @client.products.save(
+      name:
+        en: 'test product'
+      productType:
+        typeId: 'product-type'
+        id: @productType.id
+      slug:
+        en: TestHelpers.uniqueId 'slug-'
+      categories: [
+        typeId: 'category'
+        id: @categoryId
+      ]
+      categoryOrderHints:
+        "#{@categoryId}": '0.5'
+    )
+    .then (result) =>
+      @product = result.body
+      csv =
+        """
+        productType,id,version,slug,categoryOrderHints
+        #{@productType.id},#{@product.id},#{@product.version},#{@product.slug},
+        """
+      im = createImporter(
+        continueOnProblems: true
+      )
+      im.import(csv)
+    .then (result) =>
+      expect(result[0]).toBe '[row 2] Product updated.'
+      @client.products.byId(@product.id).fetch()
+    .then (result) =>
+      expect(result.body.masterData.staged.categoryOrderHints).toEqual {}
+      done()
+    .catch (err) -> done _.prettify(err)
+
+  it 'should change categoryOrderHints', (done) ->
+
+    @client.products.save(
+      name:
+        en: 'test product'
+      productType:
+        typeId: 'product-type'
+        id: @productType.id
+      slug:
+        en: TestHelpers.uniqueId 'slug-'
+      categories: [
+        typeId: 'category'
+        id: @categoryId
+      ]
+      categoryOrderHints:
+        "#{@categoryId}": '0.5'
+    )
+    .then (result) =>
+      @product = result.body
+      csv =
+        """
+        productType,id,version,slug,categoryOrderHints
+        #{@productType.id},#{@product.id},#{@product.version},#{@product.slug},#{@categoryId}: 0.9
+        """
+      im = createImporter(
+        continueOnProblems: true
+      )
+      im.import(csv)
+    .then (result) =>
+      expect(result[0]).toBe '[row 2] Product updated.'
+      @client.products.byId(@product.id).fetch()
+    .then (result) =>
+      expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@categoryId}": '0.9'}
       done()
     .catch (err) -> done _.prettify(err)
