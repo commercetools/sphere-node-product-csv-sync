@@ -135,6 +135,11 @@ class Mapping
         else if _.has(@categories.name2id, rawCatId)
           # get the actual category id instead of the category name
           @categories.name2id[rawCatId]
+        # in case the category was provided using the category slug
+        else if _.contains(@categories.id2slug, rawCatId)
+          # get the actual category id instead of the category name
+          _.findKey @categories.id2slug, (slug) ->
+            slug == rawCatId
         else
           msg = "[row #{rowIndex}:#{CONS.HEADER_CATEGORY_ORDER_HINTS}] Can not find category for ID '#{rawCatId}'!"
           if @continueOnProblems
