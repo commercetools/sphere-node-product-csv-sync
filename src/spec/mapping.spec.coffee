@@ -592,3 +592,50 @@ describe 'Mapping', ->
   #         ]
   #
   #       expect(data.product).toEqual expectedProduct
+
+    it 'should should map the categoryOrderHints', (done) ->
+      # mock the categories
+      @map.categories.buildMaps([
+          id: 'categoryId'
+          name: 'myCoolCategory',
+          slug:
+            de: 'slug-123'
+          externalId: 'myExternalId'
+        ])
+      productType =
+        id: 'myType'
+        attributes: []
+      csv =
+        """
+        productType,name,variantId,sku,categoryOrderHints
+        foo,myProduct,1,x,categoryId:0.9
+        """
+      @validator.parse csv
+      .then (parsed) =>
+        @map.header = parsed.header
+        @validator.validateOffline parsed.data
+        data = @map.mapProduct @validator.rawProducts[0], productType
+
+        expectedProduct =
+          productType:
+            typeId: 'product-type'
+            id: 'myType'
+          name:
+            en: 'myProduct'
+          slug:
+            en: 'myproduct'
+          categories: []
+          categoryOrderHints: {
+            categoryId: '0.9'
+          }
+          masterVariant: {
+            id: 1
+            sku: 'x'
+            prices: []
+            attributes: []
+            images: []
+          }
+          variants: []
+        expect(data.product).toEqual expectedProduct
+        done()
+      .catch done

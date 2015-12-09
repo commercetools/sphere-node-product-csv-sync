@@ -141,6 +141,7 @@ class Mapping
             console.warn msg
           else
             @errors.push msg
+          null
 
       if orderHint == NaN
         msg = "[row #{rowIndex}:#{CONS.HEADER_CATEGORY_ORDER_HINTS}] Order hint has to be a valid number!"
