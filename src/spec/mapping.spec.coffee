@@ -593,49 +593,90 @@ describe 'Mapping', ->
   #
   #       expect(data.product).toEqual expectedProduct
 
-    it 'should should map the categoryOrderHints', (done) ->
+  describe '#mapCategoryOrderHints', ->
+
+    beforeEach ->
+
+      @exampleCategory =
+        id: 'categoryId'
+        name:
+          en: 'myCoolCategory',
+        slug:
+          en: 'slug-123'
+        externalId: 'myExternalId'
       # mock the categories
       @map.categories.buildMaps([
-          id: 'categoryId'
-          name: 'myCoolCategory',
-          slug:
-            de: 'slug-123'
-          externalId: 'myExternalId'
+          @exampleCategory
         ])
-      productType =
+      @productType =
         id: 'myType'
         attributes: []
+
+      @expectedProduct =
+        productType:
+          typeId: 'product-type'
+          id: 'myType'
+        name:
+          en: 'myProduct'
+        slug:
+          en: 'myproduct'
+        categories: []
+        categoryOrderHints: {
+          categoryId: '0.9'
+        }
+        masterVariant: {
+          id: 1
+          sku: 'x'
+          prices: []
+          attributes: []
+          images: []
+        }
+        variants: []
+
+    it 'should should map the categoryOrderHints using a category id', (done) ->
       csv =
         """
         productType,name,variantId,sku,categoryOrderHints
-        foo,myProduct,1,x,categoryId:0.9
+        foo,myProduct,1,x,#{@exampleCategory.id}:0.9
         """
       @validator.parse csv
       .then (parsed) =>
         @map.header = parsed.header
         @validator.validateOffline parsed.data
-        data = @map.mapProduct @validator.rawProducts[0], productType
+        data = @map.mapProduct @validator.rawProducts[0], @productType
 
-        expectedProduct =
-          productType:
-            typeId: 'product-type'
-            id: 'myType'
-          name:
-            en: 'myProduct'
-          slug:
-            en: 'myproduct'
-          categories: []
-          categoryOrderHints: {
-            categoryId: '0.9'
-          }
-          masterVariant: {
-            id: 1
-            sku: 'x'
-            prices: []
-            attributes: []
-            images: []
-          }
-          variants: []
-        expect(data.product).toEqual expectedProduct
+        expect(data.product).toEqual @expectedProduct
+        done()
+      .catch done
+
+    it 'should should map the categoryOrderHints using a category name', (done) ->
+      csv =
+        """
+        productType,name,variantId,sku,categoryOrderHints
+        foo,myProduct,1,x,#{@exampleCategory.name.en}:0.9
+        """
+      @validator.parse csv
+      .then (parsed) =>
+        @map.header = parsed.header
+        @validator.validateOffline parsed.data
+        data = @map.mapProduct @validator.rawProducts[0], @productType
+
+        expect(data.product).toEqual @expectedProduct
+        done()
+      .catch done
+
+    it 'should should map the categoryOrderHints using a category slug', (done) ->
+      csv =
+        """
+        productType,name,variantId,sku,categoryOrderHints
+        foo,myProduct,1,x,#{@exampleCategory.slug.en}:0.9
+        """
+      @validator.parse csv
+      .then (parsed) =>
+        @map.header = parsed.header
+        @validator.validateOffline parsed.data
+        data = @map.mapProduct @validator.rawProducts[0], @productType
+
+        expect(data.product).toEqual @expectedProduct
         done()
       .catch done
