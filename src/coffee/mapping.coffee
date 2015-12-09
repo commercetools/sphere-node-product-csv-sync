@@ -158,7 +158,7 @@ class Mapping
       else
         if catId
           # orderHint and catId are ensured to be valid
-          catOrderHints[catId] = rawOrderHint
+          catOrderHints[catId] = orderHint.toString()
 
     catOrderHints
 
