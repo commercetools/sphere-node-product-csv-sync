@@ -57,137 +57,166 @@ describe 'Mapping', ->
       expect(_.size @map.errors).toBe 1
       expect(@map.errors[0]).toBe "[row 7:slug] Can't generate valid slug out of '1'!"
 
-  # describe '#mapLocalizedAttrib', ->
-  #   it 'should create mapping for language attributes', ->
-  #     csv =
-  #       """
-  #       foo,name.de,bar,name.it
-  #       x,Hallo,y,ciao
-  #       """
-  #     @validator.parse csv, (content) =>
-  #       values = @map.mapLocalizedAttrib content[0], CONS.HEADER_NAME, @validator.header.toLanguageIndex()
-  #       expect(_.size values).toBe 2
-  #       expect(values['de']).toBe 'Hallo'
-  #       expect(values['it']).toBe 'ciao'
-  #
-  #   it 'should fallback to non localized column', ->
-  #     csv =
-  #       """
-  #       foo,a1,bar
-  #       x,hi,y
-  #       aaa,,bbb
-  #       """
-  #     @validator.parse csv, (content, count) =>
-  #       @validator.header.toIndex()
-  #       values = @map.mapLocalizedAttrib(content[0], 'a1', {})
-  #       expect(_.size values).toBe 1
-  #       expect(values['en']).toBe 'hi'
-  #
-  #       values = @map.mapLocalizedAttrib(content[1], 'a1', {})
-  #       expect(values).toBeUndefined()
-  #
-  #   it 'should return undefined if header can not be found', ->
-  #     csv =
-  #       """
-  #       foo,a1,bar
-  #       x,hi,y
-  #       """
-  #     @validator.parse csv, (content, count) =>
-  #       @validator.header.toIndex()
-  #       values = @map.mapLocalizedAttrib(content[0], 'a2', {})
-  #       expect(values).toBeUndefined()
-  #
-  # describe '#mapBaseProduct', ->
-  #   it 'should map base product', ->
-  #     csv =
-  #       """
-  #       productType,id,name,variantId
-  #       foo,xyz,myProduct,1
-  #       """
-  #     pt =
-  #       id: '123'
-  #     @validator.parse csv, (content, count) =>
-  #       @validator.validateOffline content
-  #       product = @map.mapBaseProduct @validator.rawProducts[0].master, pt
-  #
-  #       expectedProduct =
-  #         id: 'xyz'
-  #         productType:
-  #           typeId: 'product-type'
-  #           id: '123'
-  #         name:
-  #           en: 'myProduct'
-  #         slug:
-  #           en: 'myproduct'
-  #         masterVariant: {}
-  #         variants: []
-  #         categories: []
-  #
-  #       expect(product).toEqual expectedProduct
-  #
-  #   it 'should map base product with categories', ->
-  #     csv =
-  #       """
-  #       productType,id,name,variantId,categories.externalId
-  #       foo,xyz,myProduct,1,ext-123
-  #       """
-  #     pt =
-  #       id: '123'
-  #     cts = [
-  #       id: '234'
-  #       externalId: 'ext-123'
-  #     ]
-  #
-  #     @validator.parse csv, (content, count) =>
-  #       @categories = new Categories
-  #       @categories.buildMaps cts
-  #       @validator.validateOffline content
-  #       product = @map.mapBaseProduct @validator.rawProducts[0].master, pt
-  #
-  #       expectedProduct =
-  #         id: 'xyz'
-  #         productType:
-  #           typeId: 'product-type'
-  #           id: '123'
-  #         name:
-  #           en: 'myProduct'
-  #         slug:
-  #           en: 'myproduct'
-  #         masterVariant: {}
-  #         variants: []
-  #         categories: [
-  #           typeId: 'category'
-  #           id: '234'
-  #         ]
-  #
-  #       expect(product).toEqual expectedProduct
-  #   it 'should map search keywords', ->
-  #     csv =
-  #     """
-  #       productType,variantId,id,searchKeywords.en,searchKeywords.fr-FR
-  #       product-type,1,xyz,some;new;search;keywords,bruxelle;liege;brugge,
-  #       """
-  #     pt =
-  #       id: '123'
-  #     @validator.parse csv, (content, count) =>
-  #       @validator.validateOffline content
-  #       product = @map.mapBaseProduct @validator.rawProducts[0].master, pt
-  #
-  #       expectedProduct =
-  #         id: 'xyz'
-  #         productType:
-  #           typeId: 'product-type'
-  #           id: '123'
-  #         name:
-  #           en: 'myProduct'
-  #         slug:
-  #           en: 'myproduct'
-  #         masterVariant: {}
-  #         variants: []
-  #         categories: []
-  #         searchKeywords: {"en":[{"text":"some"},{"text":"new"},{"text":"search"},{"text":"keywords"}],"fr-FR":[{"text":"bruxelle"},{"text":"liege"},{"text":"brugge"}]}
-  #
-  #       expect(product).toEqual expectedProduct
+  describe '#mapLocalizedAttrib', ->
+    it 'should create mapping for language attributes', (done) ->
+      csv =
+        """
+        foo,name.de,bar,name.it
+        x,Hallo,y,ciao
+        """
+      @validator.parse csv
+      .then (parsed) =>
+        @map.header = parsed.header
+        values = @map.mapLocalizedAttrib parsed.data[0], CONS.HEADER_NAME, @validator.header.toLanguageIndex()
+        expect(_.size values).toBe 2
+        expect(values['de']).toBe 'Hallo'
+        expect(values['it']).toBe 'ciao'
+        done()
+      .catch done
+
+    it 'should fallback to non localized column', (done) ->
+      csv =
+        """
+        foo,a1,bar
+        x,hi,y
+        aaa,,bbb
+        """
+      @validator.parse csv
+      .then (parsed) =>
+        @map.header = parsed.header
+        @validator.header.toIndex()
+        values = @map.mapLocalizedAttrib(parsed.data[0], 'a1', {})
+        expect(_.size values).toBe 1
+        expect(values['en']).toBe 'hi'
+
+        values = @map.mapLocalizedAttrib(parsed.data[1], 'a1', {})
+        expect(values).toBeUndefined()
+        done()
+      .catch done
+
+    it 'should return undefined if header can not be found', (done) ->
+      csv =
+        """
+        foo,a1,bar
+        x,hi,y
+        """
+      @validator.parse csv
+      .then (parsed) =>
+        @map.header = parsed.header
+        @validator.header.toIndex()
+        values = @map.mapLocalizedAttrib(parsed.data[0], 'a2', {})
+        expect(values).toBeUndefined()
+        done()
+      .catch done
+
+  describe '#mapBaseProduct', ->
+    it 'should map base product', (done) ->
+      csv =
+        """
+        productType,id,name,variantId
+        foo,xyz,myProduct,1
+        """
+      pt =
+        id: '123'
+      @validator.parse csv
+      .then (parsed) =>
+        @map.header = parsed.header
+        @validator.validateOffline parsed.data
+        product = @map.mapBaseProduct @validator.rawProducts[0].master, pt
+
+        expectedProduct =
+          id: 'xyz'
+          productType:
+            typeId: 'product-type'
+            id: '123'
+          name:
+            en: 'myProduct'
+          slug:
+            en: 'myproduct'
+          masterVariant: {}
+          variants: []
+          categories: []
+
+        expect(product).toEqual expectedProduct
+        done()
+      .catch done
+
+    it 'should map base product with categories', (done) ->
+      csv =
+        """
+        productType,id,name,variantId,categories
+        foo,xyz,myProduct,1,ext-123
+        """
+      pt =
+        id: '123'
+      cts = [
+        id: '234'
+        name:
+          en: 'mockName'
+        slug:
+          en: 'mockSlug'
+        externalId: 'ext-123'
+      ]
+
+      @validator.parse csv
+      .then (parsed) =>
+        @map.header = parsed.header
+        @categories = new Categories
+        @categories.buildMaps cts
+        @map.categories = @categories
+        @validator.validateOffline parsed.data
+        product = @map.mapBaseProduct @validator.rawProducts[0].master, pt
+
+        expectedProduct =
+          id: 'xyz'
+          productType:
+            typeId: 'product-type'
+            id: '123'
+          name:
+            en: 'myProduct'
+          slug:
+            en: 'myproduct'
+          masterVariant: {}
+          variants: []
+          categories: [
+            typeId: 'category'
+            id: '234'
+          ]
+
+        expect(product).toEqual expectedProduct
+        done()
+      .catch done
+    it 'should map search keywords', (done) ->
+      csv =
+      """
+        productType,variantId,id,name.en,slug.en,searchKeywords.en,searchKeywords.fr-FR
+        product-type,1,xyz,myProduct,myproduct,some;new;search;keywords,bruxelle;liege;brugge,
+        """
+      pt =
+        id: '123'
+      @validator.parse csv
+      .then (parsed) =>
+        @map.header = parsed.header
+        @validator.validateOffline parsed.data
+        product = @map.mapBaseProduct @validator.rawProducts[0].master, pt
+
+        expectedProduct =
+          id: 'xyz'
+          productType:
+            typeId: 'product-type'
+            id: '123'
+          name:
+            en: 'myProduct'
+          slug:
+            en: 'myproduct'
+          masterVariant: {}
+          variants: []
+          categories: []
+          searchKeywords: {"en":[{"text":"some"},{"text":"new"},{"text":"search"},{"text":"keywords"}],"fr-FR":[{"text":"bruxelle"},{"text":"liege"},{"text":"brugge"}]}
+
+        expect(product).toEqual expectedProduct
+        done()
+      .catch done
 
   describe '#mapVariant', ->
     it 'should give feedback on bad variant id', ->
@@ -554,41 +583,45 @@ describe 'Mapping', ->
           referenceTypeId: 'product'
       expect(@map.mapReference('123-456', attribute)).toEqual { id: '123-456', typeId: 'product' }
 
-  # describe '#mapProduct', ->
-  #   it 'should map a product', ->
-  #     productType =
-  #       id: 'myType'
-  #       attributes: []
-  #     csv =
-  #       """
-  #       productType,name,variantId,sku
-  #       foo,myProduct,1,x
-  #       ,,2,y
-  #       ,,3,z
-  #       """
-  #     @validator.parse csv, (content, count) =>
-  #       @validator.validateOffline content
-  #       data = @map.mapProduct @validator.rawProducts[0], productType
-  #
-  #       expectedProduct =
-  #         productType:
-  #           typeId: 'product-type'
-  #           id: 'myType'
-  #         name:
-  #           en: 'myProduct'
-  #         slug:
-  #           en: 'myproduct'
-  #         categories: []
-  #         masterVariant: {
-  #           id: 1
-  #           sku: 'x'
-  #           prices: []
-  #           attributes: []
-  #           images: []
-  #         }
-  #         variants: [
-  #           { id: 2, sku: 'y', prices: [], attributes: [], images: [] }
-  #           { id: 3, sku: 'z', prices: [], attributes: [], images: [] }
-  #         ]
-  #
-  #       expect(data.product).toEqual expectedProduct
+  describe '#mapProduct', ->
+    it 'should map a product', (done) ->
+      productType =
+        id: 'myType'
+        attributes: []
+      csv =
+        """
+        productType,name,variantId,sku
+        foo,myProduct,1,x
+        ,,2,y
+        ,,3,z
+        """
+      @validator.parse csv
+      .then (parsed) =>
+        @map.header = parsed.header
+        @validator.validateOffline parsed.data
+        data = @map.mapProduct @validator.rawProducts[0], productType
+
+        expectedProduct =
+          productType:
+            typeId: 'product-type'
+            id: 'myType'
+          name:
+            en: 'myProduct'
+          slug:
+            en: 'myproduct'
+          categories: []
+          masterVariant: {
+            id: 1
+            sku: 'x'
+            prices: []
+            attributes: []
+            images: []
+          }
+          variants: [
+            { id: 2, sku: 'y', prices: [], attributes: [], images: [] }
+            { id: 3, sku: 'z', prices: [], attributes: [], images: [] }
+          ]
+
+        expect(data.product).toEqual expectedProduct
+        done()
+      .catch done
