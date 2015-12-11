@@ -149,15 +149,15 @@ class Import
         [s2i, s2v]
       , aggr)
     , [{}, {}])
-    console.warn "sku2index", _.prettify(sku2index)
-    console.warn "sku2variantInfo", _.prettify(sku2variantInfo)
+    # console.warn "sku2index", _.prettify(sku2index)
+    # console.warn "sku2variantInfo", _.prettify(sku2variantInfo)
     productsToUpdate = {}
     _.each products, (entry) =>
       variant = entry.product.masterVariant
-      console.warn "variant", variant
+      # console.warn "variant", variant
       productIndex = sku2index[variant.sku]
-      console.warn "variant.sku", variant.sku
-      console.warn "productIndex", productIndex
+      # console.warn "variant.sku", variant.sku
+      # console.warn "productIndex", productIndex
       if productIndex?
         existingProduct = productsToUpdate[productIndex]?.product or _.deepClone existingProducts[productIndex]
 
@@ -257,6 +257,7 @@ class Import
           @_isBlackListedForUpdate(action.name)
         when 'changeName' then header.has(CONS.HEADER_NAME) or header.hasLanguageForBaseAttribute(CONS.HEADER_NAME)
         when 'changeSlug' then header.has(CONS.HEADER_SLUG) or header.hasLanguageForBaseAttribute(CONS.HEADER_SLUG)
+        when 'setCategoryOrderHint' then header.has(CONS.HEADER_CATEGORY_ORDER_HINTS)
         when 'setDescription' then header.has(CONS.HEADER_DESCRIPTION) or header.hasLanguageForBaseAttribute(CONS.HEADER_DESCRIPTION)
         when 'setMetaTitle' then header.has(CONS.HEADER_META_TITLE) or header.hasLanguageForBaseAttribute(CONS.HEADER_META_TITLE)
         when 'setMetaDescription' then header.has(CONS.HEADER_META_DESCRIPTION) or header.hasLanguageForBaseAttribute(CONS.HEADER_META_DESCRIPTION)
