@@ -267,6 +267,19 @@ The current implementation allows the set the SEO attributes only if all three S
 - metaDescriptions
 - metaKeywords
 
+#### Category Order Hints
+
+In the `categoryOrderHints` column you can define a list of category order hints for each category that the product belongs to separated by `;`:
+```
+e8a19675-82af-4c00-98e6-fa9a020b1c51:0.4;myCategoriesName:0.9;myExternalCategoryId:0.2
+```
+The pattern a category order hint is as follows:
+```
+<category-ref>:<order-hint>
+```
+Note:
+- `<category-ref>` must be a valid ID referencing an existing category that the product is assigned to. You can reference the category using its `id`, `name` or `externalId`.
+- `<order-hint>` has to be a String that is representing a decimal value that is > 0.0 and < 1.0 (0 < orderHint < 1)
 
 ## Product State
 
@@ -399,7 +412,7 @@ The labels of localized enums can not be imported - instead they need to be mana
 
 ##### Example
 
-Export the key and the english label of the attributes `myLenum` and `mySetOfLenum`. 
+Export the key and the english label of the attributes `myLenum` and `mySetOfLenum`.
 
 ```csv
 variantId,myLenum,myLenum.en,mySetOfLenum,mySetOfLenum.en

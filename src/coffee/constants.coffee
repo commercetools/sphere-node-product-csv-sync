@@ -6,6 +6,7 @@ constants =
 
   HEADER_NAME: 'name'
   HEADER_DESCRIPTION: 'description'
+  HEADER_CATEGORY_ORDER_HINTS: 'categoryOrderHints'
   HEADER_SLUG: 'slug'
 
   HEADER_META_TITLE: 'metaTitle'
