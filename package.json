@@ -39,7 +39,7 @@
     "lodash.chunk": "^3.0.1",
     "optimist": "0.6.1",
     "prompt": "0.2.14",
-    "sphere-node-sdk": "1.7.0",
+    "sphere-node-sdk": "1.8.3",
     "sphere-node-utils": "0.7.0",
     "underscore": "1.8.3",
     "underscore-mixins": "*",
