@@ -486,6 +486,52 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
+    it 'should do a partial update of search keywords', (done) ->
+      csv =
+        """
+        productType,name.en,slug.en,searchKeywords.en,searchKeywords.fr,searchKeywords.de
+        #{@productType.id},#{@newProductName},#{@newProductSlug},new;search;keywords,nouvelle;trouve,deutsche;kartoffel
+        """
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        csv =
+          """
+          productType,slug.en,searchKeywords.en,searchKeywords.fr
+          #{@productType.id},#{@newProductSlug},newNew;search;keywords,nouvelleNew;trouveNew
+          """
+        im = createImporter()
+        im.matchBy = 'slug'
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        @client.productProjections.staged(true).where("name (en = \"#{@newProductName}\")").fetch()
+      .then (result) =>
+        expect(result.body.results[0].searchKeywords).toEqual
+          "en": [
+            {
+              "text": "newNew"
+            },
+            {
+              "text": "search"
+            },
+            {
+              "text": "keywords"
+            }
+          ],
+          "fr": [
+            {
+              "text": "nouvelleNew"
+            },
+            {
+              "text": "trouveNew"
+            }
+          ]
+        done()
+      .catch (err) -> done _.prettify(err)
+
     it 'should do a partial update of localized attributes', (done) ->
       csv =
         """
