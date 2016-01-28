@@ -91,6 +91,11 @@ class Export
             console.warn "Fetched #{products.body.count} product(s)."
             csv = []
             _.each products.body.results, (product) ->
+              # filter unwanted variants
+              product.variants = _.filter(product.variants, (variant) ->
+                return _.isUndefined(variant.isMatchingVariant) ||
+                  variant.isMatchingVariant == true
+              )
               csv = csv.concat exportMapping.mapProduct(product, productTypes.body.results)
             @_saveCSV(outputFile, csv, true)
 
