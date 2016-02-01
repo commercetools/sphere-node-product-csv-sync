@@ -1,5 +1,6 @@
 { Export } = require '../lib/main'
 Config = require '../config'
+_ = require 'underscore'
 
 priceFactory = ({ country } = {}) ->
   country: country or 'US'
@@ -41,6 +42,41 @@ describe 'Export', ->
       filteredVariants = @exporter._filterVariantsByAttributes(
         [variant],
         [{ name: 'published', value: false }]
+      )
+
+      actual = filteredVariants[0]
+      expected = undefined
+
+      expect(actual).toEqual(expected)
+
+    it 'should filter prices if no variant filter is provided', ->
+
+      # init variant with DE price
+      variant = variantFactory({country: 'DE'})
+      variant.prices.push(priceFactory({ country: 'US' }))
+      # filter for US prices -> no price should be left in variant
+      @exporter.queryOptions.filterPrices = [{ name: 'country', value: 'US' }]
+      filteredVariants = @exporter._filterVariantsByAttributes(
+        [ variant ],
+        []
+      )
+
+      actual = filteredVariants[0]
+      expected = _.extend(variant, { prices: [] })
+
+      expect(actual).toEqual(expected)
+
+    it 'should filter out a variant
+    if the price filter filtered out all prices of the variant', ->
+
+      # init variant with DE price
+      variant = variantFactory({country: 'US'})
+      variant.prices.push(priceFactory({ country: 'US' }))
+      # filter for US prices -> no price should be left in variant
+      @exporter.queryOptions.filterPrices = [{ name: 'country', value: 'DE' }]
+      filteredVariants = @exporter._filterVariantsByAttributes(
+        [ variant ],
+        []
       )
 
       actual = filteredVariants[0]
