@@ -13,3 +13,6 @@ package
 .project
 exported.csv
 .idea
+DE-product-template.csv
+DE-product.csv
+DE-productfamily-template.csv

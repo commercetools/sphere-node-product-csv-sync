@@ -60,16 +60,19 @@ class Export
 
   _filterVariantsByAttributes: (variants, filter) ->
     filteredVariants = _.filter(variants, (variant) ->
-      return _.reduce(
-        filter,
-        (filterOutVariant, filter) ->
-          # filter attributes
-          attribute = _.findWhere(variant.attributes, {
-            name: filter.name
-          })
-          return filterOutVariant && !!attribute &&
-            (attribute.value == filter.value)
-      , true)
+      return if filter?.length > 0
+        _.reduce(
+          filter,
+          (filterOutVariant, filter) ->
+            # filter attributes
+            attribute = _.findWhere(variant.attributes, {
+              name: filter.name
+            })
+            return filterOutVariant && !!attribute &&
+              (attribute.value == filter.value)
+        , true)
+      else
+        true
     )
 
     # filter prices of filtered variants
