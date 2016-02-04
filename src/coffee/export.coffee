@@ -19,7 +19,6 @@ class Export
   constructor: (@options = {}) ->
     @queryOptions =
       queryString: @options.export?.queryString?.trim()
-      queryType: @options.export?.queryType
       isQueryEncoded: @options.export?.isQueryEncoded
       filterVariantsByAttributes: @_parseQuery(
         @options.export?.filterVariantsByAttributes
@@ -100,14 +99,7 @@ class Export
     productsService = @client.productProjections
     if @queryOptions.queryString
       productsService.byQueryString(@queryOptions.queryString, @queryOptions.isQueryEncoded)
-      if @queryOptions.queryType is 'search'
-        # FIXME: this doesn't work with methods like `process`
-        # as the base resource endpoint will be used
-        # (in this case `/product-projections`).
-        # Should be fixed upstream in the `node-sdk`.
-        productsService.asSearch()
-      else
-        productsService
+      productsService
     else
       productsService.all().perPage(500).staged(staged)
 
