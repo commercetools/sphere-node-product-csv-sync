@@ -76,11 +76,12 @@ class Export
 
     # filter prices of filtered variants
     return _.map(filteredVariants, (variant) =>
-      variant.prices = @_filterPrices(
-        variant.prices,
-        @queryOptions.filterPrices
-      )
-      if variant.prices.length == 0 then return null
+      if @queryOptions.filterPrices?.length > 0
+        variant.prices = @_filterPrices(
+          variant.prices,
+          @queryOptions.filterPrices
+        )
+        if variant.prices.length == 0 then return null
       return variant
     )
 

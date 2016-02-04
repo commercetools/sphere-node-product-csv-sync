@@ -23,6 +23,24 @@ describe 'Export', ->
 
   describe 'Function to filter variants by attributes', ->
 
+    it 'should keep all variants if no filter for price is given', ->
+
+      # init variant without price
+      variant = variantFactory()
+      variant.prices = []
+      # filter for US prices -> no price should be left in variant
+      filteredVariants = @exporter._filterVariantsByAttributes(
+        [ variant ],
+        []
+      )
+
+      console.log filteredVariants
+
+      actual = filteredVariants[0]
+      expected = variant
+
+      expect(actual).toEqual(expected)
+
     it 'should keep variants that meet the filter condition', ->
 
       variant = variantFactory()
