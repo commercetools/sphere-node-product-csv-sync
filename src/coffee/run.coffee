@@ -281,10 +281,11 @@ module.exports = class
       .option '-j, --json', 'Export in JSON format'
       .option '-q, --queryString <query>', 'Query string to specify the sub-set of products to export'
       .option '-l, --language [lang]', 'Language used on export for localised attributes (except lenums) and category names (default is en)'
-      .option '--queryType <type>', 'Whether to do a query or a search request', 'query'
       .option '--queryEncoded', 'Whether the given query string is already encoded or not', false
       .option '--fillAllRows', 'When given product attributes like name will be added to each variant row.'
       .option '--categoryBy <name>', 'Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.'
+      .option '--filterVariantsByAttributes <query>', 'Query string to filter variants of products', 'query'
+      .option '--filterPrices <query>', 'Query string to filter prices of products', 'query'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) =>
         GLOBALS.DEFAULT_LANGUAGE = opts.language
@@ -302,8 +303,9 @@ module.exports = class
             export:
               show_progress: true
               queryString: opts.queryString
-              queryType: opts.queryType
               isQueryEncoded: opts.queryEncoded or false
+              filterVariantsByAttributes: opts.filterVariantsByAttributes
+              filterPrices: opts.filterPrices
           options.client.host = program.sphereHost if program.sphereHost
           options.client.protocol = program.sphereProtocol if program.sphereProtocol
           if program.sphereAuthHost

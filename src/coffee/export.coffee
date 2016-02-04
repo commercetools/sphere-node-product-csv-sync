@@ -19,8 +19,12 @@ class Export
   constructor: (@options = {}) ->
     @queryOptions =
       queryString: @options.export?.queryString?.trim()
-      queryType: @options.export?.queryType
       isQueryEncoded: @options.export?.isQueryEncoded
+      filterVariantsByAttributes: @_parseQuery(
+        @options.export?.filterVariantsByAttributes
+      )
+      filterPrices: @_parseQuery(@options.export?.filterPrices)
+
     @client = new SphereClient @options.client
 
     # TODO: using single mapping util instead of services
@@ -29,6 +33,57 @@ class Export
     @channelService = new Channels()
     @customerGroupService = new CustomerGroups()
     @taxService = new Taxes()
+
+  _parseQuery: (queryStr) ->
+    if !queryStr then return null
+    return _.map(
+      queryStr.split('&'),
+      (filter) ->
+        filter = filter.split('=')
+        if filter[1] == 'true' || filter[1] == 'false'
+          filter[1] = filter[1] == 'true'
+        return {
+          name: filter[0]
+          value: filter[1]
+        }
+    )
+
+  _filterPrices: (prices, filters) ->
+    _.filter(prices, (price) ->
+      return _.reduce(
+        filters,
+        (filterOutPrice, filter) ->
+          return filterOutPrice && price[filter.name] == filter.value
+      , true)
+    )
+
+  _filterVariantsByAttributes: (variants, filter) ->
+    filteredVariants = _.filter(variants, (variant) ->
+      return if filter?.length > 0
+        _.reduce(
+          filter,
+          (filterOutVariant, filter) ->
+            # filter attributes
+            attribute = _.findWhere(variant.attributes, {
+              name: filter.name
+            })
+            return filterOutVariant && !!attribute &&
+              (attribute.value == filter.value)
+        , true)
+      else
+        true
+    )
+
+    # filter prices of filtered variants
+    return _.map(filteredVariants, (variant) =>
+      if @queryOptions.filterPrices?.length > 0
+        variant.prices = @_filterPrices(
+          variant.prices,
+          @queryOptions.filterPrices
+        )
+        if variant.prices.length == 0 then return null
+      return variant
+    )
 
   _initMapping: (header) ->
     _.extend @options,
@@ -45,14 +100,7 @@ class Export
     productsService = @client.productProjections
     if @queryOptions.queryString
       productsService.byQueryString(@queryOptions.queryString, @queryOptions.isQueryEncoded)
-      if @queryOptions.queryType is 'search'
-        # FIXME: this doesn't work with methods like `process`
-        # as the base resource endpoint will be used
-        # (in this case `/product-projections`).
-        # Should be fixed upstream in the `node-sdk`.
-        productsService.asSearch()
-      else
-        productsService
+      productsService
     else
       productsService.all().perPage(500).staged(staged)
 
@@ -90,8 +138,27 @@ class Export
             current = products.body.offset + products.body.count
             console.warn "Fetched #{products.body.count} product(s)."
             csv = []
-            _.each products.body.results, (product) ->
-              csv = csv.concat exportMapping.mapProduct(product, productTypes.body.results)
+
+            _.each products.body.results, (product) =>
+              # filter variants
+              product.variants = @_filterVariantsByAttributes(
+                product.variants,
+                @queryOptions.filterVariantsByAttributes
+              )
+              # filter masterVariant
+              [ product.masterVariant ] = @_filterVariantsByAttributes(
+                [ product.masterVariant ],
+                @queryOptions.filterVariantsByAttributes
+              )
+              # if the master variant got filtered out
+              # we need to set it as an empty object to not break following code
+              if !product.masterVariant then product.masterVariant = {}
+              # remove all the variants that don't meet the price condition
+              product.variants = _.compact(product.variants)
+              csv = csv.concat exportMapping.mapProduct(
+                product,
+                productTypes.body.results
+              )
             @_saveCSV(outputFile, csv, true)
 
           @_saveCSV(outputFile, [ header.rawHeader ] )
