@@ -284,8 +284,8 @@ module.exports = class
       .option '--queryEncoded', 'Whether the given query string is already encoded or not', false
       .option '--fillAllRows', 'When given product attributes like name will be added to each variant row.'
       .option '--categoryBy <name>', 'Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.'
-      .option '--filterVariantsByAttributes <query>', 'Query string to filter variants of products', 'query'
-      .option '--filterPrices <query>', 'Query string to filter prices of products', 'query'
+      .option '--filterVariantsByAttributes <query>', 'Query string to filter variants of products'
+      .option '--filterPrices <query>', 'Query string to filter prices of products'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) =>
         GLOBALS.DEFAULT_LANGUAGE = opts.language
