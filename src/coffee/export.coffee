@@ -150,9 +150,6 @@ class Export
                 [ product.masterVariant ],
                 @queryOptions.filterVariantsByAttributes
               )
-              # if the master variant got filtered out
-              # we need to set it as an empty object to not break following code
-              if !product.masterVariant then product.masterVariant = {}
               # remove all the variants that don't meet the price condition
               product.variants = _.compact(product.variants)
               csv = csv.concat exportMapping.mapProduct(

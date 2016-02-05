@@ -24,7 +24,8 @@ class ExportMapping
 
     rows = []
     productRow = @_mapBaseProduct product, productType
-    rows.push productRow
+    if product.masterVariant
+      rows.push productRow
 
     if product.variants
       for variant in product.variants
@@ -53,7 +54,10 @@ class ExportMapping
       else [ attribute.name ]
 
   _mapBaseProduct: (product, productType) ->
-    row = @_mapVariant product.masterVariant, productType
+    row = if product.masterVariant
+      @_mapVariant product.masterVariant, productType
+    else
+      []
 
     if @header.has(CONS.HEADER_PUBLISHED)
       row[@header.toIndex CONS.HEADER_PUBLISHED] = "#{product.published}"
