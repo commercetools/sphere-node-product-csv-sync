@@ -267,6 +267,7 @@ The current implementation allows the set the SEO attributes only if all three S
 - metaDescriptions
 - metaKeywords
 
+
 #### Search Keywords
 You can import [Search Keywords](http://dev.commercetools.com/http-api-projects-products.html#search-keywords) that enables to use the Search Suggestion Feature. You can define a list of keywords for each language separated by `;`:
 
@@ -277,6 +278,20 @@ London;Bristol;Manchester,Liège;Bruxelles;Anvers,Berlin;Köln;München
 
 
 At the moment this importer only supports the default tokenizer, which means each of the semicolon-separated strings will be treated as a whole token. Therefore you have to separate everything that you want to see as a separate token into one entry delimited by semicolon.
+
+#### Category Order Hints
+
+In the `categoryOrderHints` column you can define a list of category order hints for each category that the product belongs to separated by `;`:
+```
+e8a19675-82af-4c00-98e6-fa9a020b1c51:0.4;myCategoriesName:0.9;myExternalCategoryId:0.2
+```
+The pattern a category order hint is as follows:
+```
+<category-ref>:<order-hint>
+```
+Note:
+- `<category-ref>` must be a valid ID referencing an existing category that the product is assigned to. You can reference the category using its `id`, `name` or `externalId`.
+- `<order-hint>` has to be a String that is representing a decimal value that is > 0.0 and < 1.0 (0 < orderHint < 1)
 
 ## Product State
 
@@ -362,16 +377,18 @@ productType,name.en,variantId
 
   Options:
 
-    -h, --help                 output usage information
-    -t, --template <file>      CSV file containing your header that defines what you want to export
-    -o, --out <file>           Path to the file the exporter will write the resulting CSV in
-    -j, --json                 Export in JSON format
-    -q, --queryString <query>  Query string to specify the sub-set of products to export
-    -l, --language [lang]      Language used on export for localised attributes (except lenums) and category names (default is en)
-    --queryType <type>         Whether to do a query or a search request
-    --queryEncoded             Whether the given query string is already encoded or not
-    --fillAllRows              When given product attributes like name will be added to each variant row.
-    --categoryBy               Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.
+    -h, --help                    output usage information
+    -t, --template <file>         CSV file containing your header that defines what you want to export
+    -o, --out <file>              Path to the file the exporter will write the resulting CSV in
+    -j, --json                    Export in JSON format
+    -q, --queryString <query>     Query string to specify the sub-set of products to export
+    -l, --language [lang]         Language used on export for localised attributes (except lenums) and category names (default is en)
+    --queryType <type>            Whether to do a query or a search request
+    --queryEncoded                Whether the given query string is already encoded or not
+    --fillAllRows                 When given product attributes like name will be added to each variant row.
+    --categoryBy                  Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.
+    --filterVariantsByAttributes  Query string to filter variants of products
+    --filterPrices  Query string to filter prices of variants
 ```
 
 #### Export as JSON
@@ -409,7 +426,7 @@ The labels of localized enums can not be imported - instead they need to be mana
 
 ##### Example
 
-Export the key and the english label of the attributes `myLenum` and `mySetOfLenum`. 
+Export the key and the english label of the attributes `myLenum` and `mySetOfLenum`.
 
 ```csv
 variantId,myLenum,myLenum.en,mySetOfLenum,mySetOfLenum.en
