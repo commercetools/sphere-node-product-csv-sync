@@ -267,6 +267,18 @@ The current implementation allows the set the SEO attributes only if all three S
 - metaDescriptions
 - metaKeywords
 
+
+#### Search Keywords
+You can import [Search Keywords](http://dev.commercetools.com/http-api-projects-products.html#search-keywords) that enables to use the Search Suggestion Feature. You can define a list of keywords for each language separated by `;`:
+
+```
+searchKeywords,searchKeywords.fr-BE,searchKeywords.de
+London;Bristol;Manchester,Liège;Bruxelles;Anvers,Berlin;Köln;München
+```
+
+
+At the moment this importer only supports the default tokenizer, which means each of the semicolon-separated strings will be treated as a whole token. Therefore you have to separate everything that you want to see as a separate token into one entry delimited by semicolon.
+
 #### Category Order Hints
 
 In the `categoryOrderHints` column you can define a list of category order hints for each category that the product belongs to separated by `;`:

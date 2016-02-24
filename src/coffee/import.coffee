@@ -262,12 +262,13 @@ class Import
         when 'setMetaTitle' then header.has(CONS.HEADER_META_TITLE) or header.hasLanguageForBaseAttribute(CONS.HEADER_META_TITLE)
         when 'setMetaDescription' then header.has(CONS.HEADER_META_DESCRIPTION) or header.hasLanguageForBaseAttribute(CONS.HEADER_META_DESCRIPTION)
         when 'setMetaKeywords' then header.has(CONS.HEADER_META_KEYWORDS) or header.hasLanguageForBaseAttribute(CONS.HEADER_META_KEYWORDS)
+        when 'setSearchKeywords' then header.has(CONS.HEADER_SEARCH_KEYWORDS) or header.hasLanguageForBaseAttribute(CONS.HEADER_SEARCH_KEYWORDS)
         when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
         when 'setSKU' then header.has(CONS.HEADER_SKU)
         when 'addVariant', 'addPrice', 'removePrice', 'changePrice', 'addExternalImage', 'removeImage' then true
         when 'removeVariant' then @allowRemovalOfVariants
-        else throw Error "The action '#{action.action}' is not supported. Please contact the SPHERE.IO team!"
+        else throw Error "The action '#{action.action}' is not supported. Please contact the commercetools support team!"
 
     if @dryRun
       if filtered.shouldUpdate()

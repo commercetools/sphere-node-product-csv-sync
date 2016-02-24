@@ -3,6 +3,7 @@ _.mixin require('underscore-mixins')
 {Import} = require '../../lib/main'
 Config = require '../../config'
 TestHelpers = require './testhelpers'
+cuid = require 'cuid'
 
 TEXT_ATTRIBUTE_NONE = 'attr-text-n'
 LTEXT_ATTRIBUTE_COMBINATION_UNIQUE = 'attr-ltext-cu'
@@ -445,8 +446,8 @@ describe 'Import integration test', ->
     it 'should do a partial update of product base attributes', (done) ->
       csv =
         """
-        productType,name.en,description.en,slug.en,variantId
-        #{@productType.id},#{@newProductName},foo bar,#{@newProductSlug},1
+        productType,name.en,description.en,slug.en,variantId,searchKeywords.en,searchKeywords.fr
+        #{@productType.id},#{@newProductName},foo bar,#{@newProductSlug},1,new;search;keywords,nouvelle;trouve
         """
       @importer.import(csv)
       .then (result) =>
@@ -454,8 +455,8 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,slug.en,variantId
-          #{@productType.id},#{@newProductSlug},1
+          productType,slug.en,variantId,searchKeywords.en,searchKeywords.fr
+          #{@productType.id},#{@newProductSlug},1,new;search;keywords,nouvelle;trouve
           """
         im = createImporter()
         im.matchBy = 'slug'
@@ -465,8 +466,8 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         csv =
           """
-          productType,slug,name,variantId,sku
-          #{@productType.id},#{@newProductSlug},#{@newProductName+'_changed'},1,#{@newProductSku}
+          productType,slug,name,variantId,sku,searchKeywords.de
+          #{@productType.id},#{@newProductSlug},#{@newProductName+'_changed'},1,#{@newProductSku},neue;such;schlagwoerter
           """
         im = createImporter()
         im.matchBy = 'slug'
@@ -483,6 +484,68 @@ describe 'Import integration test', ->
         expect(p.description).toEqual {en: 'foo bar'}
         expect(p.slug).toEqual {en: @newProductSlug}
         expect(p.masterVariant.sku).toBe @newProductSku
+        done()
+      .catch (err) -> done _.prettify(err)
+
+    iit 'should do a partial update of search keywords', (done) ->
+      sku = cuid()
+      @client.products.create
+        name:
+          en: @newProductName
+        productType:
+          id: @productType.id
+          type: 'product-type'
+        slug:
+          en: @newProductSlug
+        searchKeywords:
+          en: [
+            { text: "new" },
+            { text: "search" },
+            { text: "keywords" }
+          ],
+          fr: [
+            { text: "nouvelle" },
+            { text: "trouve" }
+          ]
+          de: [
+            { text: "deutsche" },
+            { text: "kartoffel" }
+          ]
+        masterVariant:
+          sku: sku
+      .then ({ body: { masterData: { current: { masterVariant } } } }) =>
+        csv =
+          """
+          productType,variantId,sku,searchKeywords.en,searchKeywords.fr
+          #{@productType.id},#{masterVariant.id},#{masterVariant.sku},newNew;search;keywords,nouvelleNew;trouveNew
+          """
+        im = createImporter()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        @client.productProjections.staged(true).where("name (en = \"#{@newProductName}\")").fetch()
+      .then (result) ->
+        expect(result.body.results[0].searchKeywords).toEqual
+          "en": [
+            {
+              "text": "newNew"
+            },
+            {
+              "text": "search"
+            },
+            {
+              "text": "keywords"
+            }
+          ],
+          "fr": [
+            {
+              "text": "nouvelleNew"
+            },
+            {
+              "text": "trouveNew"
+            }
+          ]
         done()
       .catch (err) -> done _.prettify(err)
 
