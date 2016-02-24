@@ -3,6 +3,7 @@ _.mixin require('underscore-mixins')
 {Import} = require '../../lib/main'
 Config = require '../../config'
 TestHelpers = require './testhelpers'
+cuid = require 'cuid'
 
 TEXT_ATTRIBUTE_NONE = 'attr-text-n'
 LTEXT_ATTRIBUTE_COMBINATION_UNIQUE = 'attr-ltext-cu'
@@ -486,29 +487,45 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should do a partial update of search keywords', (done) ->
-      csv =
-        """
-        productType,name.en,slug.en,searchKeywords.en,searchKeywords.fr,searchKeywords.de
-        #{@productType.id},#{@newProductName},#{@newProductSlug},new;search;keywords,nouvelle;trouve,deutsche;kartoffel
-        """
-      @importer.import(csv)
-      .then (result) =>
-        expect(_.size result).toBe 1
-        expect(result[0]).toBe '[row 2] New product created.'
+    iit 'should do a partial update of search keywords', (done) ->
+      sku = cuid()
+      @client.products.create
+        name:
+          en: @newProductName
+        productType:
+          id: @productType.id
+          type: 'product-type'
+        slug:
+          en: @newProductSlug
+        searchKeywords:
+          en: [
+            { text: "new" },
+            { text: "search" },
+            { text: "keywords" }
+          ],
+          fr: [
+            { text: "nouvelle" },
+            { text: "trouve" }
+          ]
+          de: [
+            { text: "deutsche" },
+            { text: "kartoffel" }
+          ]
+        masterVariant:
+          sku: sku
+      .then ({ body: { masterData: { current: { masterVariant } } } }) =>
         csv =
           """
-          productType,slug.en,searchKeywords.en,searchKeywords.fr
-          #{@productType.id},#{@newProductSlug},newNew;search;keywords,nouvelleNew;trouveNew
+          productType,variantId,sku,searchKeywords.en,searchKeywords.fr
+          #{@productType.id},#{masterVariant.id},#{masterVariant.sku},newNew;search;keywords,nouvelleNew;trouveNew
           """
         im = createImporter()
-        im.matchBy = 'slug'
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
         @client.productProjections.staged(true).where("name (en = \"#{@newProductName}\")").fetch()
-      .then (result) =>
+      .then (result) ->
         expect(result.body.results[0].searchKeywords).toEqual
           "en": [
             {
