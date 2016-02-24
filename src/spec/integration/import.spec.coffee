@@ -489,8 +489,8 @@ describe 'Import integration test', ->
     it 'should do a partial update of search keywords', (done) ->
       csv =
         """
-        productType,name.en,slug.en,sku,searchKeywords.en,searchKeywords.fr,searchKeywords.de
-        #{@productType.id},#{@newProductName},#{@newProductSlug},mySku,new;search;keywords,nouvelle;trouve,deutsche;kartoffel
+        productType,name.en,slug.en,searchKeywords.en,searchKeywords.fr,searchKeywords.de
+        #{@productType.id},#{@newProductName},#{@newProductSlug},new;search;keywords,nouvelle;trouve,deutsche;kartoffel
         """
       @importer.import(csv)
       .then (result) =>
@@ -527,14 +527,6 @@ describe 'Import integration test', ->
             },
             {
               "text": "trouveNew"
-            },
-          ]
-          "de": [
-            {
-              text: "deutsche"
-            },
-            {
-              text: "kartoffel"
             }
           ]
         done()
