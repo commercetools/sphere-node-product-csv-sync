@@ -1,7 +1,7 @@
 {
   "name": "sphere-node-product-csv-sync",
   "description": "Import and export your products from/to your SPHERE.IO project.",
-  "version": "0.7.3",
+  "version": "0.8.0",
   "homepage": "https://github.com/sphereio/sphere-node-product-csv-sync",
   "private": false,
   "author": {
