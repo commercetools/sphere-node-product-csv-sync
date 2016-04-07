@@ -126,6 +126,9 @@ describe "QueryUtils", ->
   describe "matchByCustomAttribute", ->
     it "should return query predicte based on products provided", ->
       predicate = QueryUtils.matchByCustomAttribute("key")(products)
-      expect(predicate).toEqual("masterVariant(key in " +
-      "(\"1\", \"2\", \"3\", \"4\", \"5\", \"6\")) or " +
-      "variants(key in (\"1\", \"2\", \"3\", \"4\", \"5\", \"6\"))")
+      expect(predicate).toEqual(
+        "masterVariant(attributes(name=\"key\" and value in
+        (\"1\", \"2\", \"3\", \"4\", \"5\", \"6\"))) or
+        variants(attributes(name=\"key\" and value in
+        (\"1\", \"2\", \"3\", \"4\", \"5\", \"6\")))"
+      )

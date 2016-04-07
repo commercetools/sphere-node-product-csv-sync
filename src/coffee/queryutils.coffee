@@ -50,7 +50,7 @@ class QueryUtils
         ].concat(p.product.variants.map((v) ->
           QueryUtils.valueOf(v.attributes, attribute)))))
           .filter(Helpers.exists)
-      predicate = QueryUtils.formatAttributePredicate(attribute, values)
+      predicate = QueryUtils.formatCustomAttributePredicate(attribute, values)
       QueryUtils.applyPredicateToVariants(predicate)
 
   # Withdraw particular attribute value out of attributes collection
@@ -64,6 +64,9 @@ class QueryUtils
 
   @formatAttributePredicate: (name, items) ->
     "#{name} in (\"#{items.join('", "')}\")"
+
+  @formatCustomAttributePredicate: (name, items) ->
+    "attributes(name=\"#{name}\" and value in (\"#{items.join('", "')}\"))"
 
   @applyPredicateToVariants: (predicate) ->
     "masterVariant(#{predicate}) or variants(#{predicate})"
