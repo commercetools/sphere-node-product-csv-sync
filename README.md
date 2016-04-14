@@ -383,7 +383,6 @@ productType,name.en,variantId
     -j, --json                    Export in JSON format
     -q, --queryString <query>     Query string to specify the sub-set of products to export
     -l, --language [lang]         Language used on export for localised attributes (except lenums) and category names (default is en)
-    --queryType <type>            Whether to do a query or a search request
     --queryEncoded                Whether the given query string is already encoded or not
     --fillAllRows                 When given product attributes like name will be added to each variant row.
     --categoryBy                  Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.
