@@ -487,7 +487,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    iit 'should do a partial update of search keywords', (done) ->
+    it 'should do a partial update of search keywords', (done) ->
       sku = cuid()
       @client.products.create
         name:
