@@ -265,7 +265,7 @@ class Import
         when 'setSearchKeywords' then header.has(CONS.HEADER_SEARCH_KEYWORDS) or header.hasLanguageForBaseAttribute(CONS.HEADER_SEARCH_KEYWORDS)
         when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
-        when 'setSKU' then header.has(CONS.HEADER_SKU)
+        when 'setSku' then header.has(CONS.HEADER_SKU)
         when 'addVariant', 'addPrice', 'removePrice', 'changePrice', 'addExternalImage', 'removeImage' then true
         when 'removeVariant' then @allowRemovalOfVariants
         else throw Error "The action '#{action.action}' is not supported. Please contact the commercetools support team!"
