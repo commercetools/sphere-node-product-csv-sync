@@ -104,7 +104,7 @@ class Export
     else
       productsService.all().perPage(500).staged(staged)
 
-  export: (templateContent, outputFile, staged = true) ->
+  export: (templateContent, outputFile, staged = true) =>
     @_parse(templateContent)
     .then (header) =>
       errors = header.validate()
@@ -160,7 +160,6 @@ class Export
 
           @_saveCSV(outputFile, [ header.rawHeader ] )
           .then (r) =>
-
             @_getProductService(staged)
             .process(processChunk, {accumulate: false})
             .then (result) ->
@@ -219,10 +218,10 @@ class Export
             else
               Promise.reject 'Please re-run and select a valid number.'
 
-  _saveCSV: (file, content, append) ->
+  _saveCSV: (file, content, append) =>
     flags = if append then 'a' else 'w'
-    new Promise (resolve, reject) ->
-      parsedCsv = Csv().from content
+    new Promise (resolve, reject) =>
+      parsedCsv = Csv().from(content, {delimiter: @options.cellDelimiter})
       opts =
         encoding: 'utf8'
         flags: flags
@@ -243,9 +242,11 @@ class Export
     if file then fs.writeFileAsync file, content, opts
     else process.stdout.write content
 
-  _parse: (csvString) ->
-    new Promise (resolve, reject) ->
-      Csv().from.string(csvString)
+  _parse: (csvString) =>
+    new Promise (resolve, reject) =>
+      csvString = _.trim(csvString, @options.templateDelimiter)
+
+      Csv().from.string(csvString, {delimiter: @options.templateDelimiter})
       .to.array (data, count) ->
         header = new Header(data[0])
         resolve header

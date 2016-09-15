@@ -388,6 +388,9 @@ productType,name.en,variantId
     --categoryBy                  Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.
     --filterVariantsByAttributes  Query string to filter variants of products
     --filterPrices  Query string to filter prices of variants
+    --templateDelimiter <delimiter> Delimiter used in template | default: ,
+    --cellDelimiter <delimiter>   Delimiter used to sepparate cells in output file | default: ,
+
 ```
 
 #### Export as JSON

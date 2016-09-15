@@ -286,6 +286,8 @@ module.exports = class
       .option '--categoryBy <name>', 'Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.'
       .option '--filterVariantsByAttributes <query>', 'Query string to filter variants of products'
       .option '--filterPrices <query>', 'Query string to filter prices of products'
+      .option '--templateDelimiter <delimiterTemaplate>', 'Delimiter used in template | default: ,', ","
+      .option '--cellDelimiter <delimiterCell>', 'Delimiter used to sepparate cells in output file | default: ,', ","
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) =>
         GLOBALS.DEFAULT_LANGUAGE = opts.language
@@ -295,6 +297,8 @@ module.exports = class
         @_ensureCredentials(program)
         .then (credentials) ->
           options =
+            cellDelimiter: opts.cellDelimiter
+            templateDelimiter: opts.templateDelimiter
             fillAllRows: opts.fillAllRows
             categoryBy: opts.categoryBy
             client: _.extend credentials,
