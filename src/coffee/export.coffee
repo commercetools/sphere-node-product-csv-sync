@@ -244,8 +244,6 @@ class Export
 
   _parse: (csvString) =>
     new Promise (resolve, reject) =>
-      # remove delimiter at the end/beggining of header if there is any
-      csvString = _.trim(csvString, @options.templateDelimiter)
 
       Csv().from.string(csvString, {delimiter: @options.templateDelimiter})
       .to.array (data, count) ->
