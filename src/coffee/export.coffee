@@ -110,7 +110,7 @@ class Export
   # return the correct product service in case query string is used or not
   _getProductService: (staged = true, customCondition = false) ->
     productsService = @client.productProjections
-    if(customCondition)
+    if customCondition
       productsService.where(customCondition)
 
     if @queryOptions.queryString
@@ -175,7 +175,7 @@ class Export
         filePath = path.join(tempDir.name, fileName)
         condition = 'productType(id="'+type.id+'")'
 
-        @export csv.join(","), filePath, productTypes, staged, condition, false
+        @export csv.join(@options.templateDelimiter), filePath, productTypes, staged, condition, false
       .then =>
         console.log "All productTypes were processed - archiving output folder"
         @_archiveFolder tempDir.name, output
@@ -197,7 +197,7 @@ class Export
       Promise.resolve()
     else
       @createdFiles[outputFile] = 1
-      @_saveCSV(outputFile, [ header.rawHeader ] )
+      @_saveCSV(outputFile, [ header.rawHeader ])
     )
     .then =>
       _.each products.body.results, (product) =>
