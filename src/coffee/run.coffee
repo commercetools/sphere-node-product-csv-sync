@@ -287,7 +287,7 @@ module.exports = class
       .option '--filterVariantsByAttributes <query>', 'Query string to filter variants of products'
       .option '--filterPrices <query>', 'Query string to filter prices of products'
       .option '--templateDelimiter <delimiterTemaplate>', 'Delimiter used in template | default: ,', ","
-      .option '--cellDelimiter <delimiterCell>', 'Delimiter used to sepparate cells in output file | default: ,', ","
+      .option '--cellDelimiter <delimiterCell>', 'Delimiter used to separate cells in output file | default: ,', ","
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) =>
         GLOBALS.DEFAULT_LANGUAGE = opts.language

@@ -389,7 +389,7 @@ productType,name.en,variantId
     --filterVariantsByAttributes  Query string to filter variants of products
     --filterPrices  Query string to filter prices of variants
     --templateDelimiter <delimiter> Delimiter used in template | default: ,
-    --cellDelimiter <delimiter>   Delimiter used to sepparate cells in output file | default: ,
+    --cellDelimiter <delimiter>   Delimiter used to separate cells in output file | default: ,
 
 ```
 
