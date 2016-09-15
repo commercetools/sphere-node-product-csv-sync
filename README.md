@@ -349,6 +349,7 @@ If you leave this options out, you will be ask for which product type to generat
     -h, --help                   output usage information
     -o, --out <file>             Path to the file the exporter will write the resulting CSV in
     -l, --languages [lang,lang]  List of languages to use for template (default is [en])
+    --outputDelimiter <delimiter> Delimiter used to separate cells in output file | default: ,
     --all                        Generates one template for all product types - if not given you will be ask which product type to use
 ```
 
@@ -389,7 +390,7 @@ productType,name.en,variantId
     --filterVariantsByAttributes  Query string to filter variants of products
     --filterPrices  Query string to filter prices of variants
     --templateDelimiter <delimiter> Delimiter used in template | default: ,
-    --cellDelimiter <delimiter>   Delimiter used to separate cells in output file | default: ,
+    --outputDelimiter <delimiter>   Delimiter used to separate cells in output file | default: ,
 
 ```
 

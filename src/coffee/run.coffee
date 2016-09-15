@@ -286,8 +286,8 @@ module.exports = class
       .option '--categoryBy <name>', 'Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.'
       .option '--filterVariantsByAttributes <query>', 'Query string to filter variants of products'
       .option '--filterPrices <query>', 'Query string to filter prices of products'
-      .option '--templateDelimiter <delimiterTemaplate>', 'Delimiter used in template | default: ,', ","
-      .option '--cellDelimiter <delimiterCell>', 'Delimiter used to separate cells in output file | default: ,', ","
+      .option '--templateDelimiter <delimiter>', 'Delimiter used in template | default: ,', ","
+      .option '--outputDelimiter <delimiter>', 'Delimiter used to separate cells in output file | default: ,', ","
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) =>
         GLOBALS.DEFAULT_LANGUAGE = opts.language
@@ -297,7 +297,7 @@ module.exports = class
         @_ensureCredentials(program)
         .then (credentials) ->
           options =
-            cellDelimiter: opts.cellDelimiter
+            outputDelimiter: opts.outputDelimiter
             templateDelimiter: opts.templateDelimiter
             fillAllRows: opts.fillAllRows
             categoryBy: opts.categoryBy
@@ -357,6 +357,7 @@ module.exports = class
       .command 'template'
       .description 'Create a template for a product type of your SPHERE.IO project.'
       .option '-o, --out <file>', 'Path to the file the exporter will write the resulting CSV in'
+      .option '--outputDelimiter <delimiter>', 'Delimiter used to separate cells in output file | default: ,', ","
       .option '-l, --languages [lang,lang]', 'List of languages to use for template (default is [en])', @_list, ['en']
       .option '--all', 'Generates one template for all product types - if not given you will be ask which product type to use'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --out <file>'
@@ -367,6 +368,7 @@ module.exports = class
         @_ensureCredentials(program)
         .then (credentials) ->
           options =
+            outputDelimiter: opts.outputDelimiter
             client: credentials
             timeout: program.timeout
             show_progress: true
