@@ -1,5 +1,8 @@
 _ = require 'underscore'
 Csv = require 'csv'
+archiver = require 'archiver'
+path = require 'path'
+tmp = require 'tmp'
 Promise = require 'bluebird'
 fs = Promise.promisifyAll require('fs')
 prompt = Promise.promisifyAll require('prompt')
@@ -11,6 +14,10 @@ CustomerGroups = require './customergroups'
 Header = require './header'
 Taxes = require './taxes'
 ExportMapping = require './exportmapping'
+GLOBALS = require './globals'
+
+# will clean temporary files even when an uncaught exception occurs
+tmp.setGracefulCleanup()
 
 # TODO:
 # - JSDoc
@@ -33,6 +40,8 @@ class Export
     @channelService = new Channels()
     @customerGroupService = new CustomerGroups()
     @taxService = new Taxes()
+
+    @createdFiles = {}
 
   _parseQuery: (queryStr) ->
     if !queryStr then return null
@@ -96,15 +105,118 @@ class Export
     new ExportMapping(@options)
 
   # return the correct product service in case query string is used or not
-  _getProductService: (staged = true) ->
+  _getProductService: (staged = true, customCondition = false) ->
     productsService = @client.productProjections
+    if(customCondition)
+      productsService.where(customCondition)
+
     if @queryOptions.queryString
       productsService.byQueryString(@queryOptions.queryString, @queryOptions.isQueryEncoded)
       productsService
     else
       productsService.all().perPage(500).staged(staged)
 
-  export: (templateContent, outputFile, staged = true) ->
+  _fetchResources: =>
+    data = [
+      @typesService.getAll @client
+      @categoryService.getAll @client
+      @channelService.getAll @client
+      @customerGroupService.getAll @client
+      @taxService.getAll @client
+    ]
+    Promise.all(data)
+    .then ([productTypes, categories, channels, customerGroups, taxes]) =>
+      @typesService.buildMaps productTypes.body.results
+      @categoryService.buildMaps categories.body.results
+      @channelService.buildMaps channels.body.results
+      @customerGroupService.buildMaps customerGroups.body.results
+      @taxService.buildMaps taxes.body.results
+
+      console.warn "Fetched #{productTypes.body.total} product type(s)."
+      Promise.resolve({productTypes, categories, channels, customerGroups, taxes})
+
+  exportDefault: (templateContent, outputFile, staged = true) =>
+    @_fetchResources()
+    .then ({productTypes}) =>
+      @export templateContent, outputFile, productTypes, staged, false, true
+
+  _archiveFolder: (inputFolder, outputFile) ->
+    output = fs.createWriteStream(outputFile)
+    archive = archiver 'zip'
+
+    new Promise (resolve, reject) ->
+      output.on 'close', () -> resolve()
+      archive.on 'error', (err) -> reject(err)
+      archive.pipe output
+
+      archive.bulk([
+        { expand: true, cwd: inputFolder, src: ['**'], dest: 'products'}
+      ])
+      archive.finalize()
+
+  exportFull: (output, staged = true) =>
+    lang = GLOBALS.DEFAULT_LANGUAGE
+    console.log 'Creating full export for "%s" language', lang
+
+    @_fetchResources()
+    .then ({productTypes}) =>
+      tempDir = tmp.dirSync({ unsafeCleanup: true })
+
+      if productTypes.body.results.length
+        console.log "Creating temp directory in %s", tempDir.name
+
+      Promise.map productTypes.body.results, (type) =>
+        console.log 'Processing products with productType "%s"', type.name
+        csv = new ExportMapping().createTemplate(type, [lang])
+        fileName = _.slugify(type.name)+"_"+type.id+".csv"
+        filePath = path.join(tempDir.name, fileName)
+        condition = 'productType(id="'+type.id+'")'
+
+        @export csv.join(","), filePath, productTypes, staged, condition, false
+      .then =>
+        console.log "All productTypes were processed - archiving output folder"
+        @_archiveFolder tempDir.name, output
+      .then ->
+        console.log "Folder was archived and saved to %s", output
+        tempDir.removeCallback()
+        Promise.resolve("Finished successfully")
+
+
+  _processChunk: (products, productTypes, createFileWhenEmpty, header, exportMapper, outputFile) =>
+    console.warn "Fetched #{products.body.count} product(s)."
+    csv = []
+
+    # if there are no products to export
+    if not products.body.count && not createFileWhenEmpty
+      return Promise.resolve()
+
+    (if @createdFiles[outputFile]
+      Promise.resolve()
+    else
+      @createdFiles[outputFile] = 1
+      @_saveCSV(outputFile, [ header.rawHeader ] )
+    )
+    .then =>
+      _.each products.body.results, (product) =>
+        # filter variants
+        product.variants = @_filterVariantsByAttributes(
+          product.variants,
+          @queryOptions.filterVariantsByAttributes
+        )
+        # filter masterVariant
+        [ product.masterVariant ] = @_filterVariantsByAttributes(
+          [ product.masterVariant ],
+          @queryOptions.filterVariantsByAttributes
+        )
+        # remove all the variants that don't meet the price condition
+        product.variants = _.compact(product.variants)
+        csv = csv.concat exportMapper.mapProduct(
+          product,
+          productTypes.body.results
+        )
+      @_saveCSV(outputFile, csv, true)
+
+  export: (templateContent, outputFile, productTypes, staged = true, customCondition = false, createFileWhenEmpty = false) ->
     @_parse(templateContent)
     .then (header) =>
       errors = header.validate()
@@ -113,58 +225,17 @@ class Export
       else
         header.toIndex()
         header.toLanguageIndex()
-        exportMapping = @_initMapping(header)
+        exportMapper = @_initMapping(header)
 
-        data = [
-          @typesService.getAll @client
-          @categoryService.getAll @client
-          @channelService.getAll @client
-          @customerGroupService.getAll @client
-          @taxService.getAll @client
-        ]
-        Promise.all(data)
-        .then ([productTypes, categories, channels, customerGroups, taxes]) =>
-          @typesService.buildMaps productTypes.body.results
-          @categoryService.buildMaps categories.body.results
-          @channelService.buildMaps channels.body.results
-          @customerGroupService.buildMaps customerGroups.body.results
-          @taxService.buildMaps taxes.body.results
+        _.each productTypes.body.results, (productType) ->
+          header._productTypeLanguageIndexes(productType)
 
-          console.warn "Fetched #{productTypes.body.total} product type(s)."
-          _.each productTypes.body.results, (productType) ->
-            header._productTypeLanguageIndexes(productType)
-
-          processChunk = (products) =>
-            current = products.body.offset + products.body.count
-            console.warn "Fetched #{products.body.count} product(s)."
-            csv = []
-
-            _.each products.body.results, (product) =>
-              # filter variants
-              product.variants = @_filterVariantsByAttributes(
-                product.variants,
-                @queryOptions.filterVariantsByAttributes
-              )
-              # filter masterVariant
-              [ product.masterVariant ] = @_filterVariantsByAttributes(
-                [ product.masterVariant ],
-                @queryOptions.filterVariantsByAttributes
-              )
-              # remove all the variants that don't meet the price condition
-              product.variants = _.compact(product.variants)
-              csv = csv.concat exportMapping.mapProduct(
-                product,
-                productTypes.body.results
-              )
-            @_saveCSV(outputFile, csv, true)
-
-          @_saveCSV(outputFile, [ header.rawHeader ] )
-          .then (r) =>
-
-            @_getProductService(staged)
-            .process(processChunk, {accumulate: false})
-            .then (result) ->
-              Promise.resolve "Export done."
+        @_getProductService(staged, customCondition)
+        .process( (products) =>
+          @_processChunk products, productTypes, createFileWhenEmpty, header, exportMapper, outputFile
+        , {accumulate: false})
+        .then ->
+          Promise.resolve "Export done."
 
   exportAsJson: (outputFile) ->
     # TODO:

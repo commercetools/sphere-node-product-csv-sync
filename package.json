@@ -33,6 +33,7 @@
     "test": "grunt coverage"
   },
   "dependencies": {
+    "archiver": "^1.1.0",
     "bluebird": "2.9.x",
     "commander": "2.3.0",
     "csv": "0.3.7",
@@ -41,6 +42,7 @@
     "prompt": "0.2.14",
     "sphere-node-sdk": "^1.15.0",
     "sphere-node-utils": "0.8.0",
+    "tmp": "0.0.28",
     "underscore": "1.8.3",
     "underscore-mixins": "*",
     "underscore.string": "2.4.x"

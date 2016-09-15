@@ -279,6 +279,7 @@ module.exports = class
       .option '-t, --template <file>', 'CSV file containing your header that defines what you want to export'
       .option '-o, --out <file>', 'Path to the file the exporter will write the resulting CSV in'
       .option '-j, --json', 'Export in JSON format'
+      .option '-f, --fullExport', 'Do a full export.'
       .option '-q, --queryString <query>', 'Query string to specify the sub-set of products to export'
       .option '-l, --language [lang]', 'Language used on export for localised attributes (except lenums) and category names (default is en)'
       .option '--queryEncoded', 'Whether the given query string is already encoded or not', false
@@ -314,7 +315,7 @@ module.exports = class
           options.client.oauth_protocol = program.sphereAuthProtocol if program.sphereAuthProtocol
 
           exporter = new Exporter options
-          if 'json' in opts
+          if opts.json
             exporter.exportAsJson(opts.out)
             .then (result) ->
               console.warn result
@@ -325,7 +326,8 @@ module.exports = class
               process.exit 1
             .done()
           else
-            (if opts.template? then fs.readFileAsync opts.template, 'utf8'
+            (if opts.fullExport then Promise.resolve false
+            else if opts.template? then fs.readFileAsync opts.template, 'utf8'
             else new Promise (resolve) ->
               console.warn 'Reading from stdin...'
               chunks = []
@@ -333,7 +335,11 @@ module.exports = class
               process.stdin.on 'end', () -> resolve Buffer.concat chunks
             )
             .then (content) ->
-              exporter.export(content, opts.out)
+              (if content
+                exporter.exportDefault(content, opts.out)
+              else
+                exporter.exportFull(opts.out)
+              )
               .then (result) ->
                 console.warn result
                 process.exit 0
