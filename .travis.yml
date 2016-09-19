@@ -3,7 +3,7 @@ branches:
   except:
     - latest
 node_js:
-  - '4'
+  - '4.5'
 before_script:
   - npm install -g grunt-cli
   - ./create_config.sh
