@@ -407,7 +407,7 @@ node lib/run.js export --projectKey <project_key> --clientId <client_id> --clien
 
 #### Full export
 
-You can export products without need to provide products template. For this option pass `--fullExport` flag together with `--out` parameter containing filePath where will be saved zip archive with exported products.
+You can export products without the need to provide products template. For this option pass the `--fullExport` flag together with the `--out` parameter containing the filePath where the zip archive with the exported products should be saved.
 
 ##### Example
 

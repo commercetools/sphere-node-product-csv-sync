@@ -108,10 +108,10 @@ class Export
     new ExportMapping(@options)
 
   # return the correct product service in case query string is used or not
-  _getProductService: (staged = true, customCondition = false) ->
+  _getProductService: (staged = true, customWherePredicate = false) ->
     productsService = @client.productProjections
-    if customCondition
-      productsService.where(customCondition)
+    if customWherePredicate
+      productsService.where(customWherePredicate)
 
     if @queryOptions.queryString
       productsService.byQueryString(@queryOptions.queryString, @queryOptions.isQueryEncoded)
@@ -163,10 +163,11 @@ class Export
 
     @_fetchResources()
     .then ({productTypes}) =>
-      tempDir = tmp.dirSync({ unsafeCleanup: true })
+      if not productTypes.body.results.length
+        return Promise.reject("No data to export")
 
-      if productTypes.body.results.length
-        console.log "Creating temp directory in %s", tempDir.name
+      tempDir = tmp.dirSync({ unsafeCleanup: true })
+      console.log "Creating temp directory in %s", tempDir.name
 
       Promise.map productTypes.body.results, (type) =>
         console.log 'Processing products with productType "%s"', type.name
@@ -219,7 +220,7 @@ class Export
         )
       @_saveCSV(outputFile, csv, true)
 
-  export: (templateContent, outputFile, productTypes, staged = true, customCondition = false, createFileWhenEmpty = false) ->
+  export: (templateContent, outputFile, productTypes, staged = true, customWherePredicate = false, createFileWhenEmpty = false) ->
     @_parse(templateContent)
     .then (header) =>
       errors = header.validate()
@@ -233,7 +234,7 @@ class Export
         _.each productTypes.body.results, (productType) ->
           header._productTypeLanguageIndexes(productType)
 
-        @_getProductService(staged, customCondition)
+        @_getProductService(staged, customWherePredicate)
         .process( (products) =>
           @_processChunk products, productTypes, createFileWhenEmpty, header, exportMapper, outputFile
         , {accumulate: false})
