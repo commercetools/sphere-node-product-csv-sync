@@ -56,3 +56,19 @@ Feature: Export products
     """
     Fetched 1 product(s)
     """
+
+  @wip
+  Scenario: Export all products
+    When I run `../../bin/product-csv-sync export --projectKey sphere-node-product-csv-sync-94 --out 'exported.zip' --fullExport`
+    Then the exit status should be 0
+    And the output should contain:
+    """
+    Processing products with productType "ImpEx with all types"
+    Fetched 3 product(s).
+    Processing products with productType "theType"
+    Fetched 0 product(s).
+    All productTypes were processed - archiving output folder
+    Folder was archived and saved to exported.zip
+    Export done.
+    """
+    Then a file named "exported.zip" should exist

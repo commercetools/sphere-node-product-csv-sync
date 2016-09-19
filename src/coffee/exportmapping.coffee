@@ -21,7 +21,6 @@ class ExportMapping
 
   mapProduct: (product, productTypes) ->
     productType = productTypes[@typesService.id2index[product.productType.id]]
-    console.dir(product, {depth: 100})
     rows = []
     productRow = @_mapBaseProduct product, productType
     if product.masterVariant

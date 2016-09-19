@@ -164,7 +164,7 @@ class Export
     @_fetchResources()
     .then ({productTypes}) =>
       if not productTypes.body.results.length
-        return Promise.reject("No data to export")
+        return Promise.reject("Project does not have any productTypes.")
 
       tempDir = tmp.dirSync({ unsafeCleanup: true })
       console.log "Creating temp directory in %s", tempDir.name
@@ -177,14 +177,14 @@ class Export
         condition = 'productType(id="'+type.id+'")'
 
         @export csv.join(@options.templateDelimiter), filePath, productTypes, staged, condition, false
+      , { concurrency: 1}
       .then =>
         console.log "All productTypes were processed - archiving output folder"
         @_archiveFolder tempDir.name, output
       .then ->
         console.log "Folder was archived and saved to %s", output
         tempDir.removeCallback()
-        Promise.resolve("Finished successfully")
-
+        Promise.resolve "Export done."
 
   _processChunk: (products, productTypes, createFileWhenEmpty, header, exportMapper, outputFile) =>
     console.warn "Fetched #{products.body.count} product(s)."

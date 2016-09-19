@@ -291,7 +291,8 @@ module.exports = class
       .option '--outputDelimiter <delimiter>', 'Delimiter used to separate cells in output file | default: ,', ","
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) =>
-        GLOBALS.DEFAULT_LANGUAGE = opts.language
+        if opts.language
+          GLOBALS.DEFAULT_LANGUAGE = opts.language
 
         return _subCommandHelp('export') unless program.projectKey
 
