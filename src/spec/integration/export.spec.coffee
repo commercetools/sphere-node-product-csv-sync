@@ -67,7 +67,7 @@ describe 'Export integration tests', ->
   , 60000 # 60sec
 
 
-  xit 'should inform about a bad header in the template', (done) ->
+  it 'should inform about a bad header in the template', (done) ->
     template =
       '''
       productType,name,name
@@ -81,7 +81,7 @@ describe 'Export integration tests', ->
       expect(err[1]).toBe "You need either the column 'variantId' or 'sku' to identify your variants!"
       done()
 
-  xit 'should inform that there are no products', (done) ->
+  it 'should inform that there are no products', (done) ->
     template =
       '''
       productType,name,variantId
@@ -102,7 +102,7 @@ describe 'Export integration tests', ->
       done()
     .catch (err) -> done _.prettify(err)
 
-  xit 'should export based on minimum template', (done) ->
+  it 'should export based on minimum template', (done) ->
     template =
       '''
       productType,name,variantId
@@ -124,7 +124,7 @@ describe 'Export integration tests', ->
       done()
     .catch (err) -> done _.prettify(err)
 
-  xit 'should export labels of lenum and set of lenum', (done) ->
+  it 'should export labels of lenum and set of lenum', (done) ->
     template =
     '''
       productType,name,variantId,attr-lenum-n.en,attr-set-lenum-n.en
