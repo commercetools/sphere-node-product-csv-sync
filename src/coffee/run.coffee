@@ -292,7 +292,8 @@ module.exports = class
       .option '-e, --encoding [encoding]', 'Encoding used when saving data to output file | default: utf8', 'utf8'
     .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) =>
-        GLOBALS.DEFAULT_LANGUAGE = opts.language
+        if opts.language
+          GLOBALS.DEFAULT_LANGUAGE = opts.language
 
         return _subCommandHelp('export') unless program.projectKey
 

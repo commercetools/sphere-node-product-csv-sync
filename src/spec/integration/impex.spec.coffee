@@ -60,7 +60,7 @@ describe 'Impex integration tests', ->
       expect(result[0]).toBe '[row 2] New product created.'
       expect(result[1]).toBe '[row 4] New product created.'
       file = '/tmp/impex.csv'
-      @exporter.export(csv, file)
+      @exporter.exportDefault(csv, file)
       .then (result) =>
         console.log "export", result
         expect(result).toBe 'Export done.'
@@ -95,7 +95,7 @@ describe 'Impex integration tests', ->
       expect(_.size result).toBe 1
       expect(result[0]).toBe '[row 2] New product created.'
       file = '/tmp/impex.csv'
-      @exporter.export(csv, file)
+      @exporter.exportDefault(csv, file)
       .then (result) ->
         console.log "export", result
         expect(result).toBe 'Export done.'
