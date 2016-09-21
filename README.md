@@ -382,6 +382,7 @@ productType,name.en,variantId
     -t, --template <file>         CSV file containing your header that defines what you want to export
     -o, --out <file>              Path to the file the exporter will write the resulting CSV in
     -j, --json                    Export in JSON format
+    -f, --fullExport              Do a full export. Use --out parameter to specify where to save zip archive with exported files
     -q, --queryString <query>     Query string to specify the sub-set of products to export
     -l, --language [lang]         Language used on export for localised attributes (except lenums) and category names (default is en)
     --queryEncoded                Whether the given query string is already encoded or not
@@ -402,6 +403,16 @@ You can export all products as JSON by passing a `--json` flag.
 
 ```
 node lib/run.js export --projectKey <project_key> --clientId <client_id> --clientSecret <client_secret> -j out.json
+```
+
+#### Full export
+
+You can export products without the need to provide products template. For this option pass the `--fullExport` flag together with the `--out` parameter containing the filePath where the zip archive with the exported products should be saved.
+
+##### Example
+
+```
+node lib/run.js export --projectKey <project_key> --clientId <client_id> --clientSecret <client_secret> --fullExport --out products.zip
 ```
 
 #### Export certain products only

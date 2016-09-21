@@ -250,7 +250,7 @@ describe 'categoryOrderHints', ->
           #{@productType.name},#{@product.id},#{@product.lastVariantId},#{@category.id}:0.5
 
           """
-        @export.export(template, file)
+        @export.exportDefault(template, file)
         .then (result) ->
           expect(result).toBe 'Export done.'
           fs.readFileAsync file, {encoding: 'utf8'}

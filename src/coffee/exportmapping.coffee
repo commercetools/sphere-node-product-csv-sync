@@ -21,7 +21,6 @@ class ExportMapping
 
   mapProduct: (product, productTypes) ->
     productType = productTypes[@typesService.id2index[product.productType.id]]
-
     rows = []
     productRow = @_mapBaseProduct product, productType
     if product.masterVariant
@@ -193,8 +192,8 @@ class ExportMapping
       for lang, index of h2i
         if attribute.value
           row[index] = attribute.value.label[lang]
-    else
-      row[index] = attribute.value.key
+        else
+          row[index] = attribute.value.key
     row
 
   _mapSetOfLenum: (attribute, productType, row) ->
@@ -213,8 +212,9 @@ class ExportMapping
             memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
             memo + val.label[lang]
           , '')
-    else
-      row[index] = attribute.value.key
+        else
+          row[index] = attribute.value.key
+
     row
 
   _mapSetAttribute: (attribute, attributeTypeDef) ->
