@@ -344,6 +344,31 @@ describe 'ExportMapping', ->
       row = @exportMapping._mapVariant(variant, @productType)
       expect(row).toEqual [ 'bla','le drops;le honk' ]
 
+  describe '#mapLtextSet', ->
+    beforeEach ->
+      @exportMapping.typesService = new Types()
+      @productType =
+        id: '123'
+        attributes: [
+          { name: 'myLtextSetAttrib', type: { name: 'set', elementType: { name: 'ltext' } } }
+        ]
+      @exportMapping.typesService.buildMaps [@productType]
+    it 'should map set of ltext', ->
+      @exportMapping.header = new Header(['myLtextSetAttrib','myLtextSetAttrib.de','myLtextSetAttrib.en'])
+      @exportMapping.header.toIndex()
+      variant =
+        attributes: [
+          {
+            name: 'myLtextSetAttrib'
+            value: [
+              {"en": "foo1", "de": "barA"},
+              {"en": "foo2", "de": "barB"},
+              {"de": "barC", "nl": "invisible"}
+            ]
+          }
+        ]
+      row = @exportMapping._mapVariant(variant, @productType)
+      expect(row).toEqual [ '','barA;barB;barC','foo1;foo2' ]
 
   describe '#createTemplate', ->
     beforeEach ->
