@@ -305,8 +305,7 @@ class Export
 
       if file
         parsedCsv.to.string (res) =>
-          if append then res = '\n'+res
-          converted = iconv.encode(res, @options.encoding)
+          converted = iconv.encode(res+'\n', @options.encoding)
           fs.writeFileAsync file, converted, opts
           .then -> resolve()
           .catch (err) -> reject err

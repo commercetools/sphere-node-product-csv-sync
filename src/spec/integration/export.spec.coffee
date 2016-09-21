@@ -1,5 +1,6 @@
 _ = require 'underscore'
 path = require 'path'
+iconv = require 'iconv-lite'
 _.mixin require('underscore-mixins')
 Promise = require 'bluebird'
 fs = Promise.promisifyAll require('fs')
@@ -205,3 +206,36 @@ describe 'Export integration tests', ->
     .catch (err) -> done _.prettify(err)
     .finally ->
       tempDir.removeCallback()
+
+  it 'should export labels of lenum and set of lenum', (done) ->
+    encoding = 'win1250'
+    template =
+    '''
+      productType,name,variantId,attr-lenum-n.en,attr-set-lenum-n.en,žškřďťň
+      '''
+    file = '/tmp/output.csv'
+    expectedCSV =
+    """
+      productType,name,variantId,attr-lenum-n.en,attr-set-lenum-n.en,žškřďťň
+      #{@productType.name},,1
+      ,,2,Enum1,Enum1;Enum2
+
+      """
+
+    # export data in win1250 encoding
+    @export.options.encoding = encoding
+    @export.exportDefault(template, file)
+    .then (result) ->
+      expect(result).toBe 'Export done.'
+
+      fs.readFileAsync file, {encoding: 'utf8'}
+    .then (content) ->
+      # compare exported data with text encoded in utf8
+      expect(content).not.toBe expectedCSV
+
+      # decode from win1250 to utf8 and compare with expected result
+      decoded = iconv.decode(fs.readFileSync(file), encoding)
+      expect(decoded).toBe expectedCSV
+
+      done()
+    .catch (err) -> done _.prettify(err)
