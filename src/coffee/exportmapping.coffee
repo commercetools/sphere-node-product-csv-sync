@@ -132,6 +132,9 @@ class ExportMapping
         else if attributeTypeDef.name is CONS.ATTRIBUTE_TYPE_SET and attributeTypeDef.elementType?.name is CONS.ATTRIBUTE_TYPE_LENUM
           # we need special treatment for set of lenums
           row = @_mapSetOfLenum(attribute, productType, row)
+        else if attributeTypeDef.name is CONS.ATTRIBUTE_TYPE_SET and attributeTypeDef.elementType?.name is CONS.ATTRIBUTE_TYPE_LTEXT
+          # we need special treatment for set of lenums
+          row = @_mapSetOfLtext(attribute, productType, row)
         else if attributeTypeDef.name is CONS.ATTRIBUTE_TYPE_LENUM  # we need special treatnemt for lenums
           row = @_mapLenum(attribute, productType, row)
         else if @header.has attribute.name
@@ -215,6 +218,18 @@ class ExportMapping
           , '')
     else
       row[index] = attribute.value.key
+    row
+
+  _mapSetOfLtext: (attribute, productType, row) ->
+    h2i = @header.productTypeAttributeToIndex productType, attribute
+
+    for lang, index of h2i
+      row[index] = _.reduce(attribute.value, (memo, val, index) ->
+        if typeof val[lang] is 'undefined' then return memo
+
+        memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
+        memo + val[lang]
+      , '')
     row
 
   _mapSetAttribute: (attribute, attributeTypeDef) ->
