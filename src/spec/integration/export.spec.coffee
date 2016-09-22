@@ -207,7 +207,7 @@ describe 'Export integration tests', ->
     .finally ->
       tempDir.removeCallback()
 
-  it 'should export labels of lenum and set of lenum', (done) ->
+  it 'should export data in different encoding', (done) ->
     encoding = 'win1250'
     template =
     '''
