@@ -289,7 +289,8 @@ module.exports = class
       .option '--filterPrices <query>', 'Query string to filter prices of products'
       .option '--templateDelimiter <delimiter>', 'Delimiter used in template | default: ,', ","
       .option '--outputDelimiter <delimiter>', 'Delimiter used to separate cells in output file | default: ,', ","
-      .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
+      .option '-e, --encoding [encoding]', 'Encoding used when saving data to output file | default: utf8', 'utf8'
+    .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) =>
         if opts.language
           GLOBALS.DEFAULT_LANGUAGE = opts.language
@@ -299,6 +300,7 @@ module.exports = class
         @_ensureCredentials(program)
         .then (credentials) ->
           options =
+            encoding: opts.encoding
             outputDelimiter: opts.outputDelimiter
             templateDelimiter: opts.templateDelimiter
             fillAllRows: opts.fillAllRows

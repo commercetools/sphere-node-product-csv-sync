@@ -392,6 +392,7 @@ productType,name.en,variantId
     --filterPrices  Query string to filter prices of variants
     --templateDelimiter <delimiter> Delimiter used in template | default: ,
     --outputDelimiter <delimiter>   Delimiter used to separate cells in output file | default: ,
+    -e, --encoding [encoding]     Encoding used when saving data to output file | default: utf8
 
 ```
 
@@ -446,6 +447,23 @@ Export the key and the english label of the attributes `myLenum` and `mySetOfLen
 variantId,myLenum,myLenum.en,mySetOfLenum,mySetOfLenum.en
 1,myLenumKey,My English Lenum Label,mySetOfLenumKey1;mySetOfLenumKey2,My Set of Lenum English Label 1, my Set of Lenum English Label 2
 ```
+
+#### Export with different encoding
+
+Default encoding used during export is `utf8`. With `--encoding` parameter there can be specified one of encodings listed [here](https://github.com/ashtuchkin/iconv-lite/wiki/Supported-Encodings).
+Most commonly used are:
+ * Node.js Native encodings: utf8, ucs2 / utf16le, ascii, binary, base64, hex
+ * Unicode: UTF-16BE, UTF-16 (with BOM)
+ * Single-byte:
+   * Windows codepages: 874, 1250-1258 (aliases: cpXXX, winXXX, windowsXXX)
+   * ISO codepages: ISO-8859-1 - ISO-8859-16
+
+##### Example
+
+```csv
+node lib/run.js export --projectKey <project_key> --clientId <client_id> --clientSecret <client_secret> --template path/to/template.csv --out products.zip -e "win1250"
+```
+
 
 ## General CSV notes
 

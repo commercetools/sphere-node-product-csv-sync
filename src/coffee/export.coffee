@@ -4,6 +4,7 @@ archiver = require 'archiver'
 path = require 'path'
 tmp = require 'tmp'
 Promise = require 'bluebird'
+iconv = require 'iconv-lite'
 fs = Promise.promisifyAll require('fs')
 prompt = Promise.promisifyAll require('prompt')
 {SphereClient} = require 'sphere-node-sdk'
@@ -26,6 +27,7 @@ class Export
   constructor: (@options = {}) ->
     @options.outputDelimiter = @options.outputDelimiter || ","
     @options.templateDelimiter = @options.templateDelimiter || ","
+    @options.encoding = @options.encoding || "utf8"
 
     @queryOptions =
       queryString: @options.export?.queryString?.trim()
@@ -295,16 +297,20 @@ class Export
               Promise.reject 'Please re-run and select a valid number.'
 
   _saveCSV: (file, content, append) =>
-    flags = if append then 'a' else 'w'
+    flag = if append then 'a' else 'w'
     new Promise (resolve, reject) =>
       parsedCsv = Csv().from(content, {delimiter: @options.outputDelimiter})
       opts =
-        encoding: 'utf8'
-        flags: flags
-        eof: true
+        flag: flag
 
-      if file then parsedCsv.to.path file, opts
-      else parsedCsv.to.stream process.stdout, opts
+      if file
+        parsedCsv.to.string (res) =>
+          converted = iconv.encode(res+'\n', @options.encoding)
+          fs.writeFileAsync file, converted, opts
+          .then -> resolve()
+          .catch (err) -> reject err
+      else
+        parsedCsv.to.stream process.stdout, opts
 
       parsedCsv
       .on 'error', (err) -> reject err
