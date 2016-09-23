@@ -371,7 +371,7 @@ describe 'ExportMapping', ->
       expected = [ 'barA;barB;barC','foo1;foo2' ]
       expect(row).toEqual expected
 
-    it 'should return undefined for invalid set of ltext', ->
+    it 'should return undefined for invalid set of attributes', ->
       @exportMapping.header = new Header(['myLtextSetAttrib','myLtextSetAttrib.en', 'myLtextSetAttrib.de'])
       @exportMapping.header.toIndex()
       variant =
@@ -389,7 +389,7 @@ describe 'ExportMapping', ->
       expected = [ undefined,'foo1;foo2', 'barA;barB;barC' ]
       expect(row).toEqual expected
 
-    it 'should ignore trailing invalid set of ltext', ->
+    it 'should ignore trailing invalid set of attributes', ->
       @exportMapping.header = new Header(['myLtextSetAttrib.en', 'myLtextSetAttrib.de', 'foo', 'bar'])
       @exportMapping.header.toIndex()
       variant =
@@ -407,7 +407,7 @@ describe 'ExportMapping', ->
       expected = [ 'foo1;foo2', 'barA;barB;barC' ]
       expect(row).toEqual expected
 
-    it 'should return undefined for invalid set of ltext that is not trailing', ->
+    it 'should return undefined for invalid set of attributes that is not trailing', ->
       @exportMapping.header = new Header(['myLtextSetAttrib.en', 'foo', 'bar', 'myLtextSetAttrib.de'])
       @exportMapping.header.toIndex()
       variant =
