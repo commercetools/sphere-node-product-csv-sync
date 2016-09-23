@@ -367,7 +367,7 @@ An export template defines the content of the resulting export CSV file, by list
 productType,name.en,variantId
 ```
 
-> Please see section [template]() on how to generate a template.
+> Please see section [template](https://github.com/sphereio/sphere-node-product-csv-sync/tree/master/data) on how to generate a template.
 
 ### Usage
 
