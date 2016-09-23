@@ -344,6 +344,86 @@ describe 'ExportMapping', ->
       row = @exportMapping._mapVariant(variant, @productType)
       expect(row).toEqual [ 'bla','le drops;le honk' ]
 
+  describe '#mapLtextSet', ->
+    beforeEach ->
+      @exportMapping.typesService = new Types()
+      @productType =
+        id: '123'
+        attributes: [
+          { name: 'myLtextSetAttrib', type: { name: 'set', elementType: { name: 'ltext' } } }
+        ]
+      @exportMapping.typesService.buildMaps [@productType]
+    it 'should map set of ltext', ->
+      @exportMapping.header = new Header(['myLtextSetAttrib.de','myLtextSetAttrib.en'])
+      @exportMapping.header.toIndex()
+      variant =
+        attributes: [
+          {
+            name: 'myLtextSetAttrib'
+            value: [
+              {"en": "foo1", "de": "barA"},
+              {"en": "foo2", "de": "barB"},
+              {"de": "barC", "nl": "invisible"}
+            ]
+          }
+        ]
+      row = @exportMapping._mapVariant(variant, @productType)
+      expected = [ 'barA;barB;barC','foo1;foo2' ]
+      expect(row).toEqual expected
+
+    it 'should return undefined for invalid set of attributes', ->
+      @exportMapping.header = new Header(['myLtextSetAttrib','myLtextSetAttrib.en', 'myLtextSetAttrib.de'])
+      @exportMapping.header.toIndex()
+      variant =
+        attributes: [
+          {
+            name: 'myLtextSetAttrib'
+            value: [
+              {"en": "foo1", "de": "barA"},
+              {"en": "foo2", "de": "barB"},
+              {"de": "barC", "nl": "invisible"}
+            ]
+          }
+        ]
+      row = @exportMapping._mapVariant(variant, @productType)
+      expected = [ undefined,'foo1;foo2', 'barA;barB;barC' ]
+      expect(row).toEqual expected
+
+    it 'should ignore trailing invalid set of attributes', ->
+      @exportMapping.header = new Header(['myLtextSetAttrib.en', 'myLtextSetAttrib.de', 'foo', 'bar'])
+      @exportMapping.header.toIndex()
+      variant =
+        attributes: [
+          {
+            name: 'myLtextSetAttrib'
+            value: [
+              {"en": "foo1", "de": "barA"},
+              {"en": "foo2", "de": "barB"},
+              {"de": "barC", "nl": "invisible"}
+            ]
+          }
+        ]
+      row = @exportMapping._mapVariant(variant, @productType)
+      expected = [ 'foo1;foo2', 'barA;barB;barC' ]
+      expect(row).toEqual expected
+
+    it 'should return undefined for invalid set of attributes that is not trailing', ->
+      @exportMapping.header = new Header(['myLtextSetAttrib.en', 'foo', 'bar', 'myLtextSetAttrib.de'])
+      @exportMapping.header.toIndex()
+      variant =
+        attributes: [
+          {
+            name: 'myLtextSetAttrib'
+            value: [
+              {"en": "foo1", "de": "barA"},
+              {"en": "foo2", "de": "barB"},
+              {"de": "barC", "nl": "invisible"}
+            ]
+          }
+        ]
+      row = @exportMapping._mapVariant(variant, @productType)
+      expected = [ 'foo1;foo2', undefined, undefined, 'barA;barB;barC' ]
+      expect(row).toEqual expected
 
   describe '#createTemplate', ->
     beforeEach ->
