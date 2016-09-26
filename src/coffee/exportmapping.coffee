@@ -238,9 +238,9 @@ class ExportMapping
           memo + val.key
         , '')
       when CONS.ATTRIBUTE_TYPE_MONEY
-        _.reduce(attribute.value, (memo, val, index) ->
+        _.reduce(attribute.value, (memo, val, index) =>
           memo += GLOBALS.DELIM_MULTI_VALUE unless index is 0
-          memo + _mapMoney val
+          memo + @_mapMoney val
         , '')
       else
         attribute.value.join GLOBALS.DELIM_MULTI_VALUE
