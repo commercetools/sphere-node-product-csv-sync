@@ -1,5 +1,4 @@
 _ = require 'underscore'
-debug = require('debug')('spec-integration:categoryOrderHints')
 _.mixin require('underscore-mixins')
 {Import, Export} = require '../../lib/main'
 Config = require '../../config'
@@ -45,11 +44,11 @@ prepareCategoryAndProduct = (done) ->
   @importer.validator.suppressMissingHeaderWarning = true
   @client = @importer.client
 
-  debug 'create a category to work with'
+  console.log 'create a category to work with'
   @client.categories.save(newCategory())
   .then (results) =>
     @category = results.body
-    debug "Created #{results.length} categories"
+    console.log "Created #{results.length} categories"
 
     @productType = TestHelpers.mockProductType()
     TestHelpers.setupProductType(@client, @productType)
@@ -66,20 +65,20 @@ describe 'categoryOrderHints', ->
     beforeEach prepareCategoryAndProduct
 
     afterEach (done) ->
-      debug 'About to delete all categories'
+      console.log 'About to delete all categories'
       @client.categories.process (payload) =>
-        debug "Deleting #{payload.body.count} categories"
+        console.log "Deleting #{payload.body.count} categories"
         Promise.map payload.body.results, (category) =>
           @client.categories.byId(category.id).delete(category.version)
       .then (results) =>
-        debug "Deleted #{results.length} categories"
-        debug "Delete all the created products"
+        console.log "Deleted #{results.length} categories"
+        console.log "Delete all the created products"
         @client.products.process (payload) =>
-          debug "Deleting #{payload.body.count} products"
+          console.log "Deleting #{payload.body.count} products"
           Promise.map payload.body.results, (product) =>
             @client.products.byId(product.id).delete(product.version)
       .then (results) ->
-        debug "Deleted #{results.length} products"
+        console.log "Deleted #{results.length} products"
         done()
       .catch (error) -> done(_.prettify(error))
     , 60000 # 1min
