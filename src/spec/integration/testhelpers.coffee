@@ -101,33 +101,3 @@ exports.setupProductType = (client, productType, product) ->
       .then (result) -> Promise.resolve result.body # returns product
     else
       Promise.resolve pt # returns productType
-
-exports.deleteProducts = (client, products) ->
-  Promise.map products, (item) ->
-    console.log "Deleting product with name \"#{item.id}\""
-    client.products
-      .byId(item.id)
-      .delete(item.version)
-  , {concurrency: 3}
-
-exports.deleteProductType = (client, productType) ->
-  client.productTypes
-    .byId(productType.id)
-    .delete(productType.version)
-
-exports.deleteProductTypeWithProducts = (client, productType) ->
-  client.productTypes
-    .where("name = \"#{productType.name}\"")
-    .fetch()
-    .then (result) ->
-      if not result.body.count
-        console.log "ProductType with name \"#{productType.name}\" does not exist"
-        return Promise.resolve 0
-
-      productType = result.body.results[0]
-      client.products
-        .where("productType(id=\"#{productType.id}\")")
-        .process (result) ->
-          exports.deleteProducts client, result.body.results
-      .then ->
-        exports.deleteProductType client, productType
