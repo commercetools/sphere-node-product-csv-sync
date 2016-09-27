@@ -96,6 +96,7 @@ This means that the CSV may contain only those columns that contain changed valu
 
     -h, --help                                 output usage information
     -c, --csv <file>                           CSV file containing products to import
+    -z, --zip <file>                           ZIP archive containing multiple product files to import
     -l, --language [lang]                      Default language to using during import (for slug generation, category linking etc. - default is en)
     --csvDelimiter [delim]                     CSV Delimiter that separates the cells (default is comma - ",")
     --multiValueDelimiter [delim]              Delimiter to separate values inside of a cell (default is semicolon - ";")
