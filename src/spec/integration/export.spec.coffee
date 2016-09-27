@@ -239,3 +239,29 @@ describe 'Export integration tests', ->
 
       done()
     .catch (err) -> done _.prettify(err)
+
+  it 'should export product with money set attribute', (done) ->
+    testProductType = require '../../data/moneySetAttributeProductType'
+    testProduct = require '../../data/moneySetAttributeProduct'
+    outputLocation = '/tmp/output.csv'
+    template =
+    '''
+      productType,name,variantId,money_attribute
+      '''
+    expectedCSV =
+    """
+      productType,name,variantId,money_attribute
+      #{testProductType.name},,1,EUR 123456;GBP 98765
+
+      """
+
+    TestHelpers.setupProductType(@client, testProductType, testProduct)
+    .then =>
+      @export.exportDefault(template, outputLocation)
+    .then (result) ->
+      expect(result).toBe 'Export done.'
+      fs.readFileAsync outputLocation, {encoding: 'utf8'}
+    .then (content) =>
+      expect(content).toBe expectedCSV
+      done()
+    .catch (err) -> done _.prettify(err)

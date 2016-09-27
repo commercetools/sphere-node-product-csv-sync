@@ -1,0 +1,46 @@
+{
+  "productType": {
+    "typeId": "product-type",
+    "id": ""
+  },
+  "name": {
+    "en": "Money product"
+  },
+  "description": {
+    "en": "money product"
+  },
+  "categories": [],
+  "slug": {
+    "en": "money-product"
+  },
+  "masterVariant": {
+    "id": 1,
+    "sku": "11111",
+    "prices": [{
+      "value": {
+        "currencyCode": "EUR",
+        "centAmount": 12900
+      },
+      "country": "DE"
+    }],
+    "images": [],
+    "attributes": [{
+      "name": "money_attribute",
+      "value": [
+        {
+          "centAmount": 123456,
+          "currencyCode": "EUR"
+        },
+        {
+          "centAmount": 98765,
+          "currencyCode": "GBP"
+        }
+      ]
+    }],
+    "assets": [],
+    "availability": {
+      "isOnStock": false,
+      "availableQuantity": 0
+    }
+  }
+}
