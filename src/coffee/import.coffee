@@ -9,6 +9,14 @@ Validator = require './validator'
 Mapping = require './mapping'
 QueryUtils = require './queryutils'
 MatchUtils = require './matchutils'
+extractArchive = Promise.promisify require('extract-zip')
+path = require 'path'
+tmp = require 'tmp'
+walkSync = require 'walk-sync'
+fs = Promise.promisifyAll require('fs')
+
+# will clean temporary files even when an uncaught exception occurs
+tmp.setGracefulCleanup()
 
 # API Types
 Types = require './types'
@@ -47,6 +55,7 @@ class Import
     @blackListedCustomAttributesForUpdate = []
     @customAttributeNameToMatch = undefined
     @matchBy = CONS.HEADER_ID
+    @options = options
 
   # current workflow:
   # - parse csv
@@ -93,6 +102,28 @@ class Import
           .then((results) => results.reduce((agg, r) ->
             agg.concat(r)
           , []))
+
+  importArchive: (archivePath) ->
+    tempDir = tmp.dirSync({ unsafeCleanup: true })
+    console.log "Importing archive #{archivePath}"
+
+    extractArchive(archivePath, {dir: tempDir.name})
+    .then =>
+      console.log "Loading files from", tempDir.name
+      filePaths = walkSync tempDir.name, { globs: ['**/*.csv'] }
+      if not filePaths.length
+        return Promise.reject "There are no CSV files in archive"
+
+      Promise.map filePaths, (fileName) =>
+        console.log "Processing file %s", fileName
+        filePath = path.join tempDir.name, fileName
+
+        @validator = new Validator(@options)
+        fs.readFileAsync(filePath, {encoding: "UTF-8"})
+        .then (content) => @import content
+      , {concurrency: 1}
+      .then (res) ->
+        Promise.resolve([].concat.apply([], res))
 
   processProducts: (products) ->
     filterInput = QueryUtils.mapMatchFunction(@matchBy)(products)
