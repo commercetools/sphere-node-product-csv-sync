@@ -1,0 +1,22 @@
+{
+  "name": "moneyProduct",
+  "description": "test money product",
+  "classifier": "Complex",
+  "attributes": [
+    {
+      "name": "money_attribute",
+      "label": {
+        "en": "Test money attribute"
+      },
+      "isRequired": false,
+      "type": {
+        "name": "set",
+        "elementType": {
+          "name": "money"
+        }
+      },
+      "isSearchable": false,
+      "inputHint": "SingleLine"
+    }
+  ]
+}
