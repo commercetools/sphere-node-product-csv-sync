@@ -122,7 +122,8 @@ class Export
 
       if customWherePredicate
         query = @_appendPredicateToQueryString(query, customWherePredicate)
-      productsService.perPage(perPage).byQueryString(query, false)
+
+      productsService.byQueryString(query, false)
       productsService
     else
       productsService.where(customWherePredicate || '')
