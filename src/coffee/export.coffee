@@ -15,6 +15,7 @@ CustomerGroups = require './customergroups'
 Header = require './header'
 Taxes = require './taxes'
 ExportMapping = require './exportmapping'
+queryStringParser = require 'querystring'
 GLOBALS = require './globals'
 
 # will clean temporary files even when an uncaught exception occurs
@@ -112,14 +113,20 @@ class Export
   # return the correct product service in case query string is used or not
   _getProductService: (staged = true, customWherePredicate = false) ->
     productsService = @client.productProjections
-    if customWherePredicate
-      productsService.where(customWherePredicate)
+    perPage = 100
 
     if @queryOptions.queryString
-      productsService.byQueryString(@queryOptions.queryString, @queryOptions.isQueryEncoded)
+      query = @queryOptions.queryString
+      if @queryOptions.isQueryEncoded
+        query = decodeURIComponent(query)
+
+      if customWherePredicate
+        query = @_appendPredicateToQueryString(query, customWherePredicate)
+      productsService.perPage(perPage).byQueryString(query, false)
       productsService
     else
-      productsService.all().perPage(500).staged(staged)
+      productsService.where(customWherePredicate || '')
+      productsService.all().perPage(perPage).staged(staged)
 
   _fetchResources: =>
     data = [
@@ -187,6 +194,12 @@ class Export
         console.log "Folder was archived and saved to %s", output
         tempDir.removeCallback()
         Promise.resolve "Export done."
+
+  _appendPredicateToQueryString: (queryString, predicate) =>
+    query = queryStringParser.parse(queryString)
+    query.where =
+      (if query.where then query.where + " AND #{predicate}" else predicate)
+    decodeURIComponent(queryStringParser.stringify(query))
 
   _processChunk: (products, productTypes, createFileWhenEmpty, header, exportMapper, outputFile) =>
     console.warn "Fetched #{products.body.count} product(s)."
