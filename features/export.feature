@@ -8,7 +8,7 @@ Feature: Export products
     ImpEx with all types,Product 2,1,sku-2-123
     ImpEx with all types,Product 3,1,0123
     """
-    When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv i.csv --matchBy sku`
+    When I run `bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv i.csv --matchBy sku`
     Then the exit status should be 0
     And the output should contain:
     """
@@ -21,7 +21,7 @@ Feature: Export products
     """
     productType,name,sku
     """
-    When I run `../../bin/product-csv-sync export --projectKey sphere-node-product-csv-sync-94 --template 't.csv' --out 'exported.csv' --fillAllRows`
+    When I run `bin/product-csv-sync export --projectKey sphere-node-product-csv-sync-94 --template 't.csv' --out 'exported.csv' --fillAllRows`
     Then the exit status should be 0
     And the output should contain:
     """
@@ -33,7 +33,7 @@ Feature: Export products
     And the file "exported.csv" should match /^ImpEx with all types,Product 3,2345$/
 
   Scenario: Export products by query
-    When I run `../../bin/product-csv-sync export --projectKey sphere-node-product-csv-sync-94 --template '../../data/template_sample.csv' --out '../../data/exported.csv' --queryString 'where=name(en = "Product 1")&staged=true'`
+    When I run `bin/product-csv-sync export --projectKey sphere-node-product-csv-sync-94 --template '../../data/template_sample.csv' --out '../../data/exported.csv' --queryString 'where=name(en = "Product 1")&staged=true'`
     Then the exit status should be 0
     And the output should contain:
     """
@@ -41,7 +41,7 @@ Feature: Export products
     """
 
   Scenario: Export products by query (encoded)
-    When I run `../../bin/product-csv-sync export --projectKey sphere-node-product-csv-sync-94 --template '../../data/template_sample.csv' --out '../../data/exported.csv' --queryString 'where=name(en%20%3D%20%22Product%201%22)&staged=true' --queryEncoded`
+    When I run `bin/product-csv-sync export --projectKey sphere-node-product-csv-sync-94 --template '../../data/template_sample.csv' --out '../../data/exported.csv' --queryString 'where=name(en%20%3D%20%22Product%201%22)&staged=true' --queryEncoded`
     Then the exit status should be 0
     And the output should contain:
     """
@@ -50,7 +50,7 @@ Feature: Export products
 
   @wip
   Scenario: Export products by search
-    When I run `../../bin/product-csv-sync export --projectKey sphere-node-product-csv-sync-94 --template '../../data/template_sample.csv' --out '../../data/exported.csv' --queryString 'text.en=0123&staged=true' --queryType search`
+    When I run `bin/product-csv-sync export --projectKey sphere-node-product-csv-sync-94 --template '../../data/template_sample.csv' --out '../../data/exported.csv' --queryString 'text.en=0123&staged=true' --queryType search`
     Then the exit status should be 0
     And the output should contain:
     """
@@ -59,7 +59,7 @@ Feature: Export products
 
   @wip
   Scenario: Export all products
-    When I run `../../bin/product-csv-sync export --projectKey sphere-node-product-csv-sync-94 --out 'exported.zip' --fullExport`
+    When I run `bin/product-csv-sync export --projectKey sphere-node-product-csv-sync-94 --out 'exported.zip' --fullExport`
     Then the exit status should be 0
     And the output should contain:
     """
