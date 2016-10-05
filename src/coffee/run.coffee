@@ -104,6 +104,7 @@ module.exports = class
       .command 'import'
       .description 'Import your products from CSV into your SPHERE.IO project.'
       .option '-c, --csv <file>', 'CSV file containing products to import'
+      .option '-z, --zip <file>', 'ZIP archive containing multiple product files to import'
       .option '-l, --language [lang]', 'Default language to using during import (for slug generation, category linking etc. - default is en)', 'en'
       .option '--csvDelimiter [delim]', 'CSV Delimiter that separates the cells (default is comma - ",")', ','
       .option '--multiValueDelimiter [delim]', 'Delimiter to separate values inside of a cell (default is semicolon - ";")', ';'
@@ -161,7 +162,9 @@ module.exports = class
           importer.dryRun = true if opts.dryRun
           importer.matchBy = opts.matchBy
 
-          (if opts.csv? then fs.readFileAsync opts.csv, 'utf8'
+
+          (if opts.zip? then Promise.resolve()
+          else if opts.csv? then fs.readFileAsync opts.csv, 'utf8'
           else new Promise (resolve) ->
             console.warn 'Reading from stdin...'
             chunks = []
@@ -169,7 +172,11 @@ module.exports = class
             process.stdin.on 'end', () -> resolve Buffer.concat chunks
           )
           .then (content) ->
-            importer.import(content)
+            (if opts.zip
+              importer.importArchive(opts.zip)
+            else
+              importer.import(content)
+            )
             .then (result) ->
               console.warn result
               process.exit 0
