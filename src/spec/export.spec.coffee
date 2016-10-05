@@ -130,3 +130,14 @@ describe 'Export', ->
       expected = 1
 
       expect(actual).toEqual(expected)
+
+
+  describe 'Product queryString', ->
+
+    it 'should append custom condition to queryString', ->
+      query = 'where=productType(id="987") AND id="567"&staged=false'
+      expectedQuery = 'where=productType(id="987") AND id="567" AND productType(id="123")&staged=false'
+      customWherePredicate = 'productType(id="123")'
+      resultCondition = @exporter._appendPredicateToQueryString(query, customWherePredicate)
+
+      expect(resultCondition).toEqual(expectedQuery )
