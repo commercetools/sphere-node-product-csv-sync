@@ -15,6 +15,7 @@ CustomerGroups = require './customergroups'
 Header = require './header'
 Taxes = require './taxes'
 ExportMapping = require './exportmapping'
+Writer = require './io/writer'
 queryStringParser = require 'querystring'
 GLOBALS = require './globals'
 
@@ -182,7 +183,7 @@ class Export
       Promise.map productTypes.body.results, (type) =>
         console.log 'Processing products with productType "%s"', type.name
         csv = new ExportMapping().createTemplate(type, [lang])
-        fileName = _.slugify(type.name)+"_"+type.id+".csv"
+        fileName = _.slugify(type.name)+"_"+type.id+"."+@options.exportFormat
         filePath = path.join(tempDir.name, fileName)
         condition = 'productType(id="'+type.id+'")'
 
@@ -202,10 +203,9 @@ class Export
       (if query.where then query.where + " AND #{predicate}" else predicate)
     decodeURIComponent(queryStringParser.stringify(query))
 
-  _processChunk: (products, productTypes, createFileWhenEmpty, header, exportMapper, outputFile) =>
+  _processChunk: (writer, products, productTypes, createFileWhenEmpty, header, exportMapper, outputFile) =>
     console.warn "Fetched #{products.body.count} product(s)."
-    csv = []
-
+    data = []
     # if there are no products to export
     if not products.body.count && not createFileWhenEmpty
       return Promise.resolve()
@@ -214,7 +214,7 @@ class Export
       Promise.resolve()
     else
       @createdFiles[outputFile] = 1
-      @_saveCSV(outputFile, [ header.rawHeader ])
+      writer.setHeader header.rawHeader
     )
     .then =>
       _.each products.body.results, (product) =>
@@ -230,16 +230,25 @@ class Export
         )
         # remove all the variants that don't meet the price condition
         product.variants = _.compact(product.variants)
-        csv = csv.concat exportMapper.mapProduct(
+        data = data.concat exportMapper.mapProduct(
           product,
           productTypes.body.results
         )
-      @_saveCSV(outputFile, csv, true)
+      writer.write data
+      .catch (err) ->
+        console.dir(err)
 
   export: (templateContent, outputFile, productTypes, staged = true, customWherePredicate = false, createFileWhenEmpty = false) ->
     @_parse(templateContent)
     .then (header) =>
+      writer = new Writer
+        csvDelimiter: @options.outputDelimiter,
+        encoding: @options.encoding,
+        format: @options.exportFormat,
+        outputFile: outputFile
       errors = header.validate()
+      rowsReaded = 0
+
       unless _.size(errors) is 0
         Promise.reject errors
       else
@@ -252,10 +261,18 @@ class Export
 
         @_getProductService(staged, customWherePredicate)
         .process( (products) =>
-          @_processChunk products, productTypes, createFileWhenEmpty, header, exportMapper, outputFile
+          rowsReaded += products.body.results.length
+          @_processChunk writer, products, productTypes, createFileWhenEmpty, header, exportMapper, outputFile
         , {accumulate: false})
         .then ->
+          if createFileWhenEmpty || rowsReaded
+            writer.flush()
+          else
+            Promise.resolve()
+        .then ->
           Promise.resolve "Export done."
+        .catch (err) ->
+          console.dir(err, {depth: 10})
 
   exportAsJson: (outputFile) ->
     # TODO:

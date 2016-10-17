@@ -286,6 +286,7 @@ module.exports = class
       .option '-t, --template <file>', 'CSV file containing your header that defines what you want to export'
       .option '-o, --out <file>', 'Path to the file the exporter will write the resulting CSV in'
       .option '-j, --json', 'Export in JSON format'
+      .option '-x, --xlsx', 'Export in XLSX format'
       .option '-f, --fullExport', 'Do a full export.'
       .option '-q, --queryString <query>', 'Query string to specify the sub-set of products to export'
       .option '-l, --language [lang]', 'Language used on export for localised attributes (except lenums) and category names (default is en)'
@@ -308,6 +309,7 @@ module.exports = class
         .then (credentials) ->
           options =
             encoding: opts.encoding
+            exportFormat: if opts.xlsx then 'xlsx' else 'csv'
             outputDelimiter: opts.outputDelimiter
             templateDelimiter: opts.templateDelimiter
             fillAllRows: opts.fillAllRows
