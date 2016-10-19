@@ -6,7 +6,7 @@ iconv = require 'iconv-lite'
 fs = Promise.promisifyAll require('fs')
 Excel = require 'exceljs'
 
-DEBUG = true
+DEBUG = false
 debugLog = if DEBUG then console.log else _.noop
 
 class Writer
@@ -29,29 +29,19 @@ class Writer
         stream: @outputStream,
         useStyles: true,
         useSharedStrings: true
-      };
+      }
 
       @workbook = new Excel.stream.xlsx.WorkbookWriter @options.workbookOpts
-      @worksheet = @workbook.addWorksheet('Products', {views:[{ySplit:1}]});
+      @worksheet = @workbook.addWorksheet('Products', {views:[{ySplit:1}]})
 
-  # encode all strings in subarrays
-  encode: (data) =>
+  encode: (string) =>
     if @options.encoding == @options.defaultEncoding
-      return Promise.resolve(data)
+      return string
 
-    if not iconv.encodingExists(@options.encoding)
-      return Promise.reject 'Encoding does not exist: '+ @options.encoding
+    if not iconv.encodingExists @options.encoding
+      throw new Error 'Encoding does not exist: '+ @options.encoding
 
-    new Promise (resolve) =>
-      # iterate throught rows and cells
-      data = data.map (row) =>
-        row.map (item) =>
-          if _.isString(item)
-            iconv.encode(item, @options.encoding)
-          else
-            item
-
-      resolve(data)
+    iconv.encode string, @options.encoding
 
   # create header
   setHeader: (header) =>
@@ -80,19 +70,22 @@ class Writer
     Promise.resolve()
 
   _writeCsvRows: (data) =>
-    @encode data
-    .then (data) =>
-      new Promise (resolve, reject) =>
-        data.push([])
-        parsedCsv = Csv().from(data, {delimiter: @options.csvDelimiter})
+    new Promise (resolve, reject) =>
+      data.push([])
+      parsedCsv = Csv().from(data, {delimiter: @options.csvDelimiter})
 
-        # can't use .pipe - it would close stream right after first batch
-        parsedCsv.to.string (string) =>
-          @outputStream.write(string)
-          resolve()
+      # can't use .pipe - it would close stream right after first batch
+      parsedCsv.to.string (string) =>
+        try
+          string = @encode(string)
+        catch e
+          return reject e
 
-        parsedCsv
-        .on 'error', (err) -> reject err
+        @outputStream.write(string)
+        resolve()
+
+      parsedCsv
+      .on 'error', (err) -> reject err
 
   flush: () =>
     debugLog("WRITER::flushing content")

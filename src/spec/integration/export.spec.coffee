@@ -96,7 +96,6 @@ describe 'Export integration tests', ->
       """
       productType,name,variantId
 
-
       """
     @export.exportDefault(template, outputLocation, false)
     .then (result) ->

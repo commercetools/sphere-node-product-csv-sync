@@ -30,6 +30,7 @@ class Export
     @options.outputDelimiter = @options.outputDelimiter || ","
     @options.templateDelimiter = @options.templateDelimiter || ","
     @options.encoding = @options.encoding || "utf8"
+    @options.exportFormat = @options.exportFormat || "csv"
 
     @queryOptions =
       queryString: @options.export?.queryString?.trim()
@@ -204,10 +205,9 @@ class Export
     decodeURIComponent(queryStringParser.stringify(query))
 
   _processChunk: (writer, products, productTypes, createFileWhenEmpty, header, exportMapper, outputFile) =>
-    console.warn "Fetched #{products.body.count} product(s)."
     data = []
     # if there are no products to export
-    if not products.body.count && not createFileWhenEmpty
+    if not products.length && not createFileWhenEmpty
       return Promise.resolve()
 
     (if @createdFiles[outputFile]
@@ -217,7 +217,7 @@ class Export
       writer.setHeader header.rawHeader
     )
     .then =>
-      _.each products.body.results, (product) =>
+      _.each products, (product) =>
         # filter variants
         product.variants = @_filterVariantsByAttributes(
           product.variants,
@@ -241,11 +241,7 @@ class Export
   export: (templateContent, outputFile, productTypes, staged = true, customWherePredicate = false, createFileWhenEmpty = false) ->
     @_parse(templateContent)
     .then (header) =>
-      writer = new Writer
-        csvDelimiter: @options.outputDelimiter,
-        encoding: @options.encoding,
-        format: @options.exportFormat,
-        outputFile: outputFile
+      writer = null
       errors = header.validate()
       rowsReaded = 0
 
@@ -260,9 +256,20 @@ class Export
           header._productTypeLanguageIndexes(productType)
 
         @_getProductService(staged, customWherePredicate)
-        .process( (products) =>
-          rowsReaded += products.body.results.length
-          @_processChunk writer, products, productTypes, createFileWhenEmpty, header, exportMapper, outputFile
+        .process( (res) =>
+          rowsReaded += res.body.count
+          console.warn "Fetched #{res.body.count} product(s)."
+
+          # init writer and create output file
+          # when doing full export - don't create empty files
+          if not writer && (createFileWhenEmpty || rowsReaded)
+            writer = new Writer
+              csvDelimiter: @options.outputDelimiter,
+              encoding: @options.encoding,
+              format: @options.exportFormat,
+              outputFile: outputFile
+
+          @_processChunk writer, res.body.results, productTypes, createFileWhenEmpty, header, exportMapper, outputFile
         , {accumulate: false})
         .then ->
           if createFileWhenEmpty || rowsReaded
