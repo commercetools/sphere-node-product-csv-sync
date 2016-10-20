@@ -87,10 +87,10 @@ class Import
     promise
     .then (parsed) =>
       parsed = @validator.serialize(parsed)
-      console.log(parsed)
 
       console.warn "CSV file with #{parsed.count} row(s) loaded."
       @map.header = parsed.header
+      @validator.validateOffline(parsed.data)
       if _.size(@validator.errors) isnt 0
         return Promise.reject @validator.errors
       else
