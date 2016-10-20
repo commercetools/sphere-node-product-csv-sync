@@ -32,7 +32,7 @@ class Writer
       }
 
       @workbook = new Excel.stream.xlsx.WorkbookWriter @options.workbookOpts
-      @worksheet = @workbook.addWorksheet('Products', {views:[{ySplit:1}]})
+      @worksheet = @workbook.addWorksheet('Products')
 
   encode: (string) =>
     if @options.encoding == @options.defaultEncoding
@@ -60,9 +60,17 @@ class Writer
     else
       @_writeCsvRows rows
 
+  # go through all cells and
+  # - replace undefined and empty strings with null value (alias an empty xlsx cell)
+  _fixXlsxRow: (row) =>
+    # replace selected values with null
+    _.map row, (item) ->
+      if typeof item == "undefined" || item == '' then null else item
+
   _writeXlsxRows: (rows) =>
     Promise.map rows, (row) =>
-      @worksheet.addRow(row).commit()
+      @worksheet.addRow(@_fixXlsxRow(row)).commit()
+    , { concurrency: 1}
 
   _writeXlsxHeader: (header) =>
     header = header.map((name) => {header: name})
