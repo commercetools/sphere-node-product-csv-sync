@@ -78,13 +78,12 @@ describe 'Import integration test', ->
           ])
           archive.finalize()
       .then =>
-        @importer.importArchive(archivePath)
+        @importer.importManager(archivePath, true)
       .then =>
         @client.productProjections.staged(true)
           .sort("createdAt", "ASC")
           .where("productType(id=\"#{@productType.id}\")").fetch()
       .then (result) =>
-        console.log(result)
         expect(_.size result.body.results).toBe 2
 
         p = result.body.results[0]

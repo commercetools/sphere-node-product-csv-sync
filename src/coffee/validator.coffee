@@ -72,33 +72,40 @@ class Validator
     if _.size(delims) isnt _.size(_.uniq(delims))
       @errors.push "Your selected delimiter clash with each other: #{JSON.stringify(allDelimiter)}"
 
-  validateOnline: ->
-    # TODO: too much parallel?
-    # TODO: is it ok storing everything in memory?
-    Promise.all([
-      @types.getAll @client
-      @customerGroups.getAll @client
-      @categories.getAll @client
-      @taxes.getAll @client
-      @channels.getAll @client
-    ])
-    .then ([productTypes, customerGroups, categories, taxes, channels]) =>
+  fetchResources: (cache) =>
+    promise = Promise.resolve(cache)
+    if not cache
+      promise = Promise.all([
+        @types.getAll @client
+        @customerGroups.getAll @client
+        @categories.getAll @client
+        @taxes.getAll @client
+        @channels.getAll @client
+      ])
+
+    promise
+    .then (resources) =>
+      [productTypes, customerGroups, categories, taxes, channels] = resources
       @productTypes = productTypes.body.results
       @types.buildMaps @productTypes
       @customerGroups.buildMaps customerGroups.body.results
       @categories.buildMaps categories.body.results
       @taxes.buildMaps taxes.body.results
       @channels.buildMaps channels.body.results
+      Promise.resolve resources
 
-      @valProducts @rawProducts # TODO: ???
+  validateOnline: ->
+    # TODO: too much parallel?
+    # TODO: is it ok storing everything in memory?
+    @valProducts @rawProducts # TODO: ???
+    if _.size(@errors) is 0
+      @valProductTypes @productTypes # TODO: ???
       if _.size(@errors) is 0
-        @valProductTypes @productTypes # TODO: ???
-        if _.size(@errors) is 0
-          Promise.resolve @rawProducts
-        else
-          Promise.reject @errors
+        Promise.resolve @rawProducts
       else
         Promise.reject @errors
+    else
+      Promise.reject @errors
 
 
 
