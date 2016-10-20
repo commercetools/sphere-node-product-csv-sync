@@ -112,20 +112,28 @@ class Export
       header: header
     new ExportMapping(@options)
 
+  _parseQueryString: (query) ->
+    queryStringParser.parse(query)
+
+  _appendQueryStringPredicate: (query, predicate) ->
+    query.where = if query.where then query.where + " AND "+predicate else predicate
+    query
+
+  _stringifyQueryString: (query) ->
+    decodeURIComponent(queryStringParser.stringify(query))
+
   # return the correct product service in case query string is used or not
   _getProductService: (staged = true, customWherePredicate = false) ->
     productsService = @client.productProjections
     perPage = 100
 
     if @queryOptions.queryString
-      query = @queryOptions.queryString
-      if @queryOptions.isQueryEncoded
-        query = decodeURIComponent(query)
+      query = @_parseQueryString(@queryOptions.queryString)
 
       if customWherePredicate
-        query = @_appendPredicateToQueryString(query, customWherePredicate)
+        query = @_appendQueryStringPredicate(query, customWherePredicate)
 
-      productsService.byQueryString(query, false)
+      productsService.byQueryString(@_stringifyQueryString(query), false)
       productsService
     else
       productsService.where(customWherePredicate || '')
@@ -198,12 +206,6 @@ class Export
         tempDir.removeCallback()
         Promise.resolve "Export done."
 
-  _appendPredicateToQueryString: (queryString, predicate) =>
-    query = queryStringParser.parse(queryString)
-    query.where =
-      (if query.where then query.where + " AND #{predicate}" else predicate)
-    decodeURIComponent(queryStringParser.stringify(query))
-
   _processChunk: (writer, products, productTypes, createFileWhenEmpty, header, exportMapper, outputFile) =>
     data = []
     # if there are no products to export
@@ -236,7 +238,7 @@ class Export
         )
       writer.write data
     .catch (err) ->
-      console.log("Error while processing products batch: %j", err)
+      console.log("Error while processing products batch", err)
       Promise.reject(err)
 
   export: (templateContent, outputFile, productTypes, staged = true, customWherePredicate = false, createFileWhenEmpty = false) ->
