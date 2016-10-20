@@ -13,6 +13,7 @@ extractArchive = Promise.promisify require('extract-zip')
 path = require 'path'
 tmp = require 'tmp'
 walkSync = require 'walk-sync'
+Reader = require './io/reader'
 fs = Promise.promisifyAll require('fs')
 
 # will clean temporary files even when an uncaught exception occurs
@@ -44,6 +45,9 @@ class Import
     options.categories = new Categories()
     options.taxes = new Taxes()
     options.channels = new Channels()
+    options.importFormat = options.importFormat || "csv"
+    options.csvDelimiter = options.csvDelimiter || ","
+    options.encoding = options.encoding || "utf-8"
 
     @validator = new Validator(options)
     @map = new Mapping(options)
@@ -73,12 +77,20 @@ class Import
   # - validate products against their product types (we might not have to product type before)
   # - create/update products based on matches
   # - next chunk
-  import: (fileContent) ->
-    @validator.parse fileContent
+  import: (csv) =>
+    promise = null
+
+    promise = Promise.resolve csv
+    if _.isString(csv)
+      promise = Reader.parseCsv csv, @options.csvDelimiter, @options.encoding
+
+    promise
     .then (parsed) =>
+      parsed = @validator.serialize(parsed)
+      console.log(parsed)
+
       console.warn "CSV file with #{parsed.count} row(s) loaded."
       @map.header = parsed.header
-      productsRows = @validator.validateOffline(parsed.data)
       if _.size(@validator.errors) isnt 0
         return Promise.reject @validator.errors
       else
@@ -86,7 +98,7 @@ class Import
         .then (rawProducts) =>
           if _.size(@validator.errors) isnt 0
             return Promise.reject @validator.errors
-
+          
           console.warn "Mapping #{_.size rawProducts} product(s) ..."
           products = rawProducts.map((p) => @map.mapProduct p)
 
@@ -102,6 +114,49 @@ class Import
           .then((results) => results.reduce((agg, r) ->
             agg.concat(r)
           , []))
+
+  _unarchiveProducts: (archivePath) ->
+    tempDir = tmp.dirSync({ unsafeCleanup: true })
+    console.log "Unarchiving file #{archivePath}"
+
+    extractArchive(archivePath, {dir: tempDir.name})
+    .then =>
+      console.log "Loading files from", tempDir.name
+      filePaths = walkSync tempDir.name, { globs: ['**/*.'+@options.exportFormat] }
+      if not filePaths.length
+        return Promise.reject "There are no #{@options.exportFormat} files in archive"
+
+      console.log(filePaths)
+      console.log "NOT IMPLEMENTED"
+      process.exit 1 # TODO remove me
+#
+#      Promise.map filePaths, (fileName) =>
+#        console.log "Processing file %s", fileName
+#        filePath = path.join tempDir.name, fileName
+
+  importManager: (file, isArchived) ->
+    fileListPromise = Promise.resolve [file]
+
+    if file && isArchived
+      fileListPromise = @_unarchiveProducts (file)
+
+    Promise.map fileListPromise, (file) =>
+      reader = new Reader
+        csvDelimiter: @options.csvDelimiter,
+        encoding: @options.encoding,
+        format: @options.importFormat,
+
+      reader.read(file)
+      .then (rows) =>
+        console.log("Loading finished")
+        @import(rows)
+    , {concurrency: 1}
+    .then () ->
+      Promise.resolve "Import has finished"
+    .catch (err) ->
+      console.error(err.stack)
+      Promise.reject err
+
 
   importArchive: (archivePath) ->
     tempDir = tmp.dirSync({ unsafeCleanup: true })

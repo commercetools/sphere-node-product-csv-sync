@@ -103,8 +103,11 @@ module.exports = class
     program
       .command 'import'
       .description 'Import your products from CSV into your SPHERE.IO project.'
-      .option '-c, --csv <file>', 'CSV file containing products to import'
-      .option '-z, --zip <file>', 'ZIP archive containing multiple product files to import'
+      .option '-c, --csv <file>', 'CSV file containing products to import (alias for "in" parameter)'
+      # add alias for csv parameter and "-i" is taken so use "-f" parameter
+      .option '-f, --in <file>', 'File containing products to import'
+      .option '-z, --zip', 'Input file is archived'
+      .option '-x, --xlsx', 'Import from XLSX format'
       .option '-l, --language [lang]', 'Default language to using during import (for slug generation, category linking etc. - default is en)', 'en'
       .option '--csvDelimiter [delim]', 'CSV Delimiter that separates the cells (default is comma - ",")', ','
       .option '--multiValueDelimiter [delim]', 'Delimiter to separate values inside of a cell (default is semicolon - ";")', ';'
@@ -116,6 +119,7 @@ module.exports = class
       .option '--updatesOnly', "Won't create any new products, only updates existing"
       .option '--dryRun', 'Will list all action that would be triggered, but will not POST them to SPHERE.IO'
       .option '-m, --matchBy [value]', 'Product attribute name which will be used to match products. Possible values: id, slug, sku, <custom_attribute_name>. Default: id. Localized attribute types are not supported for <custom_attribute_name> option', 'id'
+      .option '-e, --encoding [encoding]', 'Encoding used when reading data from input file | default: utf8', 'utf8'
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --csv <file>'
       .action (opts) =>
         GLOBALS.DEFAULT_LANGUAGE = opts.language
@@ -129,11 +133,9 @@ module.exports = class
             timeout: program.timeout
             show_progress: true
             user_agent: "#{package_json.name} - Import - #{package_json.version}"
-            # logConfig:
-            #   streams: [
-            #     {level: 'warn', stream: process.stdout}
-            #   ]
             csvDelimiter: opts.csvDelimiter
+            encoding: opts.encoding
+            importFormat: if opts.xlsx then 'xlsx' else 'csv'
 
           options.host = program.sphereHost if program.sphereHost
           options.protocol = program.sphereProtocol if program.sphereProtocol
@@ -162,21 +164,8 @@ module.exports = class
           importer.dryRun = true if opts.dryRun
           importer.matchBy = opts.matchBy
 
-
-          (if opts.zip? then Promise.resolve()
-          else if opts.csv? then fs.readFileAsync opts.csv, 'utf8'
-          else new Promise (resolve) ->
-            console.warn 'Reading from stdin...'
-            chunks = []
-            process.stdin.on 'data', (chunk) -> chunks.push chunk
-            process.stdin.on 'end', () -> resolve Buffer.concat chunks
-          )
-          .then (content) ->
-            (if opts.zip
-              importer.importArchive(opts.zip)
-            else
-              importer.import(content)
-            )
+          # params: importManager (filePath, isArchived)
+          importer.importManager opts.in || opts.csv, opts.zip
             .then (result) ->
               console.warn result
               process.exit 0
@@ -298,7 +287,7 @@ module.exports = class
       .option '--templateDelimiter <delimiter>', 'Delimiter used in template | default: ,', ","
       .option '--outputDelimiter <delimiter>', 'Delimiter used to separate cells in output file | default: ,', ","
       .option '-e, --encoding [encoding]', 'Encoding used when saving data to output file | default: utf8', 'utf8'
-    .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
+      .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --template <file> --out <file>'
       .action (opts) =>
         if opts.language
           GLOBALS.DEFAULT_LANGUAGE = opts.language

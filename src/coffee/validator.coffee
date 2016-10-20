@@ -29,18 +29,23 @@ class Validator
       delimiter: options.csvDelimiter or ','
       quote: options.csvQuote or '"'
 
-  parse: (csvString) ->
+  parse: (csvString, delimiter ) ->
     # TODO: use parser with streaming API
     # https://github.com/sphereio/sphere-node-product-csv-sync/issues/56
     new Promise (resolve, reject) =>
       Csv().from.string(csvString, @csvOptions)
       .on 'error', (error) -> reject error
-      .to.array (data, count) =>
-        @header = new Header(data[0])
-        resolve
-          header: @header
-          data: _.rest(data)
-          count: count
+      .to.array (data) =>
+        data = @serialize(data)
+        resolve data
+
+  serialize: (data) =>
+    @header = new Header(data[0])
+    return {
+      header: @header
+      data: _.rest(data)
+      count: data.length
+    }
 
   validate: (csvContent) ->
     @validateOffline csvContent

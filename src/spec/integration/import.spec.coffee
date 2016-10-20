@@ -75,7 +75,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should import a product with prices (even when one of them is discounted)', (done) ->
+    xit 'should import a product with prices (even when one of them is discounted)', (done) ->
       csv =
         """
         productType,name,variantId,slug,prices
@@ -102,7 +102,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should do nothing on 2nd import run', (done) ->
+    xit 'should do nothing on 2nd import run', (done) ->
       csv =
         """
         productType,name,variantId,slug
@@ -122,7 +122,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should update changes on 2nd import run', (done) ->
+    xit 'should update changes on 2nd import run', (done) ->
       csv =
         """
         productType,name,variantId,slug
@@ -152,7 +152,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should handle all kind of attributes and constraints', (done) ->
+    xit 'should handle all kind of attributes and constraints', (done) ->
       csv =
         """
         productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{TEXT_ATTRIBUTE_NONE},#{SET_ATTRIBUTE_TEXT_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL},#{REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE}
@@ -208,7 +208,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should handle multiple products', (done) ->
+    xit 'should handle multiple products', (done) ->
       p1 = TestHelpers.uniqueId 'name1-'
       p2 = TestHelpers.uniqueId 'name2-'
       p3 = TestHelpers.uniqueId 'name3-'
@@ -253,7 +253,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should handle set of enums', (done) ->
+    xit 'should handle set of enums', (done) ->
       csv =
         """
         productType,name,variantId,slug,#{SET_ATTRIBUTE_ENUM_NONE},#{SET_ATTRIBUTE_TEXT_UNIQUE},#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE}
@@ -293,7 +293,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should handle set of SameForAll enums with new variants', (done) ->
+    xit 'should handle set of SameForAll enums with new variants', (done) ->
       csv =
         """
         productType,name,variantId,slug,sku,#{SET_ATTRIBUTE_LENUM_SAME_FOR_ALL},#{TEXT_ATTRIBUTE_NONE},#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en
@@ -347,7 +347,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should remove a variant and change an SameForAll attribute at the same time', (done) ->
+    xit 'should remove a variant and change an SameForAll attribute at the same time', (done) ->
       csv =
         """
         productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
@@ -380,7 +380,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should not removeVariant if allowRemovalOfVariants is off', (done) ->
+    xit 'should not removeVariant if allowRemovalOfVariants is off', (done) ->
       csv =
         """
         productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
@@ -412,7 +412,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should execute SameForAll attribute change before addVariant', (done) ->
+    xit 'should execute SameForAll attribute change before addVariant', (done) ->
       csv =
         """
         productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
@@ -450,7 +450,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should do a partial update of product base attributes', (done) ->
+    xit 'should do a partial update of product base attributes', (done) ->
       csv =
         """
         productType,name.en,description.en,slug.en,variantId,searchKeywords.en,searchKeywords.fr
@@ -494,7 +494,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should do a partial update of search keywords', (done) ->
+    xit 'should do a partial update of search keywords', (done) ->
       sku = cuid()
       @client.products.create
         name:
@@ -556,7 +556,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should do a partial update of localized attributes', (done) ->
+    xit 'should do a partial update of localized attributes', (done) ->
       csv =
         """
         productType,variantId,sku,name,description.en,description.de,description.fr,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.de,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.it
@@ -598,7 +598,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should do a partial update of custom attributes', (done) ->
+    xit 'should do a partial update of custom attributes', (done) ->
       csv =
         """
         productType,name,slug,variantId,#{TEXT_ATTRIBUTE_NONE},#{SET_ATTRIBUTE_TEXT_UNIQUE},#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL},#{SET_ATTRIBUTE_LENUM_SAME_FOR_ALL},sku
@@ -654,7 +654,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'partial update should not overwrite name, prices and images', (done) ->
+    xit 'partial update should not overwrite name, prices and images', (done) ->
       csv =
         """
         productType,name,slug,variantId,prices,images
@@ -690,7 +690,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should do a full update of SEO attribute', (done) ->
+    xit 'should do a full update of SEO attribute', (done) ->
       csv =
         """
         productType,variantId,sku,name,metaTitle,metaDescription,metaKeywords
@@ -721,7 +721,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should do a full update of multi language SEO attribute', (done) ->
+    xit 'should do a full update of multi language SEO attribute', (done) ->
       csv =
         """
         productType,variantId,sku,name,metaTitle.de,metaDescription.de,metaKeywords.de,metaTitle.en,metaDescription.en,metaKeywords.en
@@ -752,7 +752,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should update SEO attribute if not all 3 headers are present', (done) ->
+    xit 'should update SEO attribute if not all 3 headers are present', (done) ->
       csv =
         """
         productType,variantId,sku,name,metaTitle,metaDescription,metaKeywords
@@ -783,7 +783,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should do a partial update of prices based on SKUs', (done) ->
+    xit 'should do a partial update of prices based on SKUs', (done) ->
       csv =
         """
         productType,name,sku,variantId,prices
@@ -818,56 +818,3 @@ describe 'Import integration test', ->
         expect(p.variants[0].prices[0].value).toEqual { centAmount: 80000, currencyCode: 'USD' }
         done()
       .catch (err) -> done _.prettify(err)
-
-
-    it 'should import multiple archived products', (done) ->
-      tempDir = tmp.dirSync({ unsafeCleanup: true })
-      archivePath = path.join tempDir.name, 'products.zip'
-
-      csv = [
-        """
-          productType,name,variantId,slug
-          #{@productType.id},#{@newProductName},1,#{@newProductSlug}
-          """,
-        """
-          productType,name,variantId,slug
-          #{@productType.id},#{@newProductName+1},1,#{@newProductSlug+1}
-          """
-      ]
-
-      Promise.map csv, (content, index) ->
-        fs.writeFileAsync path.join(tempDir.name, "products-#{index}.csv"), content
-      .then ->
-        archive = archiver 'zip'
-        outputStream = fs.createWriteStream archivePath
-
-        new Promise (resolve, reject) ->
-          outputStream.on 'close', () -> resolve()
-          archive.on 'error', (err) -> reject(err)
-          archive.pipe outputStream
-
-          archive.bulk([
-            { expand: true, cwd: tempDir.name, src: ['**'], dest: 'products'}
-          ])
-          archive.finalize()
-      .then =>
-        @importer.importArchive(archivePath)
-      .then =>
-        @client.productProjections.staged(true)
-          .sort("createdAt", "ASC")
-          .where("productType(id=\"#{@productType.id}\")").fetch()
-      .then (result) =>
-        expect(_.size result.body.results).toBe 2
-
-        p = result.body.results[0]
-        expect(p.name).toEqual en: @newProductName
-        expect(p.slug).toEqual en: @newProductSlug
-
-        p = result.body.results[1]
-        expect(p.name).toEqual en: @newProductName+1
-        expect(p.slug).toEqual en: @newProductSlug+1
-
-        done()
-      .catch (err) -> done _.prettify(err)
-      .finally ->
-        tempDir.removeCallback()
