@@ -235,8 +235,9 @@ class Export
           productTypes.body.results
         )
       writer.write data
-      .catch (err) ->
-        console.dir(err)
+    .catch (err) ->
+      console.log("Error while processing products batch: %j", err)
+      Promise.reject(err)
 
   export: (templateContent, outputFile, productTypes, staged = true, customWherePredicate = false, createFileWhenEmpty = false) ->
     @_parse(templateContent)
