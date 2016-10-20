@@ -6,7 +6,7 @@ iconv = require 'iconv-lite'
 fs = Promise.promisifyAll require('fs')
 Excel = require 'exceljs'
 
-DEBUG = true
+DEBUG = false
 debugLog = if DEBUG then console.log else _.noop
 
 class Reader
