@@ -67,16 +67,18 @@ class Reader
         .catch (err) -> reject(err)
 
   _readXlsx: (stream) =>
-    @options.workbookOpts =
-      stream: @inputStream,
-      useStyles: true,
-      useSharedStrings: true
+    workbook = new Excel.Workbook()
+    workbook.xlsx.read(stream)
+    .then (workbook) ->
+      console.log("File was readed")
 
-    @workbook = new Excel.stream.xlsx.WorkbookReader @options.workbookOpts
-    @workbook.on 'end', () -> console.log('reached end of stream')
-    @workbook.on 'finished', console.log
-    @workbook.on 'worksheet', (worksheet) ->
-      console.log(worksheet)
+      rows = []
+      worksheet = workbook.getWorksheet(1)
+      worksheet.eachRow (row) =>
+        rowValues = row.values
+        rowValues.shift()
+        rows.push rowValues.map String
+      rows
 
   @decode: (buffer, encoding) =>
     debugLog "READER:decode from %s",encoding
