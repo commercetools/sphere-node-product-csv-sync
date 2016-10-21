@@ -69,7 +69,7 @@ describe 'Import integration test', ->
       @newProductSku = TestHelpers.uniqueId 'sku-'
 
     it 'should import a simple product from xlsx', (done) ->
-      filePath = "./tmp/test-import.xlsx"
+      filePath = "/tmp/test-import.xlsx"
       data = [
         ["productType","name","variantId","slug"],
         [@productType.id,@newProductName,1,@newProductSlug]
@@ -91,7 +91,7 @@ describe 'Import integration test', ->
       .catch (err) -> done _.prettify(err)
 
     it 'should import a product with prices (even when one of them is discounted)', (done) ->
-      filePath = "./tmp/test-import.xlsx"
+      filePath = "/tmp/test-import.xlsx"
       data = [
         ["productType","name","variantId","slug","prices"],
         [@productType.id,@newProductName,1,@newProductSlug,"EUR 899;CH-EUR 999;DE-EUR 999|799;CH-USD 77777700 ##{CHANNEL_KEY}"]
@@ -120,7 +120,7 @@ describe 'Import integration test', ->
       .catch (err) -> done _.prettify(err)
 
     it 'should do nothing on 2nd import run', (done) ->
-      filePath = "./tmp/test-import.xlsx"
+      filePath = "/tmp/test-import.xlsx"
       data = [
         ["productType","name","variantId","slug"],
         [@productType.id,@newProductName,1,@newProductSlug]
@@ -144,7 +144,7 @@ describe 'Import integration test', ->
 
 
     it 'should do a partial update of prices based on SKUs', (done) ->
-      filePath = "./tmp/test-import.xlsx"
+      filePath = "/tmp/test-import.xlsx"
       data = [
         ["productType","name","sku","variantId","prices"],
         [@productType.id,@newProductName,@newProductSku+1,1,"EUR 999"],
