@@ -84,11 +84,12 @@ class Import
   # - next chunk
   import: (csv) =>
     @initializeObjects()
+
     @validator.fetchResources(@resourceCache)
     .then (resources) =>
       @resourceCache = resources
 
-      if _.isString(csv)
+      if _.isString(csv) || csv instanceof Buffer
         return Reader.parseCsv csv, @options.csvDelimiter, @options.encoding
 
       Promise.resolve csv
@@ -146,25 +147,20 @@ class Import
 
     fileListPromise
     .map (file) =>
-      @initializeObjects()
       # classes have internal structures which has to be reinitialized
       reader = new Reader
         csvDelimiter: @options.csvDelimiter,
         encoding: @options.encoding,
         format: @options.importFormat,
 
-      @validator.fetchResources(@resourceCache)
-      .then (resources) =>
-        @resourceCache = resources
-      .then () ->
-        reader.read(file)
+      reader.read(file)
       .then (rows) =>
         console.log("Loading has finished")
         @import(rows)
 
     , {concurrency: 1}
-    .then () ->
-      Promise.resolve "Import has finished"
+    .then (res) ->
+      Promise.resolve _.flatten(res)
     .catch (err) ->
       console.error(err.stack || err)
       Promise.reject err

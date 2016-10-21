@@ -2,6 +2,7 @@ Promise = require 'bluebird'
 _ = require 'underscore'
 archiver = require 'archiver'
 _.mixin require('underscore-mixins')
+iconv = require 'iconv-lite'
 {Import} = require '../../lib/main'
 Config = require '../../config'
 TestHelpers = require './testhelpers'
@@ -784,7 +785,7 @@ describe 'Import integration test', ->
 
     it 'should do a partial update of prices based on SKUs', (done) ->
       csv =
-        """
+      """
         productType,name,sku,variantId,prices
         #{@productType.id},#{@newProductName},#{@newProductSku+1},1,EUR 999
         ,,#{@newProductSku+2},2,USD 70000
@@ -794,7 +795,7 @@ describe 'Import integration test', ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
-          """
+        """
           sku,prices,productType
           #{@newProductSku+1},EUR 1999,#{@productType.name}
           #{@newProductSku+2},USD 80000,#{@productType.name}
@@ -815,5 +816,78 @@ describe 'Import integration test', ->
         expect(p.masterVariant.prices[0].value).toEqual { centAmount: 1999, currencyCode: 'EUR' }
         expect(p.variants[0].sku).toBe "#{@newProductSku}2"
         expect(p.variants[0].prices[0].value).toEqual { centAmount: 80000, currencyCode: 'USD' }
+        done()
+      .catch (err) -> done _.prettify(err)
+
+
+    it 'should import a simple product with different encoding', (done) ->
+      encoding = "win1250"
+      @importer.options.encoding = encoding
+      @newProductName += "žýáíé"
+      csv =
+      """
+        productType,name,variantId,slug
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug}
+        """
+      encoded = iconv.encode(csv, encoding)
+      @importer.import(encoded)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: @newProductName
+        expect(p.slug).toEqual en: @newProductSlug
+        done()
+      .catch (err) -> done _.prettify(err)
+
+    it 'should import a simple product file with different encoding', (done) ->
+      encoding = "win1250"
+      @importer.options.encoding = encoding
+      @newProductName += "žýáíé"
+      csv =
+      """
+        productType,name,variantId,slug
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug}
+        """
+      encoded = iconv.encode(csv, encoding)
+      @importer.import(encoded)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: @newProductName
+        expect(p.slug).toEqual en: @newProductSlug
+        done()
+      .catch (err) -> done _.prettify(err)
+
+    it 'should import a simple product file with different encoding using import manager', (done) ->
+      filePath = "/tmp/test-import.csv"
+      encoding = "win1250"
+      @importer.options.encoding = encoding
+      @newProductName += "žýáíé"
+      csv =
+      """
+        productType,name,variantId,slug
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug}
+        """
+      encoded = iconv.encode(csv, encoding)
+      fs.writeFileSync(filePath, encoded)
+
+      @importer.importManager(filePath)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: @newProductName
+        expect(p.slug).toEqual en: @newProductSlug
         done()
       .catch (err) -> done _.prettify(err)
