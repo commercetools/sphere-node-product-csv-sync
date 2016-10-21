@@ -14,6 +14,10 @@ class Writer
   constructor: (@options = {}) ->
     debugLog "WRITER::options:", JSON.stringify(@options)
     @options.defaultEncoding = "utf8"
+    @options.availableFormats = ["xlsx", "csv"]
+
+    if @options.availableFormats.indexOf(@options.exportFormat) < 0
+      throw new Error("Unsupported file type: #{@options.exportFormat}, alowed formats are #{@options.availableFormats.toString()}")
 
     # write to file or to stdout?
     if @options.outputFile
@@ -23,8 +27,9 @@ class Writer
       debugLog "WRITER::stream stdout"
       @outputStream = process.stdout
 
+
     # if we use xlsx export - create workbook first
-    if @options.format == 'xlsx'
+    if @options.exportFormat == 'xlsx'
       @options.workbookOpts = {
         stream: @outputStream,
         useStyles: true,
@@ -47,7 +52,7 @@ class Writer
   setHeader: (header) =>
     debugLog("WRITER::writing header %s", header)
 
-    if @options.format == 'xlsx'
+    if @options.exportFormat == 'xlsx'
       @_writeXlsxHeader header
     else
       @_writeCsvRows [header]
@@ -55,7 +60,7 @@ class Writer
   write: (rows) ->
     debugLog("WRITER::writing rows len: %d", rows.length)
 
-    if @options.format == 'xlsx'
+    if @options.exportFormat == 'xlsx'
       @_writeXlsxRows rows
     else
       @_writeCsvRows rows
@@ -97,7 +102,7 @@ class Writer
 
   flush: () =>
     debugLog("WRITER::flushing content")
-    if @options.format == 'xlsx'
+    if @options.exportFormat == 'xlsx'
       @workbook.commit()
     else
       Promise.resolve()

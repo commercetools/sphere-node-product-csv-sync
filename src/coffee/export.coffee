@@ -266,11 +266,14 @@ class Export
           # init writer and create output file
           # when doing full export - don't create empty files
           if not writer && (createFileWhenEmpty || rowsReaded)
-            writer = new Writer
-              csvDelimiter: @options.outputDelimiter,
-              encoding: @options.encoding,
-              format: @options.exportFormat,
-              outputFile: outputFile
+            try
+              writer = new Writer
+                csvDelimiter: @options.outputDelimiter,
+                encoding: @options.encoding,
+                exportFormat: @options.exportFormat,
+                outputFile: outputFile
+            catch e
+              return Promise.reject e
 
           @_processChunk writer, res.body.results, productTypes, createFileWhenEmpty, header, exportMapper, outputFile
         , {accumulate: false})
@@ -283,6 +286,7 @@ class Export
           Promise.resolve "Export done."
         .catch (err) ->
           console.dir(err, {depth: 10})
+          Promise.reject err
 
   exportAsJson: (outputFile) ->
     # TODO:

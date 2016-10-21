@@ -391,7 +391,20 @@ describe 'Export integration tests', ->
       .finally ->
         tempDir.removeCallback()
 
+  it 'should try to export into unsupported export format', (done) ->
+    exporter = new Export {
+      client: Config,
+      exportFormat: "unsupported",
+    }
 
-
-
+    template =
+    '''
+      productType,name,sku
+      '''
+    exporter .exportDefault(template, null)
+    .then (result) ->
+      done('Export should fail!')
+    .catch (err) ->
+      expect(err.message).toBe 'Unsupported file type: unsupported, alowed formats are xlsx,csv'
+      done()
 

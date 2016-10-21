@@ -26,7 +26,7 @@ readXlsx = (filePath) ->
       rowValues  = row.values
       rowValues.shift()
       values.push(rowValues)
-    Promise.resolve(values)
+    values
 
 describe 'Export xlsx integration tests', ->
 
