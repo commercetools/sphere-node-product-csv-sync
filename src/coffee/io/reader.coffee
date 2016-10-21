@@ -67,7 +67,6 @@ class Reader
         .catch (err) -> reject(err)
 
   _readXlsx: (stream) =>
-    console.log "NOT IMPLEMENTED"
     @options.workbookOpts =
       stream: @inputStream,
       useStyles: true,

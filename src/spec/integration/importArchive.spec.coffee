@@ -16,7 +16,7 @@ createImporter = ->
   im = new Import Config
   im.matchBy = 'sku'
   im.allowRemovalOfVariants = true
-  im.validator.suppressMissingHeaderWarning = true
+  im.suppressMissingHeaderWarning = true
   im
 
 CHANNEL_KEY = 'retailerA'
@@ -26,7 +26,7 @@ describe 'Import integration test', ->
   beforeEach (done) ->
     jasmine.getEnv().defaultTimeoutInterval = 90000 # 90 sec
     @importer = createImporter()
-    @importer.validator.suppressMissingHeaderWarning = true
+    @importer.suppressMissingHeaderWarning = true
     @client = @importer.client
 
     @productType = TestHelpers.mockProductType()

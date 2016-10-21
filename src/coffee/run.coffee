@@ -157,7 +157,7 @@ module.exports = class
 
           importer = new Importer options
           importer.blackListedCustomAttributesForUpdate = opts.customAttributesForCreationOnly or []
-          importer.validator.suppressMissingHeaderWarning = opts.suppressMissingHeaderWarning
+          importer.suppressMissingHeaderWarning = opts.suppressMissingHeaderWarning
           importer.allowRemovalOfVariants = opts.allowRemovalOfVariants
           importer.publishProducts = opts.publish
           importer.updatesOnly = true if opts.updatesOnly

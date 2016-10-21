@@ -51,7 +51,7 @@ class Import
     @customAttributeNameToMatch = undefined
     @matchBy = CONS.HEADER_ID
     @options = options
-    @initializeObjects()
+#    @initializeObjects()
 
   initializeObjects: () =>
     console.log "Initializing resources"
@@ -62,6 +62,7 @@ class Import
     @options.channels = new Channels()
 
     @validator = new Validator(@options)
+    @validator.suppressMissingHeaderWarning = @suppressMissingHeaderWarning
     @map = new Mapping(@options)
 
 
@@ -83,7 +84,6 @@ class Import
   # - next chunk
   import: (csv) =>
     @initializeObjects()
-
     @validator.fetchResources(@resourceCache)
     .then (resources) =>
       @resourceCache = resources
@@ -105,7 +105,7 @@ class Import
         .then (rawProducts) =>
           if _.size(@validator.errors) isnt 0
             return Promise.reject @validator.errors
-          
+
           console.warn "Mapping #{_.size rawProducts} product(s) ..."
           products = rawProducts.map((p) => @map.mapProduct p)
 
@@ -146,21 +146,27 @@ class Import
 
     fileListPromise
     .map (file) =>
+      @initializeObjects()
       # classes have internal structures which has to be reinitialized
       reader = new Reader
         csvDelimiter: @options.csvDelimiter,
         encoding: @options.encoding,
         format: @options.importFormat,
 
-      reader.read(file)
+      @validator.fetchResources(@resourceCache)
+      .then (resources) =>
+        @resourceCache = resources
+      .then () ->
+        reader.read(file)
       .then (rows) =>
         console.log("Loading has finished")
         @import(rows)
+
     , {concurrency: 1}
     .then () ->
       Promise.resolve "Import has finished"
     .catch (err) ->
-      console.error(err.stack)
+      console.error(err.stack || err)
       Promise.reject err
 
   processProducts: (products) ->
