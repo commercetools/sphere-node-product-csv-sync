@@ -119,22 +119,65 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    xit 'should do nothing on 2nd import run', (done) ->
-      csv =
-        """
-        productType,name,variantId,slug
-        #{@productType.id},#{@newProductName},1,#{@newProductSlug}
-        """
-      @importer.import(csv)
+    it 'should do nothing on 2nd import run', (done) ->
+      filePath = "./tmp/test-import.xlsx"
+      data = [
+        ["productType","name","variantId","slug"],
+        [@productType.id,@newProductName,1,@newProductSlug]
+      ]
+
+      writeXlsx(filePath, data)
+      .then () =>
+        @importer.importManager(filePath)
       .then (result) ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
 
         im = createImporter()
         im.matchBy = 'slug'
-        im.import(csv)
+        im.importManager(filePath)
       .then (result) ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product update not necessary.'
+        done()
+      .catch (err) -> done _.prettify(err)
+
+
+    it 'should do a partial update of prices based on SKUs', (done) ->
+      filePath = "./tmp/test-import.xlsx"
+      data = [
+        ["productType","name","sku","variantId","prices"],
+        [@productType.id,@newProductName,@newProductSku+1,1,"EUR 999"],
+        [null,null,@newProductSku+2,2,"USD 70000"]
+      ]
+
+      writeXlsx(filePath, data)
+      .then () =>
+        @importer.importManager(filePath)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        csv =
+        """
+          sku,prices,productType
+          #{@newProductSku+1},EUR 1999,#{@productType.name}
+          #{@newProductSku+2},USD 80000,#{@productType.name}
+          """
+        im = createImporter()
+        im.allowRemovalOfVariants = false
+        im.updatesOnly = true
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 3] Product updated.'
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual {en: @newProductName}
+        expect(p.masterVariant.sku).toBe "#{@newProductSku}1"
+        expect(p.masterVariant.prices[0].value).toEqual { centAmount: 1999, currencyCode: 'EUR' }
+        expect(p.variants[0].sku).toBe "#{@newProductSku}2"
+        expect(p.variants[0].prices[0].value).toEqual { centAmount: 80000, currencyCode: 'USD' }
         done()
       .catch (err) -> done _.prettify(err)
