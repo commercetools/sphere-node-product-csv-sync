@@ -17,7 +17,7 @@ CHANNEL_KEY = 'retailerA'
 
 
 createImporter = (format) ->
-  config = _.cloneDeep(Config)
+  config = JSON.parse(JSON.stringify(Config)) # cloneDeep
   config.importFormat = format || "csv"
   im = new Import config
   im.matchBy = 'sku'
