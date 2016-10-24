@@ -26,7 +26,7 @@ class Reader
       debugLog "READER::stream stdin"
       @inputStream = process.stdin
 
-    if @options.format == 'xlsx'
+    if @options.importFormat == 'xlsx'
       @_readXlsx(@inputStream)
     else
       @_readCsv(@inputStream)

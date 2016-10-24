@@ -128,7 +128,7 @@ class Import
 
     extractArchive(archivePath, {dir: tempDir.name})
     .then =>
-      filePredicate = '**/*.'+@options.importFormat
+      filePredicate = "**/*.#{@options.importFormat}"
       console.log "Loading files '#{filePredicate}'from", tempDir.name
       filePaths = walkSync tempDir.name, { globs: [filePredicate] }
       if not filePaths.length
@@ -150,7 +150,7 @@ class Import
       reader = new Reader
         csvDelimiter: @options.csvDelimiter,
         encoding: @options.encoding,
-        format: @options.importFormat,
+        importFormat: @options.importFormat,
 
       reader.read(file)
       .then (rows) =>

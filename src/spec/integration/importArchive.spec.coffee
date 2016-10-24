@@ -13,9 +13,13 @@ fs = Promise.promisifyAll require('fs')
 # will clean temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
 
+CHANNEL_KEY = 'retailerA'
+
+
 createImporter = (format) ->
-  Config.importFormat = format || "csv"
-  im = new Import Config
+  config = _.cloneDeep(Config)
+  config.importFormat = format || "csv"
+  im = new Import config
   im.matchBy = 'sku'
   im.allowRemovalOfVariants = true
   im.suppressMissingHeaderWarning = true
@@ -39,8 +43,6 @@ writeXlsx = (filePath, data) ->
       worksheet.columns = headers
 
   workbook.xlsx.writeFile(filePath)
-
-CHANNEL_KEY = 'retailerA'
 
 describe 'Import integration test', ->
 

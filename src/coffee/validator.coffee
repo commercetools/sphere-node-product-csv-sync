@@ -29,7 +29,7 @@ class Validator
       delimiter: options.csvDelimiter or ','
       quote: options.csvQuote or '"'
 
-  parse: (csvString, delimiter ) ->
+  parse: (csvString) ->
     # TODO: use parser with streaming API
     # https://github.com/sphereio/sphere-node-product-csv-sync/issues/56
     new Promise (resolve, reject) =>
