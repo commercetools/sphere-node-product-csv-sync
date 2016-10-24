@@ -13,7 +13,7 @@ describe 'State integration tests', ->
   beforeEach (done) ->
     @importer = new Import Config
     @importer.matchBy = 'sku'
-    @importer.validator.suppressMissingHeaderWarning = true
+    @importer.suppressMissingHeaderWarning = true
     @client = @importer.client
 
     @productType = TestHelpers.mockProductType()
@@ -79,7 +79,7 @@ describe 'State integration tests', ->
         """
       im = new Import Config
       im.matchBy = 'slug'
-      im.validator.suppressMissingHeaderWarning = true
+      im.suppressMissingHeaderWarning = true
       im.import(csv)
     .then (result) =>
       expect(_.size result).toBe 2

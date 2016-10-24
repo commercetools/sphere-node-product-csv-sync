@@ -17,7 +17,7 @@ describe 'Impex integration tests', ->
     jasmine.getEnv().defaultTimeoutInterval = 90000 # 90 sec
     @importer = new Import Config
     @importer.matchBy = 'slug'
-    @importer.validator.suppressMissingHeaderWarning = true
+    @importer.suppressMissingHeaderWarning = true
     @exporter = new Export client: Config
     @client = @importer.client
 
@@ -95,7 +95,7 @@ describe 'Impex integration tests', ->
       expect(_.size result).toBe 1
       expect(result[0]).toBe '[row 2] New product created.'
       file = '/tmp/impex.csv'
-      @exporter.exportDefault(csv, file)
+      @exporter.exportDefault(header, file)
       .then (result) ->
         console.log "export", result
         expect(result).toBe 'Export done.'

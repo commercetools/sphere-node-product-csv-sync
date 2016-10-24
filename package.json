@@ -30,6 +30,7 @@
     "node": ">= 4.5"
   },
   "scripts": {
+    "watch": "grunt watch:dev",
     "test": "grunt coverage"
   },
   "dependencies": {
@@ -37,6 +38,7 @@
     "bluebird": "2.9.x",
     "commander": "2.3.0",
     "csv": "0.3.7",
+    "exceljs": "^0.2.28",
     "extract-zip": "^1.5.0",
     "iconv-lite": "^0.4.13",
     "lodash.chunk": "^3.0.1",

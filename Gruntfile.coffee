@@ -64,8 +64,11 @@ module.exports = (grunt) ->
     # watching for changes
     watch:
       default:
-        files: ["src/coffee/*.coffee"]
+        files: ["src/coffee/**/*.coffee"]
         tasks: ["build"]
+      dev:
+        files: ["src/coffee/**/*.coffee"]
+        tasks: ["watchDev"]
       test:
         files: ["src/**/*.coffee"]
         tasks: ["test"]
@@ -110,6 +113,7 @@ module.exports = (grunt) ->
 
   # register tasks
   grunt.registerTask "build", ["clean", "coffeelint", "coffee", "concat"]
+  grunt.registerTask "watchDev", ["clean", "coffee"]
   grunt.registerTask "coverage", ["build", "shell:coverage"]
   grunt.registerTask "test", ["build", "shell:jasmine"]
   grunt.registerTask 'release', 'Release a new version, push it and publish it', (target) ->
