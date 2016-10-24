@@ -22,7 +22,7 @@ defaultProduct = (productTypeId, categoryId) =>
 createImporter = ->
   im = new Import Config
   im.allowRemovalOfVariants = true
-  im.validator.suppressMissingHeaderWarning = true
+  im.suppressMissingHeaderWarning = true
   im
 
 CHANNEL_KEY = 'retailerA'
@@ -41,7 +41,7 @@ prepareCategoryAndProduct = (done) ->
   jasmine.getEnv().defaultTimeoutInterval = 90000 # 90 sec
   @export = new Export client: Config
   @importer = createImporter()
-  @importer.validator.suppressMissingHeaderWarning = true
+  @importer.suppressMissingHeaderWarning = true
   @client = @importer.client
 
   console.log 'create a category to work with'

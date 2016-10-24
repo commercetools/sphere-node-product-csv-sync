@@ -13,6 +13,7 @@ extractArchive = Promise.promisify require('extract-zip')
 path = require 'path'
 tmp = require 'tmp'
 walkSync = require 'walk-sync'
+Reader = require './io/reader'
 fs = Promise.promisifyAll require('fs')
 
 # will clean temporary files even when an uncaught exception occurs
@@ -38,26 +39,33 @@ class Import
       @sync = new ProductSync
       @repeater = new Repeater attempts: 3
 
-    # TODO: move initialisation somewhere else
-    options.types = new Types()
-    options.customerGroups = new CustomerGroups()
-    options.categories = new Categories()
-    options.taxes = new Taxes()
-    options.channels = new Channels()
-
-    @validator = new Validator(options)
-    @map = new Mapping(options)
+    options.importFormat = options.importFormat || "csv"
+    options.csvDelimiter = options.csvDelimiter || ","
+    options.encoding = options.encoding || "utf-8"
+    @dryRun = false
+    @updatesOnly = false
     @publishProducts = false
     @continueOnProblems = options.continueOnProblems
     @allowRemovalOfVariants = false
-    @updatesOnly = false
-    @dryRun = false
     @blackListedCustomAttributesForUpdate = []
     @customAttributeNameToMatch = undefined
     @matchBy = CONS.HEADER_ID
     @options = options
 
-  # current workflow:
+  initializeObjects: () =>
+    console.log "Initializing resources"
+    @options.types = new Types()
+    @options.customerGroups = new CustomerGroups()
+    @options.categories = new Categories()
+    @options.taxes = new Taxes()
+    @options.channels = new Channels()
+
+    @validator = new Validator(@options)
+    @validator.suppressMissingHeaderWarning = @suppressMissingHeaderWarning
+    @map = new Mapping(@options)
+
+
+# current workflow:
   # - parse csv
   # - validate csv
   # - map all parsed products
@@ -73,12 +81,23 @@ class Import
   # - validate products against their product types (we might not have to product type before)
   # - create/update products based on matches
   # - next chunk
-  import: (fileContent) ->
-    @validator.parse fileContent
+  import: (csv) =>
+    @initializeObjects()
+
+    @validator.fetchResources(@resourceCache)
+    .then (resources) =>
+      @resourceCache = resources
+
+      if _.isString(csv) || csv instanceof Buffer
+        return Reader.parseCsv csv, @options.csvDelimiter, @options.encoding
+
+      Promise.resolve csv
     .then (parsed) =>
+      parsed = @validator.serialize(parsed)
+
       console.warn "CSV file with #{parsed.count} row(s) loaded."
       @map.header = parsed.header
-      productsRows = @validator.validateOffline(parsed.data)
+      @validator.validateOffline(parsed.data)
       if _.size(@validator.errors) isnt 0
         return Promise.reject @validator.errors
       else
@@ -103,27 +122,47 @@ class Import
             agg.concat(r)
           , []))
 
-  importArchive: (archivePath) ->
+  _unarchiveProducts: (archivePath) ->
     tempDir = tmp.dirSync({ unsafeCleanup: true })
-    console.log "Importing archive #{archivePath}"
+    console.log "Unarchiving file #{archivePath}"
 
     extractArchive(archivePath, {dir: tempDir.name})
     .then =>
-      console.log "Loading files from", tempDir.name
-      filePaths = walkSync tempDir.name, { globs: ['**/*.csv'] }
+      filePredicate = "**/*.#{@options.importFormat}"
+      console.log "Loading files '#{filePredicate}'from", tempDir.name
+      filePaths = walkSync tempDir.name, { globs: [filePredicate] }
       if not filePaths.length
-        return Promise.reject "There are no CSV files in archive"
+        return Promise.reject "There are no #{@options.importFormat} files in archive"
 
-      Promise.map filePaths, (fileName) =>
-        console.log "Processing file %s", fileName
-        filePath = path.join tempDir.name, fileName
+      filePaths = filePaths.map (fileName) ->
+        path.join tempDir.name, fileName
+      Promise.resolve filePaths
 
-        @validator = new Validator(@options)
-        fs.readFileAsync(filePath, {encoding: "UTF-8"})
-        .then (content) => @import content
-      , {concurrency: 1}
-      .then (res) ->
-        Promise.resolve([].concat.apply([], res))
+  importManager: (file, isArchived) ->
+    fileListPromise = Promise.resolve [file]
+
+    if file && isArchived
+      fileListPromise = @_unarchiveProducts (file)
+
+    fileListPromise
+    .map (file) =>
+      # classes have internal structures which has to be reinitialized
+      reader = new Reader
+        csvDelimiter: @options.csvDelimiter,
+        encoding: @options.encoding,
+        importFormat: @options.importFormat,
+
+      reader.read(file)
+      .then (rows) =>
+        console.log("Loading has finished")
+        @import(rows)
+
+    , {concurrency: 1}
+    .then (res) ->
+      Promise.resolve _.flatten(res)
+    .catch (err) ->
+      console.error(err.stack || err)
+      Promise.reject err
 
   processProducts: (products) ->
     filterInput = QueryUtils.mapMatchFunction(@matchBy)(products)

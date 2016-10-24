@@ -2,6 +2,7 @@ Promise = require 'bluebird'
 _ = require 'underscore'
 archiver = require 'archiver'
 _.mixin require('underscore-mixins')
+iconv = require 'iconv-lite'
 {Import} = require '../../lib/main'
 Config = require '../../config'
 TestHelpers = require './testhelpers'
@@ -25,7 +26,7 @@ createImporter = ->
   im = new Import Config
   im.matchBy = 'sku'
   im.allowRemovalOfVariants = true
-  im.validator.suppressMissingHeaderWarning = true
+  im.suppressMissingHeaderWarning = true
   im
 
 CHANNEL_KEY = 'retailerA'
@@ -35,7 +36,6 @@ describe 'Import integration test', ->
   beforeEach (done) ->
     jasmine.getEnv().defaultTimeoutInterval = 90000 # 90 sec
     @importer = createImporter()
-    @importer.validator.suppressMissingHeaderWarning = true
     @client = @importer.client
 
     @productType = TestHelpers.mockProductType()
@@ -785,7 +785,7 @@ describe 'Import integration test', ->
 
     it 'should do a partial update of prices based on SKUs', (done) ->
       csv =
-        """
+      """
         productType,name,sku,variantId,prices
         #{@productType.id},#{@newProductName},#{@newProductSku+1},1,EUR 999
         ,,#{@newProductSku+2},2,USD 70000
@@ -795,7 +795,7 @@ describe 'Import integration test', ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
-          """
+        """
           sku,prices,productType
           #{@newProductSku+1},EUR 1999,#{@productType.name}
           #{@newProductSku+2},USD 80000,#{@productType.name}
@@ -820,54 +820,74 @@ describe 'Import integration test', ->
       .catch (err) -> done _.prettify(err)
 
 
-    it 'should import multiple archived products', (done) ->
-      tempDir = tmp.dirSync({ unsafeCleanup: true })
-      archivePath = path.join tempDir.name, 'products.zip'
-
-      csv = [
+    it 'should import a simple product with different encoding', (done) ->
+      encoding = "win1250"
+      @importer.options.encoding = encoding
+      @newProductName += "žýáíé"
+      csv =
+      """
+        productType,name,variantId,slug
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug}
         """
-          productType,name,variantId,slug
-          #{@productType.id},#{@newProductName},1,#{@newProductSlug}
-          """,
-        """
-          productType,name,variantId,slug
-          #{@productType.id},#{@newProductName+1},1,#{@newProductSlug+1}
-          """
-      ]
-
-      Promise.map csv, (content, index) ->
-        fs.writeFileAsync path.join(tempDir.name, "products-#{index}.csv"), content
-      .then ->
-        archive = archiver 'zip'
-        outputStream = fs.createWriteStream archivePath
-
-        new Promise (resolve, reject) ->
-          outputStream.on 'close', () -> resolve()
-          archive.on 'error', (err) -> reject(err)
-          archive.pipe outputStream
-
-          archive.bulk([
-            { expand: true, cwd: tempDir.name, src: ['**'], dest: 'products'}
-          ])
-          archive.finalize()
-      .then =>
-        @importer.importArchive(archivePath)
-      .then =>
-        @client.productProjections.staged(true)
-          .sort("createdAt", "ASC")
-          .where("productType(id=\"#{@productType.id}\")").fetch()
+      encoded = iconv.encode(csv, encoding)
+      @importer.import(encoded)
       .then (result) =>
-        expect(_.size result.body.results).toBe 2
-
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
         expect(p.name).toEqual en: @newProductName
         expect(p.slug).toEqual en: @newProductSlug
-
-        p = result.body.results[1]
-        expect(p.name).toEqual en: @newProductName+1
-        expect(p.slug).toEqual en: @newProductSlug+1
-
         done()
       .catch (err) -> done _.prettify(err)
-      .finally ->
-        tempDir.removeCallback()
+
+    it 'should import a simple product file with different encoding', (done) ->
+      encoding = "win1250"
+      @importer.options.encoding = encoding
+      @newProductName += "žýáíé"
+      csv =
+      """
+        productType,name,variantId,slug
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug}
+        """
+      encoded = iconv.encode(csv, encoding)
+      @importer.import(encoded)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: @newProductName
+        expect(p.slug).toEqual en: @newProductSlug
+        done()
+      .catch (err) -> done _.prettify(err)
+
+    it 'should import a simple product file with different encoding using import manager', (done) ->
+      filePath = "/tmp/test-import.csv"
+      encoding = "win1250"
+      @importer.options.encoding = encoding
+      @newProductName += "žýáíé"
+      csv =
+      """
+        productType,name,variantId,slug
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug}
+        """
+      encoded = iconv.encode(csv, encoding)
+      fs.writeFileSync(filePath, encoded)
+
+      @importer.importManager(filePath)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: @newProductName
+        expect(p.slug).toEqual en: @newProductSlug
+        done()
+      .catch (err) -> done _.prettify(err)
