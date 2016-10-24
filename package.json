@@ -31,7 +31,7 @@
   },
   "scripts": {
     "watch": "grunt watch:dev",
-    "test": "grunt build && jasmine-node --verbose --captureExceptions test/integration/impex.spec.js"
+    "test": "grunt coverage"
   },
   "dependencies": {
     "archiver": "^1.1.0",
