@@ -268,7 +268,6 @@ module.exports = class
           _subCommandHelp('state')
         .done()
 
-
     program
       .command 'export'
       .description 'Export your products from your SPHERE.IO project to CSV using.'
