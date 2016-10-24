@@ -51,7 +51,6 @@ class Import
     @customAttributeNameToMatch = undefined
     @matchBy = CONS.HEADER_ID
     @options = options
-#    @initializeObjects()
 
   initializeObjects: () =>
     console.log "Initializing resources"
