@@ -190,7 +190,7 @@ describe 'Mapping', ->
       .catch done
     it 'should map search keywords', (done) ->
       csv =
-      """
+        """
         productType,variantId,id,name.en,slug.en,searchKeywords.en,searchKeywords.fr-FR
         product-type,1,xyz,myProduct,myproduct,some;new;search;keywords,bruxelle;liege;brugge,
         """
@@ -223,7 +223,7 @@ describe 'Mapping', ->
 
     it 'should map empty search keywords', (done) ->
       csv =
-      """
+        """
         productType,variantId,id,name.en,slug.en,searchKeywords.en
         product-type,1,xyz,myProduct,myproduct,
         """
