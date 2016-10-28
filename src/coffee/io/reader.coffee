@@ -78,7 +78,7 @@ class Reader
         rowValues = row.values
         rowValues.shift()
         rows.push _.map rowValues, (item) ->
-          if item?
+          if not item?
             item = ""
           String(item)
       rows
