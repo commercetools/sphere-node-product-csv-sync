@@ -78,7 +78,9 @@ class Reader
         rowValues = row.values
         rowValues.shift()
         rows.push _.map rowValues, (item) ->
-          if item then String(item) else ""
+          if typeof(item) == "undefined" || item == null
+            item = ""
+          String(item)
       rows
 
   @decode: (buffer, encoding) =>
