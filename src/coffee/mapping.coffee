@@ -367,7 +367,7 @@ class Mapping
     if _.has langH2i, attribName
       _.each langH2i[attribName], (index, language) ->
         val = row[index]
-        if val == ""
+        if not _.isString(val) || val == ""
           return
         singleValues = val.split GLOBALS.DELIM_MULTI_VALUE
         texts = []
