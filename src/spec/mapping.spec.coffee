@@ -190,7 +190,7 @@ describe 'Mapping', ->
       .catch done
     it 'should map search keywords', (done) ->
       csv =
-      """
+        """
         productType,variantId,id,name.en,slug.en,searchKeywords.en,searchKeywords.fr-FR
         product-type,1,xyz,myProduct,myproduct,some;new;search;keywords,bruxelle;liege;brugge,
         """
@@ -216,6 +216,38 @@ describe 'Mapping', ->
           variants: []
           categories: []
           searchKeywords: {"en":[{"text":"some"},{"text":"new"},{"text":"search"},{"text":"keywords"}],"fr-FR":[{"text":"bruxelle"},{"text":"liege"},{"text":"brugge"}]}
+
+        expect(product).toEqual expectedProduct
+        done()
+      .catch done
+
+    it 'should map empty search keywords', (done) ->
+      csv =
+        """
+        productType,variantId,id,name.en,slug.en,searchKeywords.en
+        product-type,1,xyz,myProduct,myproduct,
+        """
+      pt =
+        id: '123'
+      @validator.parse csv
+      .then (parsed) =>
+        @map.header = parsed.header
+        @validator.validateOffline parsed.data
+        product = @map.mapBaseProduct @validator.rawProducts[0].master, pt
+
+        expectedProduct =
+          id: 'xyz'
+          productType:
+            typeId: 'product-type'
+            id: '123'
+          name:
+            en: 'myProduct'
+          slug:
+            en: 'myproduct'
+          masterVariant: {}
+          categoryOrderHints: {}
+          variants: []
+          categories: []
 
         expect(product).toEqual expectedProduct
         done()
