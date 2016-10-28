@@ -77,7 +77,8 @@ class Reader
       worksheet.eachRow (row) =>
         rowValues = row.values
         rowValues.shift()
-        rows.push rowValues.map String
+        rows.push _.map rowValues, (item) ->
+          if item then String(item) else ""
       rows
 
   @decode: (buffer, encoding) =>
