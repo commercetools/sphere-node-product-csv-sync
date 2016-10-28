@@ -221,6 +221,38 @@ describe 'Mapping', ->
         done()
       .catch done
 
+    it 'should map empty search keywords', (done) ->
+      csv =
+      """
+        productType,variantId,id,name.en,slug.en,searchKeywords.en
+        product-type,1,xyz,myProduct,myproduct,
+        """
+      pt =
+        id: '123'
+      @validator.parse csv
+      .then (parsed) =>
+        @map.header = parsed.header
+        @validator.validateOffline parsed.data
+        product = @map.mapBaseProduct @validator.rawProducts[0].master, pt
+
+        expectedProduct =
+          id: 'xyz'
+          productType:
+            typeId: 'product-type'
+            id: '123'
+          name:
+            en: 'myProduct'
+          slug:
+            en: 'myproduct'
+          masterVariant: {}
+          categoryOrderHints: {}
+          variants: []
+          categories: []
+
+        expect(product).toEqual expectedProduct
+        done()
+      .catch done
+
   describe '#mapVariant', ->
     it 'should give feedback on bad variant id', ->
       @map.header = new Header [ 'variantId' ]
