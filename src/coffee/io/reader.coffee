@@ -78,7 +78,7 @@ class Reader
         rowValues = row.values
         rowValues.shift()
         rows.push _.map rowValues, (item) ->
-          if typeof(item) == "undefined" || item == null
+          if item?
             item = ""
           String(item)
       rows
