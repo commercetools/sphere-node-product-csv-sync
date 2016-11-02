@@ -184,8 +184,7 @@ class Export
     uniqueList = _.unique(list)
 
     if uniqueList.length != list.length
-      list = list.sort()
-      list = list.filter (v,i,o) ->
+      list = list.sort().filter (v,i,o) ->
         if i > 0 && v == o[i-1]
           return v
 
