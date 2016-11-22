@@ -80,7 +80,7 @@ class ExportMapping
         memo + if @categoryBy is CONS.HEADER_SLUG
           @categoryService.id2slug[category.id]
         else if @categoryBy is CONS.HEADER_EXTERNAL_ID
-          @categoryService.id2slug[category.id]
+          @categoryService.id2externalId[category.id]
         else
           @categoryService.id2fqName[category.id]
       , '')

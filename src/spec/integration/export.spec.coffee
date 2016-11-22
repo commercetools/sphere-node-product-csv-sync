@@ -402,9 +402,23 @@ describe 'Export integration tests', ->
       productType,name,sku
       '''
     exporter .exportDefault(template, null)
-    .then (result) ->
+    .then () ->
       done('Export should fail!')
     .catch (err) ->
       expect(err.message).toBe 'Unsupported file type: unsupported, alowed formats are xlsx,csv'
       done()
 
+  it 'should throw an error when exporting into unsupported encoding', (done) ->
+    template =
+    '''
+      productType,name,variantId,attr-lenum-n.en,attr-set-lenum-n.en,žškřďťň
+      '''
+    outputLocation = '/tmp/output.csv'
+
+    @export.options.encoding = 'unsupportedEncoding'
+    @export.exportDefault(template, outputLocation)
+    .then () ->
+      done("Should throw an exception with unsupported encoding")
+    .catch (err) ->
+      expect(err.message).toBe "Encoding does not exist: unsupportedEncoding"
+      done()
