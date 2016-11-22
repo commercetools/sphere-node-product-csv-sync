@@ -1,7 +1,7 @@
 _ = require 'underscore'
 Types = require '../lib/types'
 CONS = require '../lib/constants'
-{ExportMapping, Header} = require '../lib/main'
+{ExportMapping, Header, Categories} = require '../lib/main'
 
 describe 'ExportMapping', ->
 
@@ -160,14 +160,46 @@ describe 'ExportMapping', ->
       expect(row).toEqual [ 'bar' ]
 
   describe '#mapBaseProduct', ->
-    it 'should map productType (name) and product id', ->
+    it 'should map productType (name), product id and categories by externalId', ->
+      @exportMapping.categoryService = new Categories()
+      @exportMapping.categoryService.buildMaps [
+        {
+          id: '9e6de6ad-cc94-4034-aa9f-276ccb437efd',
+          name:
+            en: 'BrilliantCoeur',
+          slug:
+            en: 'brilliantcoeur',
+          externalId: 'BRI',
+        },
+        {
+          id: '0afacd76-30d8-431e-aff9-376cd1b4c9e6',
+          name:
+            en: 'Autumn / Winter 2016',
+          slug:
+            en: 'autmn-winter-2016',
+          externalId: '9997',
+        }
+      ]
+
+      @exportMapping.categoryBy = 'externalId'
       @exportMapping.header = new Header(
         [CONS.HEADER_PRODUCT_TYPE,
-        CONS.HEADER_ID])
+        CONS.HEADER_ID,
+        CONS.HEADER_CATEGORIES])
       @exportMapping.header.toIndex()
 
       product =
         id: '123'
+        categories: [
+          {
+            typeId: 'category',
+            id: '9e6de6ad-cc94-4034-aa9f-276ccb437efd'
+          },
+          {
+            typeId: 'category',
+            id: '0afacd76-30d8-431e-aff9-376cd1b4c9e6'
+          }
+        ],
         masterVariant:
           attributes: []
 
@@ -175,7 +207,7 @@ describe 'ExportMapping', ->
         name: 'myType'
         id: 'typeId123'
       row = @exportMapping._mapBaseProduct(product, type)
-      expect(row).toEqual [ 'myType', '123' ]
+      expect(row).toEqual [ 'myType', '123', 'BRI;9997']
 
     it 'should map createdAt and lastModifiedAt', ->
       @exportMapping.header = new Header(
@@ -268,6 +300,7 @@ describe 'ExportMapping', ->
           { name: 'myLenumSetAttrib', type: { name: 'set', elementType: { name: 'lenum' } } }
         ]
       @exportMapping.typesService.buildMaps [@productType]
+
     it 'should map key of lenum and set of lenum if no language is given', ->
       @exportMapping.header = new Header(['myLenumAttrib.en','myLenumAttrib','myLenumSetAttrib.fr-BE','myLenumSetAttrib'])
       @exportMapping.header.toIndex()
