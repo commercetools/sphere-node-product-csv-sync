@@ -6,9 +6,13 @@ iconv = require 'iconv-lite'
 fs = Promise.promisifyAll require('fs')
 Excel = require 'exceljs'
 
+#debugLog = console.log
+debugLog = _.noop
+
 class Reader
 
   constructor: (@options = {}) ->
+    debugLog "READER::options:", JSON.stringify(@options)
     @options.encoding = @options.encoding || 'utf-8'
     @header = null
     @rows = []
@@ -16,8 +20,10 @@ class Reader
   read: (file) =>
     # read from file or from stdin?
     if file
+      debugLog "READER::stream file %s", file
       @inputStream = fs.createReadStream file
     else
+      debugLog "READER::stream stdin"
       @inputStream = process.stdin
 
     if @options.importFormat == 'xlsx'
@@ -64,6 +70,7 @@ class Reader
     workbook = new Excel.Workbook()
     workbook.xlsx.read(stream)
     .then (workbook) ->
+      console.log("File was readed")
 
       rows = []
       worksheet = workbook.getWorksheet(1)
@@ -78,6 +85,7 @@ class Reader
       rows
 
   @decode: (buffer, encoding) =>
+    debugLog "READER:decode from %s",encoding
     if encoding == 'utf-8'
       return buffer.toString()
 
@@ -87,6 +95,7 @@ class Reader
     iconv.decode buffer, encoding
 
   getHeader: (header) =>
+    debugLog("READER::get header")
     @header
 
 module.exports = Reader

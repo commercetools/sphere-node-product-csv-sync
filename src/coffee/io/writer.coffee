@@ -6,9 +6,13 @@ iconv = require 'iconv-lite'
 fs = Promise.promisifyAll require('fs')
 Excel = require 'exceljs'
 
+#debugLog = console.log
+debugLog = _.noop
+
 class Writer
 
   constructor: (@options = {}) ->
+    debugLog "WRITER::options:", JSON.stringify(@options)
     @options.defaultEncoding = "utf8"
     @options.availableFormats = ["xlsx", "csv"]
 
@@ -17,8 +21,10 @@ class Writer
 
     # write to file or to stdout?
     if @options.outputFile
+      debugLog "WRITER::stream file %s", @options.outputFile
       @outputStream = fs.createWriteStream @options.outputFile
     else
+      debugLog "WRITER::stream stdout"
       @outputStream = process.stdout
 
 
@@ -44,6 +50,7 @@ class Writer
 
   # create header
   setHeader: (header) =>
+    debugLog("WRITER::writing header %s", header)
 
     if @options.exportFormat == 'xlsx'
       @_writeXlsxHeader header
@@ -51,6 +58,7 @@ class Writer
       @_writeCsvRows [header]
 
   write: (rows) ->
+    debugLog("WRITER::writing rows len: %d", rows.length)
 
     if @options.exportFormat == 'xlsx'
       @_writeXlsxRows rows
@@ -93,6 +101,7 @@ class Writer
       .on 'error', (err) -> reject err
 
   flush: () =>
+    debugLog("WRITER::flushing content")
     if @options.exportFormat == 'xlsx'
       @workbook.commit()
     else
