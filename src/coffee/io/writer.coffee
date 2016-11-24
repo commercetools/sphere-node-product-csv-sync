@@ -6,12 +6,14 @@ iconv = require 'iconv-lite'
 fs = Promise.promisifyAll require('fs')
 Excel = require 'exceljs'
 
-#debugLog = console.log
 debugLog = _.noop
 
 class Writer
 
   constructor: (@options = {}) ->
+    if @options.debugging
+      debugLog = console.log
+
     debugLog "WRITER::options:", JSON.stringify(@options)
     @options.defaultEncoding = "utf8"
     @options.availableFormats = ["xlsx", "csv"]

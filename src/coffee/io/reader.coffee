@@ -6,12 +6,14 @@ iconv = require 'iconv-lite'
 fs = Promise.promisifyAll require('fs')
 Excel = require 'exceljs'
 
-#debugLog = console.log
 debugLog = _.noop
 
 class Reader
 
   constructor: (@options = {}) ->
+    if @options.debugging
+      debugLog = console.log
+
     debugLog "READER::options:", JSON.stringify(@options)
     @options.encoding = @options.encoding || 'utf-8'
     @header = null
