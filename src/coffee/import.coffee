@@ -238,12 +238,17 @@ class Import
         else
           existingProduct.variants[variantInfo.index] = variant
         productsToUpdate[productIndex] =
-          product: existingProduct
+          product: _.extend existingProduct, @getProductLevelInfo _.deepClone entry.product
           header: entry.header
           rowIndex: entry.rowIndex
       else
         console.warn "Ignoring variant as no match by SKU found for: ", variant
     _.map productsToUpdate
+
+  getProductLevelInfo: (product) ->
+    delete product.variants
+    delete product.masterVariant
+    product
 
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true

@@ -891,3 +891,37 @@ describe 'Import integration test', ->
         expect(p.slug).toEqual en: @newProductSlug
         done()
       .catch (err) -> done _.prettify(err)
+
+    it 'should do an update of a product level info based only on SKU', (done) ->
+      newProductNameUpdated = "#{@newProductName}-updated"
+      csv =
+      """
+        productType,name,sku,variantId,prices
+        #{@productType.id},#{@newProductName},#{@newProductSku+1},1,EUR 999
+        """
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        csv =
+        """
+          productType,sku,name
+          #{@productType.name},#{@newProductSku+1},#{newProductNameUpdated}
+          """
+        im = createImporter()
+        im.allowRemovalOfVariants = false
+        im.updatesOnly = true
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual {en: newProductNameUpdated}
+        expect(p.masterVariant.sku).toBe "#{@newProductSku}1"
+        expect(p.masterVariant.prices[0].value).toEqual { centAmount: 999, currencyCode: 'EUR' }
+        done()
+      .catch (err) -> done _.prettify(err)
+
