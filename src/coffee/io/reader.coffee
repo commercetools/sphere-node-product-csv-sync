@@ -11,7 +11,7 @@ debugLog = _.noop
 class Reader
 
   constructor: (@options = {}) ->
-    if @options.debugging
+    if @options.debug
       debugLog = console.log
 
     debugLog "READER::options:", JSON.stringify(@options)
@@ -63,6 +63,7 @@ class Reader
         buffers.push buffer
       stream.on 'error', (err) -> reject(err)
       stream.on 'end', () =>
+        debugLog("READER::file was readed")
         buffer = Buffer.concat(buffers)
         Reader.parseCsv(buffer, @options.csvDelimiter, @options.encoding)
         .then (parsed) -> resolve(parsed)
@@ -72,7 +73,7 @@ class Reader
     workbook = new Excel.Workbook()
     workbook.xlsx.read(stream)
     .then (workbook) ->
-      console.log("File was readed")
+      debugLog("READER::file was readed")
 
       rows = []
       worksheet = workbook.getWorksheet(1)
@@ -87,7 +88,7 @@ class Reader
       rows
 
   @decode: (buffer, encoding) =>
-    debugLog "READER:decode from %s",encoding
+    debugLog "READER::decode from %s",encoding
     if encoding == 'utf-8'
       return buffer.toString()
 

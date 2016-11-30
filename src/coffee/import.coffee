@@ -151,6 +151,7 @@ class Import
         csvDelimiter: @options.csvDelimiter,
         encoding: @options.encoding,
         importFormat: @options.importFormat,
+        debug: @options.debug
 
       reader.read(file)
       .then (rows) =>

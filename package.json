@@ -30,6 +30,7 @@
     "node": ">= 4.5"
   },
   "scripts": {
+    "lint": "grunt coffeelint",
     "watch": "grunt watch:dev",
     "test": "grunt coverage"
   },

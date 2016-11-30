@@ -136,6 +136,7 @@ module.exports = class
             csvDelimiter: opts.csvDelimiter
             encoding: opts.encoding
             importFormat: if opts.xlsx then 'xlsx' else 'csv'
+            debug: !!opts.parent.debug
 
           options.host = program.sphereHost if program.sphereHost
           options.protocol = program.sphereProtocol if program.sphereProtocol
@@ -302,6 +303,7 @@ module.exports = class
             templateDelimiter: opts.templateDelimiter
             fillAllRows: opts.fillAllRows
             categoryBy: opts.categoryBy
+            debug: !!opts.parent.debug
             client: _.extend credentials,
               timeout: program.timeout
               user_agent: "#{package_json.name} - Export - #{package_json.version}"

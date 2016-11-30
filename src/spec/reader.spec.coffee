@@ -42,7 +42,7 @@ describe 'IO Reader test', ->
     .then () =>
       reader = new Reader
         importFormat: "xlsx",
-        debugging: true,
+        debug: true,
       reader.read(filePath)
     .then (result) =>
       expect(result.length).toBe(2)

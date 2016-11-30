@@ -11,7 +11,7 @@ debugLog = _.noop
 class Writer
 
   constructor: (@options = {}) ->
-    if @options.debugging
+    if @options.debug
       debugLog = console.log
 
     debugLog "WRITER::options:", JSON.stringify(@options)
