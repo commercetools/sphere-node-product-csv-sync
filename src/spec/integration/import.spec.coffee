@@ -892,21 +892,37 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should do an update of a product level info based only on SKU', (done) ->
+    it 'should update a product level info based only on SKU', (done) ->
       newProductNameUpdated = "#{@newProductName}-updated"
+      categories = []
+      for i in [1...4]
+        categories.push(        {
+          "name": {
+            "en": "Catgeory#{i}"
+          },
+          "slug": {
+            "en": "category-#{i}"
+          },
+          "externalId": "#{i}",
+        })
+
       csv =
       """
-        productType,name,sku,variantId,prices
-        #{@productType.id},#{@newProductName},#{@newProductSku+1},1,EUR 999
+        productType,name,sku,variantId,prices,categories
+        #{@productType.id},#{@newProductName},#{@newProductSku+1},1,EUR 999,1;2
         """
-      @importer.import(csv)
+
+      TestHelpers.ensureCategories(@client, categories)
+      .then =>
+        @importer.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
+
         csv =
         """
-          productType,sku,name
-          #{@productType.name},#{@newProductSku+1},#{newProductNameUpdated}
+          productType,sku,name.en,name.it,categories
+          #{@productType.name},#{@newProductSku+1},#{newProductNameUpdated},#{newProductNameUpdated}-it,2;3
           """
         im = createImporter()
         im.allowRemovalOfVariants = false
@@ -919,9 +935,67 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
-        expect(p.name).toEqual {en: newProductNameUpdated}
+        expect(p.name).toEqual {en: newProductNameUpdated, it: "#{newProductNameUpdated}-it"}
+        expect(_.size(p.categories)).toEqual 3
         expect(p.masterVariant.sku).toBe "#{@newProductSku}1"
         expect(p.masterVariant.prices[0].value).toEqual { centAmount: 999, currencyCode: 'EUR' }
         done()
+      .catch (err) ->
+        console.dir(err, {depth: 100})
+        done _.prettify(err)
+
+    it 'should product level info and multiple variants based only on SKU', (done) ->
+      updatedProductName = "#{@newProductName}-updated"
+      skuPrefix = "sku-"
+
+      csv =
+      """
+        productType,name,sku,variantId,prices
+        #{@productType.id},#{@newProductName},#{skuPrefix+1},1,EUR 899
+        ,,#{skuPrefix+3},2,EUR 899
+        ,,#{skuPrefix+2},3,EUR 899
+        ,,#{skuPrefix+4},4,EUR 899
+        """
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+
+        csv =
+        """
+          productType,name,sku,prices
+          #{@productType.id},#{updatedProductName},#{skuPrefix+1},EUR 100
+          ,,#{skuPrefix+2},EUR 200
+          ,,#{skuPrefix+3},EUR 300
+          ,,#{skuPrefix+4},EUR 400
+          """
+
+        im = createImporter()
+        im.allowRemovalOfVariants = false
+        im.updatesOnly = true
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) =>
+        console.log(result )
+        p = result.body.results[0]
+
+        getPrice = (variant) -> variant?.prices[0].value.centAmount
+        getVariantBySku = (variants, sku) ->
+          _.find variants, (v) -> v.sku == sku
+
+        expect(p.name).toEqual {en: updatedProductName}
+        expect(p.masterVariant.sku).toBe "#{skuPrefix}1"
+        expect(getPrice(p.masterVariant)).toBe 100
+
+        expect(_.size(p.variants)).toEqual 3
+        expect(getPrice(getVariantBySku(p.variants, skuPrefix+2))).toBe 200
+        expect(getPrice(getVariantBySku(p.variants, skuPrefix+3))).toBe 300
+        expect(getPrice(getVariantBySku(p.variants, skuPrefix+4))).toBe 400
+
+        done()
       .catch (err) -> done _.prettify(err)
+
 

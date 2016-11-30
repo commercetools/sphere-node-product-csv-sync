@@ -200,7 +200,7 @@ describe 'Validator', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should build complain about missing product type - sku update', (done) ->
+    it 'should use a previous productType if it is missing when doing sku update', (done) ->
       csv =
         """
         productType,sku
@@ -213,8 +213,9 @@ describe 'Validator', ->
       .then (parsed) =>
         @validator.updateVariantsOnly = true
         @validator.buildProducts parsed.data
-        expect(@validator.errors.length).toBe 1
-        expect(@validator.errors[0]).toBe '[row 4] Please provide a product type!'
+        expect(@validator.errors.length).toBe 0
+        expect(_.size(@validator.rawProducts)).toBe 4
+        expect(@validator.rawProducts[2].master).toEqual ["bar", "345"]
         done()
       .catch (err) -> done _.prettify(err)
 

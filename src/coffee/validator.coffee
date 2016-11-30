@@ -114,15 +114,21 @@ class Validator
   buildProducts: (content, variantColumn) ->
     buildVariantsOnly = (aggr, row, index) =>
       rowIndex = index + 2 # Excel et all start counting at 1 and we already popped the header
-      productType = row[@header.toIndex CONS.HEADER_PRODUCT_TYPE]
-      if productType
-        @rawProducts.push({
-          master: _.deepClone(row),
-          startRow: rowIndex,
-          variants: []
-        })
-      else
-        @errors.push "[row #{rowIndex}] Please provide a product type!"
+      productTypeIndex = @header.toIndex CONS.HEADER_PRODUCT_TYPE
+      productType = row[productTypeIndex]
+
+      if not productType
+        console.warn "[row #{rowIndex}] Using previous productType for variant update"
+        #@errors.push "[row #{rowIndex}] Please provide a product type!"
+        lastProduct = _.last @rawProducts
+        row[productTypeIndex] = lastProduct.master[productTypeIndex]
+
+      @rawProducts.push({
+        master: _.deepClone(row),
+        startRow: rowIndex,
+        variants: []
+      })
+
       aggr
 
     buildProductsOnFly = (aggr, row, index) =>
