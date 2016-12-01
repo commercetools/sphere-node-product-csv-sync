@@ -116,10 +116,16 @@ class Validator
       rowIndex = index + 2 # Excel et all start counting at 1 and we already popped the header
       productTypeIndex = @header.toIndex CONS.HEADER_PRODUCT_TYPE
       productType = row[productTypeIndex]
+      lastProduct = _.last @rawProducts
+
+      # if there is no productType and no product above
+      # skip this line
+      if not productType and not lastProduct
+        @errors.push "[row #{rowIndex}] Please provide a product type!"
+        return aggr
 
       if not productType
         console.warn "[row #{rowIndex}] Using previous productType for variant update"
-        #@errors.push "[row #{rowIndex}] Please provide a product type!"
         lastProduct = _.last @rawProducts
         row[productTypeIndex] = lastProduct.master[productTypeIndex]
 

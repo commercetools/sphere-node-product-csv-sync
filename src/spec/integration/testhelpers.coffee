@@ -114,4 +114,18 @@ exports.ensureCategories = (client, categoryList) ->
     console.log "Deleted #{_.size result} categories, creating new one"
     Promise.map categoryList, (category) ->
       client.categories.create(category)
-      .then (result) -> Promise.resolve(result.body)
+      .then (result) -> result.body
+
+exports.generateCategories = (len) ->
+  categories = []
+  for i in [1...len+1]
+    categories.push(        {
+      "name": {
+        "en": "Catgeory#{i}"
+      },
+      "slug": {
+        "en": "category-#{i}"
+      },
+      "externalId": "#{i}",
+    })
+  categories

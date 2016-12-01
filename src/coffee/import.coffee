@@ -246,28 +246,16 @@ class Import
         console.warn "Ignoring variant as no match by SKU found for: ", variant
     _.map productsToUpdate
 
-  mergeCategories: (target, source) ->
-    # function will try to find category by its ID in a given list
-    findById = (list, id) ->
-      _.find(list, (item) -> item.id == id)
-
-    target = target or []
-    source = source or []
-
-    # go through source list and push items
-    # which are not yet present in a target list
-    source.forEach (item) ->
-      if !findById(target, item.id)
-        target.push item
-
-    target
-
   mergeProductLevelInfo: (finalProduct, product) ->
     # Remove variants/masterVariant - should be already copied to final product
     delete product.variants
     delete product.masterVariant
 
-    product.categories = @mergeCategories finalProduct.categories, product.categories
+    # if new categories are provided
+    # remove old ones and deepMerge new categories
+    if product.categories
+      finalProduct.categories = []
+
     deepMerge finalProduct, product
 
   changeState: (publish = true, remove = false, filterFunction) ->

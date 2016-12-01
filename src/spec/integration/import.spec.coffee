@@ -936,7 +936,7 @@ describe 'Import integration test', ->
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
         expect(p.name).toEqual {en: newProductNameUpdated, it: "#{newProductNameUpdated}-it"}
-        expect(_.size(p.categories)).toEqual 3
+        expect(_.size(p.categories)).toEqual 2
         expect(p.masterVariant.sku).toBe "#{@newProductSku}1"
         expect(p.masterVariant.prices[0].value).toEqual { centAmount: 999, currencyCode: 'EUR' }
         done()
@@ -944,7 +944,7 @@ describe 'Import integration test', ->
         console.dir(err, {depth: 100})
         done _.prettify(err)
 
-    it 'should product level info and multiple variants based only on SKU', (done) ->
+    it 'should update a product level info and multiple variants based only on SKU', (done) ->
       updatedProductName = "#{@newProductName}-updated"
       skuPrefix = "sku-"
 
@@ -998,4 +998,133 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
+    it 'should update categories only when they are provided in import CSV', (done) ->
+      skuPrefix = "sku-"
+      csv =
+      """
+        productType,name,sku,variantId,categories
+        #{@productType.id},#{@newProductName},#{skuPrefix}1,1,1;2
+        """
 
+      categories = TestHelpers.generateCategories(10)
+
+      getImporter = ->
+        im = createImporter()
+        im.allowRemovalOfVariants = false
+        im.updatesOnly = true
+        im
+
+      getCategoryByExternalId = (list, id) ->
+        _.find list, (item) -> item.obj.externalId is String(id)
+
+      TestHelpers.ensureCategories(@client, categories)
+      .then =>
+        @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+
+        csv =
+        """
+          productType,sku
+          #{@productType.id},#{skuPrefix+1}
+          """
+
+        getImporter().import(csv)
+      .then (result) =>
+        expect(result[0]).toBe '[row 2] Product update not necessary.'
+
+        csv =
+        """
+          productType,sku,categories
+          #{@productType.id},#{skuPrefix+1},3;4
+          """
+
+        getImporter().import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+
+        @client.productProjections
+        .staged(true)
+        .expand("categories[*]")
+        .where("productType(id=\"#{@productType.id}\")")
+        .fetch()
+      .then (result) =>
+        p = result.body.results[0]
+
+        expect(p.name).toEqual {en: @newProductName}
+        expect(p.masterVariant.sku).toBe "#{skuPrefix}1"
+
+        expect(_.size(p.categories)).toEqual 2
+        expect(!!getCategoryByExternalId(p.categories, 3)).toBe true
+        expect(!!getCategoryByExternalId(p.categories, 4)).toBe true
+
+        done()
+      .catch (err) -> done _.prettify(err)
+
+
+
+    iit 'should clear categories when an empty value given', (done) ->
+      skuPrefix = "sku-"
+      csv =
+      """
+        productType,name,sku,variantId,categories
+        #{@productType.id},#{@newProductName},#{skuPrefix}1,1,1;2
+        """
+
+      categories = TestHelpers.generateCategories(4)
+
+      getImporter = ->
+        im = createImporter()
+        im.allowRemovalOfVariants = false
+        im.updatesOnly = true
+        im
+
+      TestHelpers.ensureCategories(@client, categories)
+      .then =>
+        @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+
+        csv =
+        """
+          productType,sku,categories
+          #{@productType.id},#{skuPrefix+1},
+          """
+
+        getImporter().import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+
+        @client.productProjections
+        .staged(true)
+        .where("productType(id=\"#{@productType.id}\")")
+        .fetch()
+      .then (result) =>
+        p = result.body.results[0]
+        expect(_.size(p.categories)).toBe 0
+
+        csv =
+        """
+          productType,sku,categories
+          #{@productType.id},#{skuPrefix+1},3;4
+          """
+
+        getImporter().import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+
+        @client.productProjections
+        .staged(true)
+        .where("productType(id=\"#{@productType.id}\")")
+        .fetch()
+      .then (result) =>
+        p = result.body.results[0]
+        expect(_.size(p.categories)).toBe 2
+
+        done()
+      .catch (err) -> done _.prettify(err)
