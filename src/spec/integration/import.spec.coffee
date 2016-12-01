@@ -1065,7 +1065,7 @@ describe 'Import integration test', ->
 
 
 
-    iit 'should clear categories when an empty value given', (done) ->
+    it 'should clear categories when an empty value given', (done) ->
       skuPrefix = "sku-"
       csv =
       """
