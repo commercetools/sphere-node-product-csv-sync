@@ -894,17 +894,7 @@ describe 'Import integration test', ->
 
     it 'should update a product level info based only on SKU', (done) ->
       newProductNameUpdated = "#{@newProductName}-updated"
-      categories = []
-      for i in [1...4]
-        categories.push(        {
-          "name": {
-            "en": "Catgeory#{i}"
-          },
-          "slug": {
-            "en": "category-#{i}"
-          },
-          "externalId": "#{i}",
-        })
+      categories = TestHelpers.generateCategories(4)
 
       csv =
       """
