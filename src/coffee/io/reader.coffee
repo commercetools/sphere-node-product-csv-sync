@@ -9,7 +9,7 @@ Excel = require 'exceljs'
 class Reader
 
   constructor: (@options = {}) ->
-    logLevel = if !@options.debug then 'debug' else 'info'
+    logLevel = if @options.debug then 'debug' else 'info'
     @Logger = require('../logger')('IO::Reader', logLevel)
 
     @Logger.debug "READER::options:", JSON.stringify(@options)
