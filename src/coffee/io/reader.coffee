@@ -12,7 +12,7 @@ class Reader
     logLevel = if @options.debug then 'debug' else 'info'
     @Logger = require('../logger')('IO::Reader', logLevel)
 
-    @Logger.debug "READER::options:", JSON.stringify(@options)
+    @Logger.debug "options:", JSON.stringify(@options)
     @options.encoding = @options.encoding || 'utf-8'
     @header = null
     @rows = []
@@ -20,10 +20,10 @@ class Reader
   read: (file) =>
     # read from file or from stdin?
     if file
-      @Logger.debug "READER::stream file %s", file
+      @Logger.debug "stream file %s", file
       @inputStream = fs.createReadStream file
     else
-      @Logger.debug "READER::stream stdin"
+      @Logger.debug "stream stdin"
       @inputStream = process.stdin
 
     if @options.importFormat == 'xlsx'
@@ -61,7 +61,7 @@ class Reader
         buffers.push buffer
       stream.on 'error', (err) -> reject(err)
       stream.on 'end', () =>
-        @Logger.debug "READER::file was readed"
+        @Logger.debug "file was readed"
         buffer = Buffer.concat(buffers)
         Reader.parseCsv(buffer, @options.csvDelimiter, @options.encoding)
         .then (parsed) -> resolve(parsed)
@@ -71,7 +71,7 @@ class Reader
     workbook = new Excel.Workbook()
     workbook.xlsx.read(stream)
     .then (workbook) ->
-      @Logger.debug "READER::file was readed"
+      @Logger.debug "file was readed"
 
       rows = []
       worksheet = workbook.getWorksheet(1)
@@ -86,7 +86,7 @@ class Reader
       rows
 
   @decode: (buffer, encoding) =>
-    @Logger.debug "READER::decode from %s", encoding
+    @Logger.debug "decode from %s", encoding
     if encoding == 'utf-8'
       return buffer.toString()
 
@@ -96,7 +96,7 @@ class Reader
     iconv.decode buffer, encoding
 
   getHeader: (header) =>
-    @Logger.debug "READER::get header"
+    @Logger.debug "get header"
     @header
 
 module.exports = Reader
