@@ -86,7 +86,6 @@ class Reader
       rows
 
   @decode: (buffer, encoding) =>
-    @Logger.debug "decode from %s", encoding
     if encoding == 'utf-8'
       return buffer.toString()
 
