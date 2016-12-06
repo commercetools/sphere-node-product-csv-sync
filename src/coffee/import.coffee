@@ -14,6 +14,7 @@ path = require 'path'
 tmp = require 'tmp'
 walkSync = require 'walk-sync'
 Reader = require './io/reader'
+deepMerge = require 'lodash.merge'
 fs = Promise.promisifyAll require('fs')
 
 # will clean temporary files even when an uncaught exception occurs
@@ -238,12 +239,24 @@ class Import
         else
           existingProduct.variants[variantInfo.index] = variant
         productsToUpdate[productIndex] =
-          product: existingProduct
+          product: @mergeProductLevelInfo existingProduct, _.deepClone entry.product
           header: entry.header
           rowIndex: entry.rowIndex
       else
         console.warn "Ignoring variant as no match by SKU found for: ", variant
     _.map productsToUpdate
+
+  mergeProductLevelInfo: (finalProduct, product) ->
+    # Remove variants/masterVariant - should be already copied to final product
+    delete product.variants
+    delete product.masterVariant
+
+    # if new categories are provided
+    # remove old ones and deepMerge new categories
+    if product.categories
+      finalProduct.categories = []
+
+    deepMerge finalProduct, product
 
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true

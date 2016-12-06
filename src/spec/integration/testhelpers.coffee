@@ -101,3 +101,31 @@ exports.setupProductType = (client, productType, product) ->
       .then (result) -> Promise.resolve result.body # returns product
     else
       Promise.resolve pt # returns productType
+
+
+exports.ensureCategories = (client, categoryList) ->
+  console.log 'About to cleanup categories...'
+  client.categories
+  .perPage(30)
+  .process (res) ->
+    Promise.map res.body.results, (category) ->
+      client.categories.byId(category.id).delete(category.version)
+  .then (result) ->
+    console.log "Deleted #{_.size result} categories, creating new one"
+    Promise.map categoryList, (category) ->
+      client.categories.create(category)
+      .then (result) -> result.body
+
+exports.generateCategories = (len) ->
+  categories = []
+  for i in [1...len+1]
+    categories.push(        {
+      "name": {
+        "en": "Catgeory#{i}"
+      },
+      "slug": {
+        "en": "category-#{i}"
+      },
+      "externalId": "#{i}",
+    })
+  categories

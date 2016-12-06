@@ -42,6 +42,7 @@
     "extract-zip": "^1.5.0",
     "iconv-lite": "^0.4.13",
     "lodash.chunk": "^3.0.1",
+    "lodash.merge": "^4.6.0",
     "optimist": "0.6.1",
     "prompt": "0.2.14",
     "sphere-node-sdk": "^1.15.0",
