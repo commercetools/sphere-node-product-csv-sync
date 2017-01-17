@@ -21,6 +21,8 @@
         "currencyCode": "EUR",
         "centAmount": 12900
       },
+      "validFrom": "2001-09-11T14:00:00.000Z",
+      "validUntil": "2015-09-11T14:00:00.000Z",
       "country": "DE"
     }],
     "images": [],

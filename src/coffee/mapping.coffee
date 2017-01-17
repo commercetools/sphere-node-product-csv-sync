@@ -264,14 +264,20 @@ class Mapping
       unless matchedPrice
         @errors.push "[row #{rowIndex}:#{CONS.HEADER_PRICES}] Can not parse price '#{rawPrice}'!"
         continue
+
       country = matchedPrice[2]
       currencyCode = matchedPrice[3]
       centAmount = matchedPrice[4]
       customerGroupName = matchedPrice[8]
       channelKey = matchedPrice[10]
+      validFrom = matchedPrice[12]
+      validUntil = matchedPrice[14]
       price =
         value: @mapMoney "#{currencyCode} #{centAmount}", CONS.HEADER_PRICES, rowIndex
+      price.validFrom = validFrom if validFrom
+      price.validUntil = validUntil if validUntil
       price.country = country if country
+
       if customerGroupName
         unless _.has(@customerGroups.name2id, customerGroupName)
           @errors.push "[row #{rowIndex}:#{CONS.HEADER_PRICES}] Can not find customer group '#{customerGroupName}'!"

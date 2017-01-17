@@ -66,6 +66,23 @@ describe 'ExportMapping', ->
       ]
       expect(@exportMapping._mapPrices prices).toBe 'EUR -13 sales#WAREHOUSE-1'
 
+    it 'should map price with a validFrom field', ->
+      prices = [
+        { value: { centAmount: -13, currencyCode: 'EUR' }, validFrom: '2001-09-11T14:00:00.000Z' }
+      ]
+      expect(@exportMapping._mapPrices prices).toBe 'EUR -13$2001-09-11T14:00:00.000Z'
+
+    it 'should map price with a validUntil field', ->
+      prices = [
+        { value: { centAmount: -15, currencyCode: 'EUR' }, validUntil: '2015-09-11T14:00:00.000Z' }
+      ]
+      expect(@exportMapping._mapPrices prices).toBe 'EUR -15~2015-09-11T14:00:00.000Z'
+
+    it 'should map price with validFrom and validUntil fields', ->
+      prices = [
+        { value: { centAmount: -13, currencyCode: 'EUR' }, validFrom: '2001-09-11T14:00:00.000Z', validUntil: '2001-09-12T14:00:00.000Z' }
+      ]
+      expect(@exportMapping._mapPrices prices).toBe 'EUR -13$2001-09-11T14:00:00.000Z~2001-09-12T14:00:00.000Z'
 
   describe '#mapImage', ->
     it 'should map single image', ->
