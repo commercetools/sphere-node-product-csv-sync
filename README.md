@@ -229,10 +229,12 @@ Using the full path of the category name allows you to link to leaf categories w
 
 In the `prices` column you can define a list of prices for each variant separated by `;`:
 ```
-CH-EUR 999 B2B;EUR 899|745;USD 19900 #retailerA;DE-EUR 1000 B2C#wareHouse1
+CH-EUR 999 B2B;EUR 899|745;USD 19900 #retailerA;DE-EUR 1000 B2C#wareHouse1;GB-GBP 999$2001-09-11T14:00:00.000Z~2015-10-12T14:00:00.000Z
 ```
 The pattern for one price is:
-`<country>-<currenyCode> <centAmount>|<discountedCentAmount> <customerGroupName>#<channelKey>`
+`<country>-<currenyCode> <centAmount>|<discountedCentAmount> <customerGroupName>#<channelKey>$<validFrom>~<validUntil>`
+
+Date values `validFrom` and `validUntils` has to be in [ISO 8601 format](http://dev.commercetools.com/http-api-types.html#datetime).
 
 >For the geeks: Have [a look at the regular expression](https://github.com/sphereio/sphere-node-product-csv-sync/blob/e8329dc6a74a560c57a8ab1842decceb42583c0d/src/coffee/constants.coffee#L33) that parses the prices.
 
@@ -245,6 +247,8 @@ optional:
 - customerGroupName
 - channelKey
 - centAmount for of discounted price (only for export)
+- validFrom
+- validUntil
 
 #### Numbers
 
