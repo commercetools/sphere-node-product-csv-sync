@@ -490,6 +490,37 @@ describe 'Mapping', ->
           id: 'group123'
       expect(prices[0]).toEqual expectedPrice
 
+    it 'should map price with validFrom', ->
+      prices = @map.mapPrices 'EUR 234$2001-09-11T14:00:00.000Z'
+      expect(prices.length).toBe 1
+      expectedPrice =
+        validFrom: '2001-09-11T14:00:00.000Z'
+        value:
+          centAmount: 234
+          currencyCode: 'EUR'
+      expect(prices[0]).toEqual expectedPrice
+
+    it 'should map price with validUntil', ->
+      prices = @map.mapPrices 'EUR 1123~2001-09-11T14:00:00.000Z'
+      expect(prices.length).toBe 1
+      expectedPrice =
+        validUntil: '2001-09-11T14:00:00.000Z'
+        value:
+          centAmount: 1123
+          currencyCode: 'EUR'
+      expect(prices[0]).toEqual expectedPrice
+
+    it 'should map price with validFrom and validUntil', ->
+      prices = @map.mapPrices 'EUR 6352$2001-09-11T14:00:00.000Z~2015-09-11T14:00:00.000Z'
+      expect(prices.length).toBe 1
+      expectedPrice =
+        validFrom: '2001-09-11T14:00:00.000Z'
+        validUntil: '2015-09-11T14:00:00.000Z'
+        value:
+          centAmount: 6352
+          currencyCode: 'EUR'
+      expect(prices[0]).toEqual expectedPrice
+
     it 'should give feedback that customer group does not exist', ->
       prices = @map.mapPrices 'YEN 777 unknownGroup', 5
       expect(prices.length).toBe 0

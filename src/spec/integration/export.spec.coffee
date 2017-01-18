@@ -245,12 +245,12 @@ describe 'Export integration tests', ->
     outputLocation = '/tmp/output.csv'
     template =
     '''
-      productType,name,variantId,money_attribute
+      productType,name,variantId,money_attribute,prices
       '''
     expectedCSV =
     """
-      productType,name,variantId,money_attribute
-      #{testProductType.name},,1,EUR 123456;GBP 98765
+      productType,name,variantId,money_attribute,prices
+      #{testProductType.name},,1,EUR 123456;GBP 98765,DE-EUR 12900$2001-09-11T14:00:00.000Z~2015-09-11T14:00:00.000Z
 
       """
 

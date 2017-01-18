@@ -153,9 +153,18 @@ class ExportMapping
       if price.channel and _.has(@channelService.id2key, price.channel.id)
         channelKeyPart = "##{@channelService.id2key[price.channel.id]}"
       discountedPricePart = ''
+
+      validFromPart = ''
+      if price.validFrom
+        validFromPart = "$#{price.validFrom}"
+
+      validUntilPart = ''
+      if price.validUntil
+        validUntilPart = "~#{price.validUntil}"
+
       if price.discounted?
         discountedPricePart = "|#{price.discounted.value.centAmount}"
-      acc + "#{countryPart}#{price.value.currencyCode} #{price.value.centAmount}#{discountedPricePart}#{customerGroupPart}#{channelKeyPart}"
+      acc + "#{countryPart}#{price.value.currencyCode} #{price.value.centAmount}#{discountedPricePart}#{customerGroupPart}#{channelKeyPart}#{validFromPart}#{validUntilPart}"
     , '')
 
   _mapMoney: (money) ->
