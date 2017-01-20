@@ -11,7 +11,6 @@ class Reader
   constructor: (@options = {}) ->
     logLevel = if @options.debug then 'debug' else 'info'
     @Logger = require('../logger')('IO::Reader', logLevel)
-
     @Logger.debug "options:", JSON.stringify(@options)
     @options.encoding = @options.encoding || 'utf-8'
     @header = null
@@ -70,7 +69,7 @@ class Reader
   _readXlsx: (stream) =>
     workbook = new Excel.Workbook()
     workbook.xlsx.read(stream)
-    .then (workbook) ->
+    .then (workbook) =>
       @Logger.debug "file was readed"
 
       rows = []
