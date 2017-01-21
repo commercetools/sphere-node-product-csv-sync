@@ -9,6 +9,10 @@ Excel = require 'exceljs'
 class Writer
 
   constructor: (@options = {}) ->
+    logLevel = if @options.debug then 'debug' else 'info'
+    @Logger = require('../logger')('IO::Writer', logLevel)
+
+    @Logger.debug "options:", JSON.stringify(@options)
     @options.defaultEncoding = "utf8"
     @options.availableFormats = ["xlsx", "csv"]
 
@@ -17,8 +21,10 @@ class Writer
 
     # write to file or to stdout?
     if @options.outputFile
+      @Logger.debug "stream file %s", @options.outputFile
       @outputStream = fs.createWriteStream @options.outputFile
     else
+      @Logger.debug "stream stdout"
       @outputStream = process.stdout
 
 
@@ -44,6 +50,7 @@ class Writer
 
   # create header
   setHeader: (header) =>
+    @Logger.debug "writing header %s", header
 
     if @options.exportFormat == 'xlsx'
       @_writeXlsxHeader header
@@ -51,6 +58,7 @@ class Writer
       @_writeCsvRows [header]
 
   write: (rows) ->
+    @Logger.debug "writing rows len: %d", rows.length
 
     if @options.exportFormat == 'xlsx'
       @_writeXlsxRows rows
@@ -93,6 +101,7 @@ class Writer
       .on 'error', (err) -> reject err
 
   flush: () =>
+    @Logger.debug "flushing content"
     if @options.exportFormat == 'xlsx'
       @workbook.commit()
     else

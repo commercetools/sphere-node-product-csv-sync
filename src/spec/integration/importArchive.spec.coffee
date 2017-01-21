@@ -70,7 +70,7 @@ describe 'Import integration test', ->
       @newProductSlug = TestHelpers.uniqueId 'slug-'
       @newProductSku = TestHelpers.uniqueId 'sku-'
 
-    it 'should import multiple archived products', (done) ->
+    it 'should import multiple archived products from CSV', (done) ->
       tempDir = tmp.dirSync({ unsafeCleanup: true })
       archivePath = path.join tempDir.name, 'products.zip'
 
@@ -122,7 +122,7 @@ describe 'Import integration test', ->
       .finally ->
         tempDir.removeCallback()
 
-    it 'should import multiple archived products', (done) ->
+    it 'should import multiple archived products from XLSX', (done) ->
       importer = createImporter("xlsx")
       tempDir = tmp.dirSync({ unsafeCleanup: true })
       archivePath = path.join tempDir.name, 'products.zip'

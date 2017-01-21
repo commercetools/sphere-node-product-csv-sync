@@ -271,7 +271,8 @@ class Export
                 csvDelimiter: @options.outputDelimiter,
                 encoding: @options.encoding,
                 exportFormat: @options.exportFormat,
-                outputFile: outputFile
+                outputFile: outputFile,
+                debug: @options.debug
             catch e
               return Promise.reject e
 
