@@ -969,7 +969,6 @@ describe 'Import integration test', ->
 
         @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
       .then (result) =>
-        console.log(result )
         p = result.body.results[0]
 
         getPrice = (variant) -> variant?.prices[0].value.centAmount
@@ -1116,5 +1115,79 @@ describe 'Import integration test', ->
         p = result.body.results[0]
         expect(_.size(p.categories)).toBe 2
 
+        done()
+      .catch (err) -> done _.prettify(err)
+
+    it 'should handle a concurrent modification error when updating by SKU', (done) ->
+      skuPrefix = "sku-"
+
+      csv =
+        """
+        productType,name,sku,variantId,prices
+        #{@productType.id},#{@newProductName},#{skuPrefix+1},1,EUR 100
+        """
+      for i in [2...41]
+        csv += "\n,,#{skuPrefix+i},#{i},EUR 100"
+
+      @importer.import(csv)
+        .then =>
+          @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        .then (result) =>
+          p = result.body.results[0]
+          expect(p.variants.length).toEqual 39
+          csv =
+            """
+            sku,productType,prices
+            """
+
+          for i in [1...41]
+            csv += "\n#{skuPrefix+i},#{@productType.id},EUR 200"
+
+          im = createImporter()
+          im.allowRemovalOfVariants = false
+          im.updatesOnly = true
+          im.import csv
+        .then =>
+          @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        .then (result) =>
+          p = result.body.results[0]
+          p.variants.push p.masterVariant
+
+          p.variants.forEach (v) =>
+            console.log v.sku, ":", v.prices[0].value.centAmount
+
+          expect(p.variants.length).toEqual 40
+          p.variants.forEach (variant) ->
+            expect(variant.prices[0].value.centAmount).toEqual 200
+
+          done()
+        .catch (err) -> done _.prettify(err)
+
+
+    it 'should handle a concurrent modification error when updating by variantId', (done) ->
+      skuPrefix = "sku-"
+
+      csv =
+        """
+        productType,name,sku,variantId,prices
+        """
+      for i in [1...2]
+        csv += "\n#{@productType.id},#{@newProductName+i},#{skuPrefix+i},1,EUR 100"
+
+      @importer.import(csv)
+      .then =>
+        csv =
+          """
+          productType,name,sku,variantId,prices
+          """
+        for i in [1...5]
+          csv += "\n#{@productType.id},#{@newProductName+i},#{skuPrefix}1,1,EUR 2#{i}"
+
+        im = createImporter()
+        im.allowRemovalOfVariants = false
+        im.updatesOnly = true
+        im.import csv
+      .then ->
+        # no concurrentModification found
         done()
       .catch (err) -> done _.prettify(err)

@@ -52,6 +52,8 @@ class Import
     @customAttributeNameToMatch = undefined
     @matchBy = CONS.HEADER_ID
     @options = options
+    @_BATCH_SIZE = 20
+    @_CONCURRENCY = 20
 
   initializeObjects: () =>
     console.log "Initializing resources"
@@ -115,10 +117,10 @@ class Import
           console.warn "Mapping done. About to process existing product(s) ..."
 
           p = if @validator.updateVariantsOnly
-            p = (p) => @processProductsBasesOnSkus(p)
+            (p) => @processProductsBasesOnSkus(p)
           else
             (p) => @processProducts(p)
-          Promise.map(_.batchList(products, 20), p, { concurrency: 20 })
+          Promise.map(_.batchList(products, @_BATCH_SIZE), p, { concurrency: @_CONCURRENCY })
           .then((results) => results.reduce((agg, r) ->
             agg.concat(r)
           , []))
@@ -180,6 +182,9 @@ class Import
       console.warn "Finished processing #{_.size result} product(s)"
       Promise.resolve result
 
+  isConcurrentModification: (err) ->
+    err.body.statusCode == 409
+
   processProductsBasesOnSkus: (products) ->
     filterInput = QueryUtils.mapMatchFunction("sku")(products)
     @client.productProjections.staged().where(filterInput).fetch()
@@ -189,18 +194,19 @@ class Import
       matchFn = MatchUtils.initMatcher("sku", existingProducts)
       productsToUpdate = @mapVariantsBasedOnSKUs(existingProducts, products)
       Promise.all(_.map(productsToUpdate, (entry) =>
-        @repeater.execute( =>
-          existingProduct = matchFn(entry)
-          if existingProduct?
-            @update(entry.product, existingProduct, @validator.types.id2SameForAllAttributes, entry.header, entry.rowIndex)
-          else
-            console.warn("Ignoring not matched product")
-        , (e) ->
-          if e.code is 504
-            console.warn 'Got a timeout, will retry again...'
-            Promise.resolve() # will retry in case of Gateway Timeout
-          else
-            Promise.reject e)))
+        existingProduct = matchFn(entry)
+        if existingProduct
+          @update(entry.product, existingProduct, @validator.types.id2SameForAllAttributes, entry.header, entry.rowIndex)
+          .catch (msg) =>
+            if msg == 'ConcurrentModification'
+              console.warn 'Resending after concurrentModification error'
+              @processProductsBasesOnSkus entry.entries
+            else
+              Promise.reject msg
+        else
+          console.warn("Ignoring not matched product")
+          Promise.resolve()
+      ))
       .then((result) ->
         console.warn "Finished processing #{_.size result} product(s)"
         Promise.resolve result
@@ -232,6 +238,8 @@ class Import
       # console.warn "productIndex", productIndex
       if productIndex?
         existingProduct = productsToUpdate[productIndex]?.product or _.deepClone existingProducts[productIndex]
+        entries = productsToUpdate[productIndex]?.entries or []
+        entries.push(entry)
 
         variantInfo = sku2variantInfo[variant.sku]
         variant.id = variantInfo.id
@@ -243,6 +251,7 @@ class Import
           product: @mergeProductLevelInfo existingProduct, _.deepClone entry.product
           header: entry.header
           rowIndex: entry.rowIndex
+          entries: entries
       else
         console.warn "Ignoring variant as no match by SKU found for: ", variant
     _.map productsToUpdate
@@ -294,18 +303,17 @@ class Import
 
   createOrUpdate: (products, types, matchFn) ->
     Promise.all _.map products, (entry) =>
-      @repeater.execute =>
-        existingProduct = matchFn(entry)
-        if existingProduct?
-          @update(entry.product, existingProduct, types.id2SameForAllAttributes, entry.header, entry.rowIndex)
-        else
-          @create(entry.product, entry.rowIndex)
-      , (e) ->
-        if e.code is 504
-          console.warn 'Got a timeout, will retry again...'
-          Promise.resolve() # will retry in case of Gateway Timeout
-        else
-          Promise.reject e
+      existingProduct = matchFn(entry)
+      if existingProduct?
+        @update(entry.product, existingProduct, types.id2SameForAllAttributes, entry.header, entry.rowIndex)
+        .catch (msg) =>
+          if msg == 'ConcurrentModification'
+            console.warn 'Resending after concurrentModification error'
+            @processProducts [entry], types, matchFn
+          else
+            Promise.reject msg
+      else
+        @create(entry.product, entry.rowIndex)
 
   _isBlackListedForUpdate: (attributeName) ->
     if _.isEmpty @blackListedCustomAttributesForUpdate
@@ -367,13 +375,15 @@ class Import
           .then -> Promise.resolve "[row #{rowIndex}] Product updated."
         .catch (err) =>
           msg = "[row #{rowIndex}] Problem on updating product:\n#{_.prettify err}\n#{_.prettify err.body}"
-          if @continueOnProblems
+
+          if @isConcurrentModification err
+            Promise.reject 'ConcurrentModification'
+          else if @continueOnProblems
             Promise.resolve "#{msg} - ignored!"
           else
             Promise.reject msg
       else
         Promise.resolve "[row #{rowIndex}] Product update not necessary."
-
 
   create: (product, rowIndex) ->
     if @dryRun
