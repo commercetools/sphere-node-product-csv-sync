@@ -103,10 +103,13 @@ class ExportMapping
             row[index] = product[attribName][lang]
 
     if @header.has(CONS.HEADER_CATEGORY_ORDER_HINTS)
-      categoryIds = Object.keys product.categoryOrderHints
-      categoryOrderHints = _.map categoryIds, (categoryId) ->
-        return "#{categoryId}:#{product.categoryOrderHints[categoryId]}"
-      row[@header.toIndex CONS.HEADER_CATEGORY_ORDER_HINTS] = categoryOrderHints.join GLOBALS.DELIM_MULTI_VALUE
+      if product.categoryOrderHints?
+        categoryIds = Object.keys product.categoryOrderHints
+        categoryOrderHints = _.map categoryIds, (categoryId) =>
+          return "#{@categoryService.id2externalId[categoryId]}:#{product.categoryOrderHints[categoryId]}"
+        row[@header.toIndex CONS.HEADER_CATEGORY_ORDER_HINTS] = categoryOrderHints.join GLOBALS.DELIM_MULTI_VALUE
+      else
+        row[@header.toIndex CONS.HEADER_CATEGORY_ORDER_HINTS] = ''
 
     row
 

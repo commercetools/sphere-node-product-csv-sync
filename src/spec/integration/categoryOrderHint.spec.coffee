@@ -209,7 +209,7 @@ describe 'categoryOrderHints', ->
         csv =
           """
           productType,id,version,slug,categoryOrderHints
-          #{@productType.id},#{@product.id},#{@product.version},#{@product.slug},#{@category.id}: 0.9
+          #{@productType.id},#{@product.id},#{@product.version},#{@product.slug},#{@category.externalId}: 0.9
           """
         im = createImporter(
           continueOnProblems: true
@@ -246,7 +246,7 @@ describe 'categoryOrderHints', ->
         expectedCSV =
           """
           productType,id,variantId,categoryOrderHints
-          #{@productType.name},#{@product.id},#{@product.lastVariantId},#{@category.id}:0.5
+          #{@productType.name},#{@product.id},#{@product.lastVariantId},#{@category.externalId}:0.5
 
           """
         @export.exportDefault(template, file)

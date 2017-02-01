@@ -226,6 +226,101 @@ describe 'ExportMapping', ->
       row = @exportMapping._mapBaseProduct(product, type)
       expect(row).toEqual [ 'myType', '123', 'BRI;9997']
 
+    it 'should not map categoryOrderhints when they are not present', ->
+      @exportMapping.categoryService = new Categories()
+      @exportMapping.categoryService.buildMaps [
+        {
+          id: '9e6de6ad-cc94-4034-aa9f-276ccb437efd',
+          name:
+            en: 'BrilliantCoeur',
+          slug:
+            en: 'brilliantcoeur',
+          externalId: 'BRI',
+        },
+        {
+          id: '0afacd76-30d8-431e-aff9-376cd1b4c9e6',
+          name:
+            en: 'Autumn / Winter 2016',
+          slug:
+            en: 'autmn-winter-2016',
+          externalId: '9997',
+        }
+      ]
+
+      @exportMapping.categoryBy = 'externalId'
+      @exportMapping.header = new Header(
+        [CONS.HEADER_PRODUCT_TYPE,
+          CONS.HEADER_ID,
+          CONS.HEADER_CATEGORY_ORDER_HINTS])
+      @exportMapping.header.toIndex()
+
+      product =
+        id: '123'
+        categories: [
+          {
+            typeId: 'category',
+            id: '9e6de6ad-cc94-4034-aa9f-276ccb437efd'
+          },
+          {
+            typeId: 'category',
+            id: '0afacd76-30d8-431e-aff9-376cd1b4c9e6'
+          }
+        ],
+        masterVariant:
+          attributes: []
+
+      type =
+        name: 'myType'
+        id: 'typeId123'
+      row = @exportMapping._mapBaseProduct(product, type)
+
+      expect(row).toEqual [ 'myType', '123', '']
+
+    it 'should map productType (name), product id and categoryOrderhints by externalId', ->
+      @exportMapping.categoryService = new Categories()
+      @exportMapping.categoryService.buildMaps [
+        {
+          id: '9e6de6ad-cc94-4034-aa9f-276ccb437efd',
+          name:
+            en: 'BrilliantCoeur',
+          slug:
+            en: 'brilliantcoeur',
+          externalId: 'BRI',
+        },
+        {
+          id: '0afacd76-30d8-431e-aff9-376cd1b4c9e6',
+          name:
+            en: 'Autumn / Winter 2016',
+          slug:
+            en: 'autmn-winter-2016',
+          externalId: '9997',
+        }
+      ]
+
+      @exportMapping.categoryBy = 'externalId'
+      @exportMapping.header = new Header(
+        [CONS.HEADER_PRODUCT_TYPE,
+          CONS.HEADER_ID,
+          CONS.HEADER_CATEGORY_ORDER_HINTS])
+      @exportMapping.header.toIndex()
+
+      product =
+        id: '123'
+        categoryOrderHints: {
+          '9e6de6ad-cc94-4034-aa9f-276ccb437efd': '0.9283'
+          '0afacd76-30d8-431e-aff9-376cd1b4c9e6': '0.3223'
+        },
+        categories: [],
+        masterVariant:
+          attributes: []
+
+      type =
+        name: 'myType'
+        id: 'typeId123'
+      row = @exportMapping._mapBaseProduct(product, type)
+
+      expect(row).toEqual [ 'myType', '123', 'BRI:0.9283;9997:0.3223']
+
     it 'should map createdAt and lastModifiedAt', ->
       @exportMapping.header = new Header(
         [CONS.HEADER_CREATED_AT,
