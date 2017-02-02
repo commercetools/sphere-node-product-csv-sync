@@ -314,7 +314,41 @@ describe 'categoryOrderHints', ->
       .then (result) =>
         @product = result.body
         @client.products.byId(@product.id).fetch()
+      .then =>
+        template =
+          """
+          productType,id,variantId,categoryOrderHints
+          """
+        file = '/tmp/output.csv'
+        expectedCSV =
+          """
+          productType,id,variantId,categoryOrderHints
+          #{@productType.name},#{@product.id},#{@product.lastVariantId},#{@category.id}:0.5
+
+          """
+        @export.exportDefault(template, file)
+        .then (result) ->
+          expect(result).toBe 'Export done.'
+          fs.readFileAsync file, {encoding: 'utf8'}
+        .then (content) ->
+          expect(content).toBe expectedCSV
+          done()
+        .catch (err) -> done _.prettify(err)
+
+    it 'should export categoryOrderHints with category externalId', (done) ->
+      customExport = new Export
+        client: Config
+        categoryOrderHintBy: 'externalId'
+
+      @client.products.save(
+        _.extend {}, defaultProduct(@productType.id, @category.id),
+          categoryOrderHints:
+            "#{@category.id}": '0.5'
+      )
       .then (result) =>
+        @product = result.body
+        @client.products.byId(@product.id).fetch()
+      .then =>
         template =
           """
           productType,id,variantId,categoryOrderHints
@@ -326,11 +360,12 @@ describe 'categoryOrderHints', ->
           #{@productType.name},#{@product.id},#{@product.lastVariantId},#{@category.externalId}:0.5
 
           """
-        @export.exportDefault(template, file)
+
+        customExport.exportDefault(template, file)
         .then (result) ->
           expect(result).toBe 'Export done.'
           fs.readFileAsync file, {encoding: 'utf8'}
         .then (content) ->
           expect(content).toBe expectedCSV
           done()
-        .catch (err) -> done _.prettify(err)
+      .catch (err) -> done _.prettify(err)

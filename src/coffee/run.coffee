@@ -283,7 +283,8 @@ module.exports = class
       .option '-l, --language [lang]', 'Language used on export for localised attributes (except lenums) and category names (default is en)'
       .option '--queryEncoded', 'Whether the given query string is already encoded or not', false
       .option '--fillAllRows', 'When given product attributes like name will be added to each variant row.'
-      .option '--categoryBy <name>', 'Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.'
+      .option '--categoryBy <name>', 'Define which identifier should be used for the categories column - either slug or externalId. If nothing given the named path is used.'
+      .option '--categoryOrderHintBy <name>', 'Define which identifier should be used for the categoryOrderHints column - either id or externalId. If nothing given the category id is used.', 'id'
       .option '--filterVariantsByAttributes <query>', 'Query string to filter variants of products'
       .option '--filterPrices <query>', 'Query string to filter prices of products'
       .option '--templateDelimiter <delimiter>', 'Delimiter used in template | default: ,', ","
@@ -305,6 +306,7 @@ module.exports = class
             templateDelimiter: opts.templateDelimiter
             fillAllRows: opts.fillAllRows
             categoryBy: opts.categoryBy
+            categoryOrderHintBy: opts.categoryOrderHintBy || 'id'
             debug: !!opts.parent.debug
             client: _.extend credentials,
               timeout: program.timeout

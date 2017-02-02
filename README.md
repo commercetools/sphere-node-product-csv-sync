@@ -394,7 +394,8 @@ productType,name.en,variantId
     -l, --language [lang]         Language used on export for localised attributes (except lenums) and category names (default is en)
     --queryEncoded                Whether the given query string is already encoded or not
     --fillAllRows                 When given product attributes like name will be added to each variant row.
-    --categoryBy                  Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.
+    --categoryBy                  Define which identifier should be used for the categories column - either slug or externalId. If nothing given the named path is used.
+    --categoryOrderHintBy         Define which identifier should be used for the categoryOrderHints column - either id or externalId. If nothing given the category id is used.
     --filterVariantsByAttributes  Query string to filter variants of products
     --filterPrices  Query string to filter prices of variants
     --templateDelimiter <delimiter> Delimiter used in template | default: ,

@@ -319,7 +319,7 @@ describe 'ExportMapping', ->
         id: 'typeId123'
       row = @exportMapping._mapBaseProduct(product, type)
 
-      expect(row).toEqual [ 'myType', '123', 'BRI:0.9283;9997:0.3223']
+      expect(row).toEqual [ 'myType', '123', '9e6de6ad-cc94-4034-aa9f-276ccb437efd:0.9283;0afacd76-30d8-431e-aff9-376cd1b4c9e6:0.3223']
 
     it 'should map createdAt and lastModifiedAt', ->
       @exportMapping.header = new Header(
