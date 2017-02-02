@@ -18,6 +18,7 @@ defaultProduct = (productTypeId, categoryId) =>
     typeId: 'category'
     id: categoryId
   ]
+  masterVariant: {}
 
 createImporter = ->
   im = new Import Config
@@ -30,12 +31,12 @@ CHANNEL_KEY = 'retailerA'
 uniqueId = (prefix) ->
   _.uniqueId "#{prefix}#{new Date().getTime()}_"
 
-newCategory = (name = 'Category name') ->
+newCategory = (name = 'Category name', externalId = 'externalCategoryId') ->
   name:
     en: name
   slug:
     en: uniqueId 'c'
-  externalId: 'externalCategoryId'
+  externalId: externalId
 
 prepareCategoryAndProduct = (done) ->
   jasmine.getEnv().defaultTimeoutInterval = 90000 # 90 sec
@@ -220,6 +221,82 @@ describe 'categoryOrderHints', ->
         @client.products.byId(@product.id).fetch()
       .then (result) =>
         expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.9'}
+        done()
+      .catch (err) -> done _.prettify(err)
+
+    it 'should add another categoryOrderHint', (done) ->
+
+      @client.categories.save(newCategory('Second category', 'externalId2'))
+      .then (result) =>
+        @newCategory = result.body
+        productDraft = _.extend {}, defaultProduct(@productType.id, @category.id),
+          categoryOrderHints:
+            "#{@category.id}": '0.5'
+
+        productDraft.categories.push
+          typeId: 'category'
+          id: @newCategory.id
+
+        @client.products.save(productDraft)
+      .then (result) =>
+        @product = result.body
+        csv =
+          """
+          productType,id,version,categoryOrderHints
+          #{@productType.id},#{@product.id},#{@product.version},#{@newCategory.externalId}: 0.8
+          """
+
+        im = createImporter(
+          continueOnProblems: true
+        )
+        im.mergeCategoryOrderHints = true
+        im.import(csv)
+      .then (result) =>
+        expect(result[0]).toBe '[row 2] Product updated.'
+        @client.products.byId(@product.id).fetch()
+      .then (result) =>
+        product = result.body.masterData.staged
+        expect(product.categoryOrderHints).toEqual
+          "#{@category.id}": '0.5',
+          "#{@newCategory.id}": '0.8'
+        done()
+      .catch (err) -> done _.prettify(err)
+
+    it 'should add another categoryOrderHint when matching by SKU', (done) ->
+
+      @client.categories.save(newCategory('Second category', 'externalId2'))
+      .then (result) =>
+        @newCategory = result.body
+        productDraft = _.extend {}, defaultProduct(@productType.id, @category.id),
+          categoryOrderHints:
+            "#{@category.id}": '0.5'
+
+        productDraft.masterVariant.sku = '123'
+        productDraft.categories.push
+          typeId: 'category'
+          id: @newCategory.id
+
+        @client.products.save(productDraft)
+      .then (result) =>
+        @product = result.body
+        csv =
+          """
+          productType,sku,categoryOrderHints
+          #{@productType.id},#{@product.masterData.staged.masterVariant.sku},#{@newCategory.externalId}: 0.8
+          """
+        im = createImporter(
+          continueOnProblems: true
+        )
+        im.mergeCategoryOrderHints = true
+        im.import(csv)
+      .then (result) =>
+        expect(result[0]).toBe '[row 2] Product updated.'
+        @client.products.byId(@product.id).fetch()
+      .then (result) =>
+        product = result.body.masterData.staged
+        expect(product.categoryOrderHints).toEqual
+          "#{@category.id}": '0.5',
+          "#{@newCategory.id}": '0.8'
         done()
       .catch (err) -> done _.prettify(err)
 

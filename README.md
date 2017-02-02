@@ -94,20 +94,21 @@ This means that the CSV may contain only those columns that contain changed valu
 
   Options:
 
-    -h, --help                                 output usage information
-    -c, --csv <file>                           CSV file containing products to import
-    -z, --zip <file>                           ZIP archive containing multiple product files to import
-    -l, --language [lang]                      Default language to using during import (for slug generation, category linking etc. - default is en)
-    --csvDelimiter [delim]                     CSV Delimiter that separates the cells (default is comma - ",")
-    --multiValueDelimiter [delim]              Delimiter to separate values inside of a cell (default is semicolon - ";")
-    --customAttributesForCreationOnly <items>  List of comma-separated attributes to use when creating products (ignore when updating)
-    --continueOnProblems                       When a product does not validate on the server side (400er response), ignore it and continue with the next products
+    -h, --help                                 Output usage information.
+    -c, --csv <file>                           CSV file containing products to import.
+    -z, --zip <file>                           ZIP archive containing multiple product files to import.
+    -l, --language [lang]                      Default language to using during import (for slug generation, category linking etc. - default is en).
+    --csvDelimiter [delim]                     CSV Delimiter that separates the cells (default is comma - ",").
+    --multiValueDelimiter [delim]              Delimiter to separate values inside of a cell (default is semicolon - ";").
+    --customAttributesForCreationOnly <items>  List of comma-separated attributes to use when creating products (ignore when updating).
+    --continueOnProblems                       When a product does not validate on the server side (400er response), ignore it and continue with the next products.
     --suppressMissingHeaderWarning             Do not show which headers are missing per produt type.
     --allowRemovalOfVariants                   If given variants will be removed if there is no corresponding row in the CSV. Otherwise they are not touched.
-    --publish                                  When given, all changes will be published immediately
-    --updatesOnly                              Won't create any new products, only updates existing
-    --dryRun                                   Will list all action that would be triggered, but will not POST them to SPHERE.IO
-    -m, --matchBy [value]                      Product attribute name which will be used to match products. Possible values: id, slug, sku, <custom_attribute_name>. Default: id. Localized attribute types are not supported for <custom_attribute_name> option
+    --mergeCategoryOrderHints                  Merge category order hints instead of replacing them with value readed from an import file.
+    --publish                                  When given, all changes will be published immediately.
+    --updatesOnly                              Won't create any new products, only updates existing.
+    --dryRun                                   Will list all action that would be triggered, but will not POST them to SPHERE.IO.
+    -m, --matchBy [value]                      Product attribute name which will be used to match products. Possible values: id, slug, sku, <custom_attribute_name>. Default: id. Localized attribute types are not supported for <custom_attribute_name> option.
 ```
 
 ### CSV Format
