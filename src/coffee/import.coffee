@@ -195,8 +195,9 @@ class Import
       productsToUpdate = @mapVariantsBasedOnSKUs(existingProducts, products)
       Promise.all(_.map(productsToUpdate, (entry) =>
         existingProduct = matchFn(entry)
+
         if existingProduct
-          @update(entry.product, existingProduct, @validator.types.id2SameForAllAttributes, entry.header, entry.rowIndex)
+          @update(entry.product, existingProduct, @validator.types.id2SameForAllAttributes, entry.header, entry.rowIndex, entry.publish)
           .catch (msg) =>
             if msg == 'ConcurrentModification'
               console.warn 'Resending after concurrentModification error'
@@ -247,11 +248,18 @@ class Import
           existingProduct.masterVariant = variant
         else
           existingProduct.variants[variantInfo.index] = variant
+
+        if not productsToUpdate[productIndex]
+          productsToUpdate[productIndex] =
+            publish: false
+            rowIndex: entry.rowIndex
+
         productsToUpdate[productIndex] =
           product: @mergeProductLevelInfo existingProduct, _.deepClone entry.product
           header: entry.header
-          rowIndex: entry.rowIndex
           entries: entries
+          rowIndex: productsToUpdate[productIndex].rowIndex
+          publish: productsToUpdate[productIndex].publish || entry.publish
       else
         console.warn "Ignoring variant as no match by SKU found for: ", variant
     _.map productsToUpdate
@@ -305,7 +313,7 @@ class Import
     Promise.all _.map products, (entry) =>
       existingProduct = matchFn(entry)
       if existingProduct?
-        @update(entry.product, existingProduct, types.id2SameForAllAttributes, entry.header, entry.rowIndex)
+        @update(entry.product, existingProduct, types.id2SameForAllAttributes, entry.header, entry.rowIndex, entry.publish)
         .catch (msg) =>
           if msg == 'ConcurrentModification'
             console.warn 'Resending after concurrentModification error'
@@ -313,7 +321,7 @@ class Import
           else
             Promise.reject msg
       else
-        @create(entry.product, entry.rowIndex)
+        @create(entry.product, entry.rowIndex, entry.publish)
 
   _isBlackListedForUpdate: (attributeName) ->
     if _.isEmpty @blackListedCustomAttributesForUpdate
@@ -321,7 +329,7 @@ class Import
     else
       _.contains @blackListedCustomAttributesForUpdate, attributeName
 
-  update: (product, existingProduct, id2SameForAllAttributes, header, rowIndex) ->
+  update: (product, existingProduct, id2SameForAllAttributes, header, rowIndex, publish) ->
     allSameValueAttributes = id2SameForAllAttributes[product.productType.id]
     config = [
       { type: 'base', group: 'white' }
@@ -371,7 +379,7 @@ class Import
       if filtered.shouldUpdate()
         @client.products.byId(filtered.getUpdateId()).update(filtered.getUpdatePayload())
         .then (result) =>
-          @publishProduct(result.body, rowIndex)
+          @publishProduct(result.body, rowIndex, true, publish)
           .then -> Promise.resolve "[row #{rowIndex}] Product updated."
         .catch (err) =>
           msg = "[row #{rowIndex}] Problem on updating product:\n#{_.prettify err}\n#{_.prettify err.body}"
@@ -385,7 +393,7 @@ class Import
       else
         Promise.resolve "[row #{rowIndex}] Product update not necessary."
 
-  create: (product, rowIndex) ->
+  create: (product, rowIndex, publish = false) ->
     if @dryRun
       Promise.resolve "[row #{rowIndex}] DRY-RUN - create new product."
     else if @updatesOnly
@@ -393,7 +401,7 @@ class Import
     else
       @client.products.create(product)
       .then (result) =>
-        @publishProduct(result.body, rowIndex)
+        @publishProduct(result.body, rowIndex, true, publish)
         .then -> Promise.resolve "[row #{rowIndex}] New product created."
       .catch (err) =>
         msg = "[row #{rowIndex}] Problem on creating new product:\n#{_.prettify err}\n#{_.prettify err.body}"
@@ -402,9 +410,9 @@ class Import
         else
           Promise.reject msg
 
-  publishProduct: (product, rowIndex, publish = true) ->
+  publishProduct: (product, rowIndex, publish = true, publishImmediate = false) ->
     action = if publish then 'publish' else 'unpublish'
-    if not @publishProducts
+    if not @publishProducts and not publishImmediate
       Promise.resolve "Do not #{action}."
     else if publish and product.published and not product.hasStagedChanges
       Promise.resolve "[row #{rowIndex}] Product is already published - no staged changes."

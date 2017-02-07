@@ -28,6 +28,8 @@ constants =
   HEADER_CREATED_AT: '_createdAt'
   HEADER_LAST_MODIFIED_AT: '_lastModifiedAt'
 
+  HEADER_PUBLISH: 'publish'
+
   ATTRIBUTE_TYPE_SET: 'set'
   ATTRIBUTE_TYPE_LTEXT: 'ltext'
   ATTRIBUTE_TYPE_ENUM: 'enum'

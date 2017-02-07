@@ -107,7 +107,10 @@ class Validator
     else
       Promise.reject @errors
 
-
+  shouldPublish: (csvRow) ->
+    if not @header.has CONS.HEADER_PUBLISH
+      return false
+    csvRow[@header.toIndex CONS.HEADER_PUBLISH] == 'true'
 
   # TODO: Allow to define a column that defines the variant relationship.
   # If the value is the same, they belong to the same product
@@ -132,18 +135,21 @@ class Validator
       @rawProducts.push({
         master: _.deepClone(row),
         startRow: rowIndex,
-        variants: []
+        variants: [],
+        publish: @shouldPublish row
       })
 
       aggr
 
     buildProductsOnFly = (aggr, row, index) =>
       rowIndex = index + 2 # Excel et all start counting at 1 and we already popped the header
+      publish = @shouldPublish row
       if @isProduct row, variantColumn
         product =
           master: row
           startRow: rowIndex
           variants: []
+          publish: publish
         @rawProducts.push product
       else if @isVariant row, variantColumn
         product = _.last @rawProducts
@@ -151,6 +157,8 @@ class Validator
           product.variants.push
             variant: row
             rowIndex: rowIndex
+          if publish
+            product.publish = true
         else
           @errors.push "[row #{rowIndex}] We need a product before starting with a variant!"
       else

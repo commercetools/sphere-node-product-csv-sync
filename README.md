@@ -298,6 +298,16 @@ Note:
 - `<category-ref>` must be a valid ID referencing an existing category that the product is assigned to. You can reference the category using its `id`, `name` or `externalId`.
 - `<order-hint>` has to be a String that is representing a decimal value that is > 0.0 and < 1.0 (0 < orderHint < 1)
 
+#### Publishing
+
+Products with `publish` column set to `true` will be published right after the create/update request is finished. If there are multiple variants of the same product, changes will be published if at least one variant has `publish` set to `true`. Example CSV:
+```csv
+productType,variantId,sku,name,slug,publish
+myType,1,sku,productName,productSlug,true
+```
+
+This will create new product and publish it afterward.
+
 ## Product State
 
 This sub command allows you to publish/unpublish or delete as set of (or all) products with a single call.
