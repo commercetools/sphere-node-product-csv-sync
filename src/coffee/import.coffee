@@ -43,7 +43,7 @@ class Import
     options.importFormat = options.importFormat || "csv"
     options.csvDelimiter = options.csvDelimiter || ","
     options.encoding = options.encoding || "utf-8"
-    options.mergeCategoryOrderHints = !!options.mergeCategoryOrderHints
+    options.mergeCategoryOrderHints = Boolean(options.mergeCategoryOrderHints)
     @dryRun = false
     @updatesOnly = false
     @publishProducts = false
