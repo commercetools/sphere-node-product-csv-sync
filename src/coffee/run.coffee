@@ -137,8 +137,8 @@ module.exports = class
             csvDelimiter: opts.csvDelimiter
             encoding: opts.encoding
             importFormat: if opts.xlsx then 'xlsx' else 'csv'
-            debug: !!opts.parent.debug
-            mergeCategoryOrderHints: !!opts.mergeCategoryOrderHints
+            debug: Boolean(opts.parent.debug)
+            mergeCategoryOrderHints: Boolean(opts.mergeCategoryOrderHints)
 
           options.host = program.sphereHost if program.sphereHost
           options.protocol = program.sphereProtocol if program.sphereProtocol
@@ -307,7 +307,7 @@ module.exports = class
             fillAllRows: opts.fillAllRows
             categoryBy: opts.categoryBy
             categoryOrderHintBy: opts.categoryOrderHintBy || 'id'
-            debug: !!opts.parent.debug
+            debug: Boolean(opts.parent.debug)
             client: _.extend credentials,
               timeout: program.timeout
               user_agent: "#{package_json.name} - Export - #{package_json.version}"
