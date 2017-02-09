@@ -370,16 +370,22 @@ class Import
         when 'removeVariant' then @allowRemovalOfVariants
         else throw Error "The action '#{action.action}' is not supported. Please contact the commercetools support team!"
 
+    updateRequest = filtered.getUpdatePayload()
+
+    if publish
+      updateRequest.actions.push
+        action: 'publish'
+
     if @dryRun
       if filtered.shouldUpdate()
-        Promise.resolve "[row #{rowIndex}] DRY-RUN - updates for #{existingProduct.id}:\n#{_.prettify filtered.getUpdatePayload()}"
+        Promise.resolve "[row #{rowIndex}] DRY-RUN - updates for #{existingProduct.id}:\n#{_.prettify updateRequest}"
       else
         Promise.resolve "[row #{rowIndex}] DRY-RUN - nothing to update."
     else
       if filtered.shouldUpdate()
-        @client.products.byId(filtered.getUpdateId()).update(filtered.getUpdatePayload())
+        @client.products.byId(filtered.getUpdateId()).update(updateRequest)
         .then (result) =>
-          @publishProduct(result.body, rowIndex, true, publish)
+          @publishProduct(result.body, rowIndex)
           .then -> Promise.resolve "[row #{rowIndex}] Product updated."
         .catch (err) =>
           msg = "[row #{rowIndex}] Problem on updating product:\n#{_.prettify err}\n#{_.prettify err.body}"
