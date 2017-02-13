@@ -289,20 +289,6 @@ class Export
           console.dir(err, {depth: 10})
           Promise.reject err
 
-  exportAsJson: (outputFile) ->
-    # TODO:
-    # - use process to export products in batches
-    # - use streams to write data chunks
-    @_getProductService()
-    .then (result) =>
-      products = result.body.results
-      if _.size(products) is 0
-        Promise.resolve 'No products found.'
-      else
-        console.warn "Number of fetched products: #{result.body.count}/#{result.body.total}."
-        @_saveJSON(outputFile, products)
-        .then -> Promise.resolve 'Export done.'
-
   createTemplate: (languages, outputFile, allProductTypes = false) ->
     @typesService.getAll(@client)
     .then (result) =>
@@ -361,14 +347,6 @@ class Export
       parsedCsv
       .on 'error', (err) -> reject err
       .on 'close', (count) -> resolve count
-
-  _saveJSON: (file, content) ->
-    content = JSON.stringify content, null, 2
-    opts =
-      encoding: 'utf8'
-
-    if file then fs.writeFileAsync file, content, opts
-    else process.stdout.write content
 
   _parse: (csvString) =>
     new Promise (resolve, reject) =>
