@@ -631,6 +631,12 @@ describe 'Mapping', ->
     it 'should map true', ->
       expect(@map.mapBoolean('true')).toBe true
 
+    it 'should map true represented as a number', ->
+      expect(@map.mapBoolean('1')).toBe true
+
+    it 'should map false represented as a number', ->
+      expect(@map.mapBoolean('0')).toBe false
+
     it 'should map case insensitive', ->
       expect(@map.mapBoolean('false')).toBe false
       expect(@map.mapBoolean('False')).toBe false
