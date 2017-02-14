@@ -115,6 +115,7 @@ module.exports = class
       .option '--continueOnProblems', 'When a product does not validate on the server side (400er response), ignore it and continue with the next products'
       .option '--suppressMissingHeaderWarning', 'Do not show which headers are missing per produt type.'
       .option '--allowRemovalOfVariants', 'If given variants will be removed if there is no corresponding row in the CSV. Otherwise they are not touched.'
+      .option '--mergeCategoryOrderHints', 'Merge category order hints instead of replacing them'
       .option '--publish', 'When given, all changes will be published immediately'
       .option '--updatesOnly', "Won't create any new products, only updates existing"
       .option '--dryRun', 'Will list all action that would be triggered, but will not POST them to SPHERE.IO'
@@ -136,7 +137,8 @@ module.exports = class
             csvDelimiter: opts.csvDelimiter
             encoding: opts.encoding
             importFormat: if opts.xlsx then 'xlsx' else 'csv'
-            debug: !!opts.parent.debug
+            debug: Boolean(opts.parent.debug)
+            mergeCategoryOrderHints: Boolean(opts.mergeCategoryOrderHints)
 
           options.host = program.sphereHost if program.sphereHost
           options.protocol = program.sphereProtocol if program.sphereProtocol
@@ -281,7 +283,8 @@ module.exports = class
       .option '-l, --language [lang]', 'Language used on export for localised attributes (except lenums) and category names (default is en)'
       .option '--queryEncoded', 'Whether the given query string is already encoded or not', false
       .option '--fillAllRows', 'When given product attributes like name will be added to each variant row.'
-      .option '--categoryBy <name>', 'Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.'
+      .option '--categoryBy <name>', 'Define which identifier should be used for the categories column - either slug or externalId. If nothing given the named path is used.'
+      .option '--categoryOrderHintBy <name>', 'Define which identifier should be used for the categoryOrderHints column - either id or externalId. If nothing given the category id is used.', 'id'
       .option '--filterVariantsByAttributes <query>', 'Query string to filter variants of products'
       .option '--filterPrices <query>', 'Query string to filter prices of products'
       .option '--templateDelimiter <delimiter>', 'Delimiter used in template | default: ,', ","
@@ -303,7 +306,8 @@ module.exports = class
             templateDelimiter: opts.templateDelimiter
             fillAllRows: opts.fillAllRows
             categoryBy: opts.categoryBy
-            debug: !!opts.parent.debug
+            categoryOrderHintBy: opts.categoryOrderHintBy || 'id'
+            debug: Boolean(opts.parent.debug)
             client: _.extend credentials,
               timeout: program.timeout
               user_agent: "#{package_json.name} - Export - #{package_json.version}"
