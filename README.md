@@ -387,7 +387,6 @@ productType,name.en,variantId
     -h, --help                    output usage information
     -t, --template <file>         CSV file containing your header that defines what you want to export
     -o, --out <file>              Path to the file the exporter will write the resulting CSV in
-    -j, --json                    Export in JSON format
     -x, --xlsx                    Export in XLSX format
     -f, --fullExport              Do a full export. Use --out parameter to specify where to save zip archive with exported files
     -q, --queryString <query>     Query string to specify the sub-set of products to export
@@ -402,16 +401,6 @@ productType,name.en,variantId
     --outputDelimiter <delimiter>   Delimiter used to separate cells in output file | default: ,
     -e, --encoding [encoding]     Encoding used when saving data to output file | default: utf8
 
-```
-
-#### Export as JSON
-
-You can export all products as JSON by passing a `--json` flag.
-
-##### Example
-
-```
-node lib/run.js export --projectKey <project_key> --clientId <client_id> --clientSecret <client_secret> -j out.json
 ```
 
 #### Full export

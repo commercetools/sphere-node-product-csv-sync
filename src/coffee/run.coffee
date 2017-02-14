@@ -276,7 +276,6 @@ module.exports = class
       .description 'Export your products from your SPHERE.IO project to CSV using.'
       .option '-t, --template <file>', 'CSV file containing your header that defines what you want to export'
       .option '-o, --out <file>', 'Path to the file the exporter will write the resulting CSV in'
-      .option '-j, --json', 'Export in JSON format'
       .option '-x, --xlsx', 'Export in XLSX format'
       .option '-f, --fullExport', 'Do a full export.'
       .option '-q, --queryString <query>', 'Query string to specify the sub-set of products to export'
@@ -325,8 +324,20 @@ module.exports = class
           options.client.oauth_protocol = program.sphereAuthProtocol if program.sphereAuthProtocol
 
           exporter = new Exporter options
-          if opts.json
-            exporter.exportAsJson(opts.out)
+          (if opts.fullExport then Promise.resolve false
+          else if opts.template? then fs.readFileAsync opts.template, 'utf8'
+          else new Promise (resolve) ->
+            console.warn 'Reading from stdin...'
+            chunks = []
+            process.stdin.on 'data', (chunk) -> chunks.push chunk
+            process.stdin.on 'end', () -> resolve Buffer.concat chunks
+          )
+          .then (content) ->
+            (if content
+              exporter.exportDefault(content, opts.out)
+            else
+              exporter.exportFull(opts.out)
+            )
             .then (result) ->
               console.warn result
               process.exit 0
@@ -334,32 +345,9 @@ module.exports = class
               if err.stack then console.error(err.stack)
               console.error err
               process.exit 1
-            .done()
-          else
-            (if opts.fullExport then Promise.resolve false
-            else if opts.template? then fs.readFileAsync opts.template, 'utf8'
-            else new Promise (resolve) ->
-              console.warn 'Reading from stdin...'
-              chunks = []
-              process.stdin.on 'data', (chunk) -> chunks.push chunk
-              process.stdin.on 'end', () -> resolve Buffer.concat chunks
-            )
-            .then (content) ->
-              (if content
-                exporter.exportDefault(content, opts.out)
-              else
-                exporter.exportFull(opts.out)
-              )
-              .then (result) ->
-                console.warn result
-                process.exit 0
-              .catch (err) ->
-                if err.stack then console.error(err.stack)
-                console.error err
-                process.exit 1
-            .catch (err) ->
-              console.error "Problems on reading template input: #{err}"
-              process.exit 2
+          .catch (err) ->
+            console.error "Problems on reading template input: #{err}"
+            process.exit 2
         .catch (err) ->
           console.error "Problems on getting client credentials from config files: #{err}"
           _subCommandHelp('export')
