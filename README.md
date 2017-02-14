@@ -11,12 +11,11 @@ Further you can change the publish state of products.
 
 # Setup
 
-Install `sphere-node-product-csv-sync` module with root privileges as a global module:
+Install `sphere-node-product-csv-sync` module as a global module:
 ```bash
-sudo npm install -g sphere-node-product-csv-sync
-product-csv-sync -v
+npm install sphere-node-product-csv-sync --global
 ```
-From now you can use a `product-csv-sync` command with parameters specified bellow. 
+From now you can use the `product-csv-sync` command with parameters specified below. 
 
 ## General Usage
 
