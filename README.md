@@ -11,26 +11,11 @@ Further you can change the publish state of products.
 
 # Setup
 
-* install [NodeJS](http://support.sphere.io/knowledgebase/articles/307722-install-nodejs-and-get-a-component-running) (platform for running application)
-
-### From scratch
-
-* install [npm](http://gruntjs.com/getting-started) (NodeJS package manager, bundled with node since version 0.6.3!)
-* install [grunt-cli](http://gruntjs.com/getting-started) (automation tool)
-*  resolve dependencies using `npm`
+Install `sphere-node-product-csv-sync` module as a global module:
 ```bash
-$ npm install
+npm install sphere-node-product-csv-sync --global
 ```
-* build javascript sources
-```bash
-$ grunt build
-```
-
-### From ZIP
-
-* Just download the ready to use application as [ZIP](https://github.com/sphereio/sphere-node-product-csv-sync/archive/latest.zip)
-* Extract the latest.zip with `unzip sphere-node-product-csv-sync-latest.zip`
-* Change into the directory `cd sphere-node-product-csv-sync-latest`
+From now you can use the `product-csv-sync` command with parameters specified below. 
 
 ## General Usage
 
