@@ -637,6 +637,11 @@ describe 'Mapping', ->
     it 'should map false represented as a number', ->
       expect(@map.mapBoolean('0')).toBe false
 
+    it 'should not map invalid number as a boolean', ->
+      expect(@map.mapBoolean('12345', 'myAttrib', '4')).toBe undefined
+      expect(@map.errors.length).toBe 1
+      expect(@map.errors[0]).toBe "[row 4:myAttrib] The value '12345' isn't a valid boolean!"
+
     it 'should map case insensitive', ->
       expect(@map.mapBoolean('false')).toBe false
       expect(@map.mapBoolean('False')).toBe false
