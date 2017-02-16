@@ -11,26 +11,11 @@ Further you can change the publish state of products.
 
 # Setup
 
-* install [NodeJS](http://support.sphere.io/knowledgebase/articles/307722-install-nodejs-and-get-a-component-running) (platform for running application)
-
-### From scratch
-
-* install [npm](http://gruntjs.com/getting-started) (NodeJS package manager, bundled with node since version 0.6.3!)
-* install [grunt-cli](http://gruntjs.com/getting-started) (automation tool)
-*  resolve dependencies using `npm`
+Install `sphere-node-product-csv-sync` module as a global module:
 ```bash
-$ npm install
+npm install sphere-node-product-csv-sync --global
 ```
-* build javascript sources
-```bash
-$ grunt build
-```
-
-### From ZIP
-
-* Just download the ready to use application as [ZIP](https://github.com/sphereio/sphere-node-product-csv-sync/archive/latest.zip)
-* Extract the latest.zip with `unzip sphere-node-product-csv-sync-latest.zip`
-* Change into the directory `cd sphere-node-product-csv-sync-latest`
+From now you can use the `product-csv-sync` command with parameters specified below. 
 
 ## General Usage
 
@@ -94,20 +79,21 @@ This means that the CSV may contain only those columns that contain changed valu
 
   Options:
 
-    -h, --help                                 output usage information
-    -c, --csv <file>                           CSV file containing products to import
-    -z, --zip <file>                           ZIP archive containing multiple product files to import
-    -l, --language [lang]                      Default language to using during import (for slug generation, category linking etc. - default is en)
-    --csvDelimiter [delim]                     CSV Delimiter that separates the cells (default is comma - ",")
-    --multiValueDelimiter [delim]              Delimiter to separate values inside of a cell (default is semicolon - ";")
-    --customAttributesForCreationOnly <items>  List of comma-separated attributes to use when creating products (ignore when updating)
-    --continueOnProblems                       When a product does not validate on the server side (400er response), ignore it and continue with the next products
+    -h, --help                                 Output usage information.
+    -c, --csv <file>                           CSV file containing products to import.
+    -z, --zip <file>                           ZIP archive containing multiple product files to import.
+    -l, --language [lang]                      Default language to using during import (for slug generation, category linking etc. - default is en).
+    --csvDelimiter [delim]                     CSV Delimiter that separates the cells (default is comma - ",").
+    --multiValueDelimiter [delim]              Delimiter to separate values inside of a cell (default is semicolon - ";").
+    --customAttributesForCreationOnly <items>  List of comma-separated attributes to use when creating products (ignore when updating).
+    --continueOnProblems                       When a product does not validate on the server side (400er response), ignore it and continue with the next products.
     --suppressMissingHeaderWarning             Do not show which headers are missing per produt type.
     --allowRemovalOfVariants                   If given variants will be removed if there is no corresponding row in the CSV. Otherwise they are not touched.
-    --publish                                  When given, all changes will be published immediately
-    --updatesOnly                              Won't create any new products, only updates existing
-    --dryRun                                   Will list all action that would be triggered, but will not POST them to SPHERE.IO
-    -m, --matchBy [value]                      Product attribute name which will be used to match products. Possible values: id, slug, sku, <custom_attribute_name>. Default: id. Localized attribute types are not supported for <custom_attribute_name> option
+    --mergeCategoryOrderHints                  Merge category order hints instead of replacing them with value readed from an import file.
+    --publish                                  When given, all changes will be published immediately.
+    --updatesOnly                              Won't create any new products, only updates existing.
+    --dryRun                                   Will list all action that would be triggered, but will not POST them to SPHERE.IO.
+    -m, --matchBy [value]                      Product attribute name which will be used to match products. Possible values: id, slug, sku, <custom_attribute_name>. Default: id. Localized attribute types are not supported for <custom_attribute_name> option.
 ```
 
 ### CSV Format
@@ -386,30 +372,20 @@ productType,name.en,variantId
     -h, --help                    output usage information
     -t, --template <file>         CSV file containing your header that defines what you want to export
     -o, --out <file>              Path to the file the exporter will write the resulting CSV in
-    -j, --json                    Export in JSON format
     -x, --xlsx                    Export in XLSX format
     -f, --fullExport              Do a full export. Use --out parameter to specify where to save zip archive with exported files
     -q, --queryString <query>     Query string to specify the sub-set of products to export
     -l, --language [lang]         Language used on export for localised attributes (except lenums) and category names (default is en)
     --queryEncoded                Whether the given query string is already encoded or not
     --fillAllRows                 When given product attributes like name will be added to each variant row.
-    --categoryBy                  Define which identifier should be used to for the categories column - either slug or externalId. If nothing given the named path is used.
+    --categoryBy                  Define which identifier should be used for the categories column - either slug or externalId. If nothing given the named path is used.
+    --categoryOrderHintBy         Define which identifier should be used for the categoryOrderHints column - either id or externalId. If nothing given the category id is used.
     --filterVariantsByAttributes  Query string to filter variants of products
     --filterPrices  Query string to filter prices of variants
     --templateDelimiter <delimiter> Delimiter used in template | default: ,
     --outputDelimiter <delimiter>   Delimiter used to separate cells in output file | default: ,
     -e, --encoding [encoding]     Encoding used when saving data to output file | default: utf8
 
-```
-
-#### Export as JSON
-
-You can export all products as JSON by passing a `--json` flag.
-
-##### Example
-
-```
-node lib/run.js export --projectKey <project_key> --clientId <client_id> --clientSecret <client_secret> -j out.json
 ```
 
 #### Full export
