@@ -780,3 +780,19 @@ describe 'Mapping', ->
         expect(data.product).toEqual @expectedProduct
         done()
       .catch done
+
+    it 'should should map the categoryOrderHints using a category externalId', (done) ->
+      csv =
+        """
+        productType,name,variantId,sku,categoryOrderHints
+        foo,myProduct,1,x,#{@exampleCategory.externalId}:0.9
+        """
+      @validator.parse csv
+      .then (parsed) =>
+        @map.header = parsed.header
+        @validator.validateOffline parsed.data
+        data = @map.mapProduct @validator.rawProducts[0], @productType
+
+        expect(data.product).toEqual @expectedProduct
+        done()
+      .catch done

@@ -43,10 +43,12 @@ class Import
     options.importFormat = options.importFormat || "csv"
     options.csvDelimiter = options.csvDelimiter || ","
     options.encoding = options.encoding || "utf-8"
+    options.mergeCategoryOrderHints = Boolean(options.mergeCategoryOrderHints)
     @dryRun = false
     @updatesOnly = false
     @publishProducts = false
     @continueOnProblems = options.continueOnProblems
+    @mergeCategoryOrderHints = options.mergeCategoryOrderHints
     @allowRemovalOfVariants = false
     @blackListedCustomAttributesForUpdate = []
     @customAttributeNameToMatch = undefined
@@ -323,6 +325,12 @@ class Import
       else
         @create(entry.product, entry.rowIndex, entry.publish)
 
+  _mergeCategoryOrderHints: (existingProduct, product) ->
+    if @mergeCategoryOrderHints
+      deepMerge product.categoryOrderHints, existingProduct.categoryOrderHints
+    else
+      product.categoryOrderHints
+
   _isBlackListedForUpdate: (attributeName) ->
     if _.isEmpty @blackListedCustomAttributesForUpdate
       false
@@ -330,6 +338,7 @@ class Import
       _.contains @blackListedCustomAttributesForUpdate, attributeName
 
   update: (product, existingProduct, id2SameForAllAttributes, header, rowIndex, publish) ->
+    product.categoryOrderHints = @_mergeCategoryOrderHints existingProduct, product
     allSameValueAttributes = id2SameForAllAttributes[product.productType.id]
     config = [
       { type: 'base', group: 'white' }
