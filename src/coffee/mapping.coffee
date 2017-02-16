@@ -31,6 +31,7 @@ class Mapping
       product: product
       rowIndex: raw.startRow
       header: @header
+      publish: raw.publish
     data
 
   mapBaseProduct: (rawMaster, productType, rowIndex) ->
