@@ -335,10 +335,11 @@ class Mapping
     errorMsg = "[row #{rowIndex}:#{attribName}] The value '#{rawBoolean}' isn't a valid boolean!"
     try
       b = JSON.parse(rawBoolean.toLowerCase())
-      if not _.isBoolean b
+      if _.isBoolean(b) or b == 0 or b == 1
+        return Boolean(b)
+      else
         @errors.push errorMsg
         return
-      b
     catch
       @errors.push errorMsg
 
