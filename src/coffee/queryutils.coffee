@@ -63,7 +63,8 @@ class QueryUtils
     attrib?.value
 
   @formatAttributePredicate: (name, items) ->
-    "#{name} in (\"#{items.join('", "')}\")"
+    escapedItems = items.map((item) -> item.replace /"/g, '%22')
+    "#{name} in (\"#{escapedItems.join('", "')}\")"
 
   @formatCustomAttributePredicate: (name, items) ->
     "attributes(name=\"#{name}\" and value in (\"#{items.join('", "')}\"))"

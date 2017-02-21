@@ -132,3 +132,10 @@ describe "QueryUtils", ->
         variants(attributes(name=\"key\" and value in
         (\"1\", \"2\", \"3\", \"4\", \"5\", \"6\")))"
       )
+
+  describe "formatAttributePredicate", ->
+    it "should replace double quotes with escape character", ->
+      sampleString = ["foo\"wet\"bar", "\"Hello\" World"]
+      result = "foo in (\"foo%22wet%22bar\", \"%22Hello%22 World\")"
+      predicate = QueryUtils.formatAttributePredicate("foo", sampleString)
+      expect(predicate).toEqual(result)
