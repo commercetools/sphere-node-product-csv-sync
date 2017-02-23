@@ -174,3 +174,48 @@ describe 'Import and publish test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
+    it 'should publish even if there are no update actions', (done) ->
+      csv =
+        """
+        productType,variantId,name,sku
+        #{@productType.id},1,#{@newProductName}1,#{@newProductSku}1
+        ,2,,#{@newProductSku}2
+        #{@productType.id},1,#{@newProductName}3,#{@newProductSku}3
+        """
+
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 2
+        expect(result).toEqual [
+          '[row 2] New product created.',
+          '[row 4] New product created.'
+        ]
+
+        csv =
+          """
+          productType,sku,publish
+          #{@productType.id},#{@newProductSku}1,true
+          #{@productType.id},#{@newProductSku}3,false
+          """
+        im = createImporter()
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 2
+        expect(result).toEqual [
+          '[row 2] Product updated.',
+          '[row 3] Product update not necessary.'
+        ]
+
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) =>
+        p = _.where(result.body.results, { published: true })
+        expect(p.length).toBe 1
+        expect(p[0].name).toEqual en: "#{@newProductName}1"
+
+        p = _.where(result.body.results, { published: false })
+        expect(p.length).toBe 1
+        expect(p[0].name).toEqual en: "#{@newProductName}3"
+
+        done()
+      .catch (err) -> done _.prettify(err)
+
