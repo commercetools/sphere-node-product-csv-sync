@@ -381,17 +381,24 @@ class Import
 
     updateRequest = filtered.getUpdatePayload()
 
-    if publish
+    # build update request even if there are no update actions
+    if not filtered.shouldUpdate()
+      updateRequest =
+        version: existingProduct.version
+        actions: []
+
+    # check if we should publish product (only if it was not yet published or if there are some changes)
+    if publish and (not existingProduct.published or updateRequest.actions.length)
       updateRequest.actions.push
         action: 'publish'
 
     if @dryRun
-      if filtered.shouldUpdate()
+      if updateRequest.actions.length
         Promise.resolve "[row #{rowIndex}] DRY-RUN - updates for #{existingProduct.id}:\n#{_.prettify updateRequest}"
       else
         Promise.resolve "[row #{rowIndex}] DRY-RUN - nothing to update."
     else
-      if filtered.shouldUpdate()
+      if updateRequest.actions.length
         @client.products.byId(filtered.getUpdateId()).update(updateRequest)
         .then (result) =>
           @publishProduct(result.body, rowIndex)
