@@ -9,10 +9,10 @@ products = [
         attributes: [
           {
             name: "key",
-            value: "1"
+            value: "1\"bar\""
           }
         ],
-        sku: "1"
+        sku: "1\"foo\""
       },
       variants: [
         {
@@ -120,22 +120,15 @@ describe "QueryUtils", ->
     it "should return query predicte based on products provided", ->
       predicate = QueryUtils.matchBySku(products)
       expect(predicate).toEqual("masterVariant(sku in " +
-      "(\"1\", \"4\")) or " +
-      "variants(sku in (\"1\", \"4\"))")
+      "(\"1\\\"foo\\\"\", \"4\")) or " +
+      "variants(sku in (\"1\\\"foo\\\"\", \"4\"))")
 
   describe "matchByCustomAttribute", ->
     it "should return query predicte based on products provided", ->
       predicate = QueryUtils.matchByCustomAttribute("key")(products)
       expect(predicate).toEqual(
         "masterVariant(attributes(name=\"key\" and value in
-        (\"1\", \"2\", \"3\", \"4\", \"5\", \"6\"))) or
+        (\"1\\\"bar\\\"\", \"2\", \"3\", \"4\", \"5\", \"6\"))) or
         variants(attributes(name=\"key\" and value in
-        (\"1\", \"2\", \"3\", \"4\", \"5\", \"6\")))"
+        (\"1\\\"bar\\\"\", \"2\", \"3\", \"4\", \"5\", \"6\")))"
       )
-
-  describe "formatAttributePredicate", ->
-    it "should replace double quotes with escape character", ->
-      sampleString = ["foo\"wet\"bar", "\"Hello\" World"]
-      result = "foo in (\"foo%22wet%22bar\", \"%22Hello%22 World\")"
-      predicate = QueryUtils.formatAttributePredicate("foo", sampleString)
-      expect(predicate).toEqual(result)
