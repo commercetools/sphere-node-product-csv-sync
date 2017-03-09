@@ -9,10 +9,10 @@ products = [
         attributes: [
           {
             name: "key",
-            value: "1\"bar\""
+            value: '1"bar"'
           }
         ],
-        sku: "1\"foo\""
+        sku: '1"foo"'
       },
       variants: [
         {
@@ -120,15 +120,15 @@ describe "QueryUtils", ->
     it "should return query predicte based on products provided", ->
       predicate = QueryUtils.matchBySku(products)
       expect(predicate).toEqual("masterVariant(sku in " +
-      "(\"1\\\"foo\\\"\", \"4\")) or " +
-      "variants(sku in (\"1\\\"foo\\\"\", \"4\"))")
+      '("1\\"foo\\"", "4")) or ' +
+      'variants(sku in ("1\\"foo\\"", "4"))')
 
   describe "matchByCustomAttribute", ->
     it "should return query predicte based on products provided", ->
       predicate = QueryUtils.matchByCustomAttribute("key")(products)
       expect(predicate).toEqual(
-        "masterVariant(attributes(name=\"key\" and value in
-        (\"1\\\"bar\\\"\", \"2\", \"3\", \"4\", \"5\", \"6\"))) or
-        variants(attributes(name=\"key\" and value in
-        (\"1\\\"bar\\\"\", \"2\", \"3\", \"4\", \"5\", \"6\")))"
+        'masterVariant(attributes(name="key" and value in
+        ("1\\"bar\\"", "2", "3", "4", "5", "6"))) or
+        variants(attributes(name="key" and value in
+        ("1\\"bar\\"", "2", "3", "4", "5", "6")))'
       )

@@ -73,7 +73,7 @@ class QueryUtils
 
   @escapeItems: (items) ->
     if items.length is 0
-      "\"\""
+      '""'
     else
       items.map((item) -> JSON.stringify(item)).join(", ")
 
