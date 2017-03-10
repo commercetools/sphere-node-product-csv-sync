@@ -63,12 +63,18 @@ class QueryUtils
     attrib?.value
 
   @formatAttributePredicate: (name, items) ->
-    "#{name} in (\"#{items.join('", "')}\")"
+    "#{name} in (#{@escapeItems items})"
 
   @formatCustomAttributePredicate: (name, items) ->
-    "attributes(name=\"#{name}\" and value in (\"#{items.join('", "')}\"))"
+    "attributes(name=\"#{name}\" and value in (#{@escapeItems items}))"
 
   @applyPredicateToVariants: (predicate) ->
     "masterVariant(#{predicate}) or variants(#{predicate})"
+
+  @escapeItems: (items) ->
+    if items.length is 0
+      '""'
+    else
+      items.map((item) -> JSON.stringify(item)).join(", ")
 
 module.exports = QueryUtils

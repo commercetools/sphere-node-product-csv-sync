@@ -55,6 +55,7 @@ describe 'Import integration test', ->
       @newProductName = TestHelpers.uniqueId 'name-'
       @newProductSlug = TestHelpers.uniqueId 'slug-'
       @newProductSku = TestHelpers.uniqueId 'sku-'
+      @newProductSku += '"foo"'
 
     it 'should import a simple product', (done) ->
       csv =
