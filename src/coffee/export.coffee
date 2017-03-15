@@ -177,6 +177,20 @@ class Export
       ])
       archive.finalize()
 
+  # function will remove duplicate header entries
+  # it is not possible to create a custom product attribute named as categories/images/taxCategories/ etc..
+  # so this is intended only for old projects and should be removed in the future
+  _removeDuplicities: (list) ->
+    uniqueList = _.unique(list)
+
+    if uniqueList.length != list.length
+      list = list.sort().filter (v,i,o) ->
+        if i > 0 && v == o[i-1]
+          return v
+
+      console.warn "WARN: Removing duplicate header entries: #{list.join(",")}"
+    return uniqueList
+
   exportFull: (output, staged = true) =>
     lang = GLOBALS.DEFAULT_LANGUAGE
     console.log 'Creating full export for "%s" language', lang
@@ -192,6 +206,8 @@ class Export
       Promise.map productTypes.body.results, (type) =>
         console.log 'Processing products with productType "%s"', type.name
         csv = new ExportMapping().createTemplate(type, [lang])
+        csv = @_removeDuplicities csv
+
         fileName = _.slugify(type.name)+"_"+type.id+"."+@options.exportFormat
         filePath = path.join(tempDir.name, fileName)
         condition = 'productType(id="'+type.id+'")'
