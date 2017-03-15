@@ -234,8 +234,8 @@ module.exports = class
           run = =>
             @_getFilterFunction(opts)
             .then (filterFunction) ->
+              options.continueOnProblems = opts.continueOnProblems
               importer = new Importer options
-              importer.continueOnProblems = opts.continueOnProblems
               importer.changeState(publish, remove, filterFunction)
             .then (result) ->
               console.warn result
