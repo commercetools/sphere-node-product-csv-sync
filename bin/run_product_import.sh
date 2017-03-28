@@ -13,4 +13,4 @@ import \
 --sftpTarget=$SFTP_OUT_DIRECTORY \
 --matchBy=$MATCH_BY \
 --language=$LANGUAGE \
---csvDelimiter=$CSV_DELIMITER
+--csvDelimiter="|"
