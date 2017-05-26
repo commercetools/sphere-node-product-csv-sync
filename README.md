@@ -6,7 +6,7 @@
 
 [![Build Status](https://travis-ci.org/sphereio/sphere-node-product-csv-sync.png?branch=master)](https://travis-ci.org/sphereio/sphere-node-product-csv-sync) [![NPM version](https://badge.fury.io/js/sphere-node-product-csv-sync.png)](http://badge.fury.io/js/sphere-node-product-csv-sync) [![Coverage Status](https://coveralls.io/repos/sphereio/sphere-node-product-csv-sync/badge.png)](https://coveralls.io/r/sphereio/sphere-node-product-csv-sync) [![Dependency Status](https://david-dm.org/sphereio/sphere-node-product-csv-sync.png?theme=shields.io)](https://david-dm.org/sphereio/sphere-node-product-csv-sync) [![devDependency Status](https://david-dm.org/sphereio/sphere-node-product-csv-sync/dev-status.png?theme=shields.io)](https://david-dm.org/sphereio/sphere-node-product-csv-sync#info=devDependencies)
 
-This component allows you to import, update and export SPHERE.IO Products via CSV.
+This component allows you to import, update and export commercetools Products via CSV.
 Further you can change the publish state of products.
 
 # Setup
