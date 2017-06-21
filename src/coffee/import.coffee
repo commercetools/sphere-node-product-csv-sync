@@ -346,6 +346,7 @@ class Import
       { type: 'attributes', group: 'white' }
       { type: 'variants', group: 'white' }
       { type: 'categories', group: 'white' }
+      { type: 'categoryOrderHints', group: 'white' }
     ]
     if header.has(CONS.HEADER_PRICES)
       config.push { type: 'prices', group: 'white' }
