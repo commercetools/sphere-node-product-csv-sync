@@ -4,12 +4,23 @@ prompt = require 'prompt'
 Csv = require 'csv'
 Promise = require 'bluebird'
 fs = Promise.promisifyAll require('fs')
-{ProjectCredentialsConfig} = require 'sphere-node-utils'
+tmp = Promise.promisifyAll require('tmp')
+{ExtendedLogger, ProjectCredentialsConfig} = require 'sphere-node-utils'
 Importer = require './import'
 Exporter = require './export'
 CONS = require './constants'
 GLOBALS = require './globals'
 package_json = require '../package.json'
+SftpHelper = require './sftp'
+
+logOptions =
+  name: "#{package_json.name}-#{package_json.version}"
+  streams: [
+    { level: 'error', stream: process.stderr }
+    { level: 'info', path: "#{package_json.name}.log" }
+  ]
+logger = new ExtendedLogger
+  logConfig: logOptions
 
 module.exports = class
 
@@ -20,7 +31,7 @@ module.exports = class
       if opts.csv
         fs.readFileAsync opts.csv, 'utf8'
         .catch (err) ->
-          console.error "Problems on reading identity file '#{opts.csv}': #{err}"
+          logger.error "Problems on reading identity file '#{opts.csv}': #{err}"
           process.exit 2
         .then (content) ->
           Csv().from.string(content)
@@ -61,6 +72,11 @@ module.exports = class
       else
         f = (product) -> true
         resolve f
+
+  readJsonFromPath = (path) ->
+    return Promise.resolve({}) unless path
+    fs.readFileAsync(path, {encoding: 'utf-8'}).then (content) ->
+      Promise.resolve JSON.parse(content)
 
   @_ensureCredentials: (argv) ->
     if argv.accessToken
@@ -103,8 +119,12 @@ module.exports = class
     program
       .command 'import'
       .description 'Import your products from CSV into your SPHERE.IO project.'
+      .option '--sftpHost <host>', 'the SFTP host (overwrite value in sftpCredentials JSON, if given)'
+      .option '--sftpUsername  <username>', 'the SFTP username (overwrite value in sftpCredentials JSON, if given)'
+      .option '--sftpPassword  <password>', 'the SFTP password (overwrite value in sftpCredentials JSON, if given)'
+      .option '--sftpSource  <path>', 'path in the SFTP server from where to read the files'
+      .option '--sftpTarget <path>', 'path in the SFTP server to where to move the worked files'
       .option '-c, --csv <file>', 'CSV file containing products to import (alias for "in" parameter)'
-      # add alias for csv parameter and "-i" is taken so use "-f" parameter
       .option '-f, --in <file>', 'File containing products to import'
       .option '-z, --zip', 'Input file is archived'
       .option '-x, --xlsx', 'Import from XLSX format'
@@ -136,6 +156,11 @@ module.exports = class
             user_agent: "#{package_json.name} - Import - #{package_json.version}"
             csvDelimiter: opts.csvDelimiter
             encoding: opts.encoding
+            sftpHost: opts.sftpHost
+            sftpUsername: opts.sftpUsername
+            sftpPassword: opts.sftpPassword
+            sftpSource: opts.sftpSource
+            sftpTarget: opts.sftpTarget
             importFormat: if opts.xlsx then 'xlsx' else 'csv'
             debug: Boolean(opts.parent.debug)
             mergeCategoryOrderHints: Boolean(opts.mergeCategoryOrderHints)
@@ -168,21 +193,97 @@ module.exports = class
           importer.matchBy = opts.matchBy
 
           # params: importManager (filePath, isArchived)
-          importer.importManager opts.in || opts.csv, opts.zip
-            .then (result) ->
-              console.warn result
-              process.exit 0
+          if opts.in || opts.csv
+            importer.importManager opts.in || opts.csv, opts.zip
+              .then (result) ->
+                logger.warn result
+                process.exit 0
+              .catch (err) ->
+                logger.error err
+                process.exit 1
             .catch (err) ->
-              console.error err
-              process.exit 1
-          .catch (err) ->
-            console.error "Problems on reading file '#{opts.csv}': #{err}"
-            process.exit 2
+              logger.error "Problems on reading file '#{opts.csv}': #{err}"
+              process.exit 2
+          else
+            tmp.setGracefulCleanup()
+
+            readJsonFromPath(program.sftpCredentials)
+            .then (sftpCredentials) =>
+              projectSftpCredentials = sftpCredentials[program.projectKey] or {}
+              {host, username, password} = _.defaults projectSftpCredentials,
+                host: options.sftpHost
+                username: options.sftpUsername
+                password: options.sftpPassword
+              throw new Error 'Missing sftp host' unless host
+              throw new Error 'Missing sftp username' unless username
+              throw new Error 'Missing sftp password' unless password
+
+              sftpHelper = new SftpHelper
+                host: host
+                username: username
+                password: password
+                sourceFolder: options.sftpSource
+                targetFolder: options.sftpTarget
+                fileRegex: options.sftpFileRegex
+                logger: logger
+
+              tmp.dirAsync {unsafeCleanup: true}
+              .then (tmpPath) ->
+                logger.debug "Tmp folder created at #{tmpPath[0]}"
+                sftpHelper.download(tmpPath[0])
+                .then (files) ->
+                  logger.debug files, "Processing #{files.length} files..."
+                  filesToProcess =
+                    if program.sftpMaxFilesToProcess and _.isNumber(program.sftpMaxFilesToProcess) and program.sftpMaxFilesToProcess > 0
+                      logger.info "Processing max #{program.sftpMaxFilesToProcess} files"
+                      _.first files, program.sftpMaxFilesToProcess
+                    else
+                      files
+                  filesSkipped = 0
+                  Promise.map filesToProcess, (file) ->
+                    importer.importManager "#{tmpPath[0]}/#{file}", opts.zip
+                    .then ->
+                      if program.sftpFileWithTimestamp
+                        ts = (new Date()).getTime()
+                        filename = switch
+                          when file.match /\.csv$/i then file.substring(0, file.length - 4) + "_#{ts}.csv"
+                          when file.match /\.xml$/i then file.substring(0, file.length - 4) + "_#{ts}.xml"
+                          else file
+                      else
+                        filename = file
+
+                      logger.debug "Finishing processing file #{file}"
+                      sftpHelper.finish(file, filename)
+                      .then ->
+                        logger.info "File #{filename} was successfully processed and marked as done on remote SFTP server"
+                        Promise.resolve()
+                      .catch (err) ->
+                        if program.sftpContinueOnProblems
+                          filesSkipped++
+                          logger.warn err, "There was an error processing the file #{file}, skipping and continue"
+                          Promise.resolve()
+                        else
+                          Promise.reject err
+                  , {concurrency: 1}
+                  .then =>
+                    totFiles = _.size(filesToProcess)
+                    if totFiles > 0
+                      logger.info "Import successfully finished: #{totFiles - filesSkipped} out of #{totFiles} files were processed"
+                    else
+                      logger.info "Import successfully finished: there were no new files to be processed"
+                    @exitCode = 0
+              .catch (error) =>
+                logger.error error, 'Oops, something went wrong!'
+                @exitCode = 1
+              .done()
+            .catch (err) =>
+              logger.error err, "Problems on getting sftp credentials from config files."
+              @exitCode = 1
+            .done()
         .catch (err) ->
-          console.error "Problems on getting client credentials from config files: #{err}"
+          logger.error "Problems on getting client credentials from config files: #{err}"
           _subCommandHelp('import')
         .done()
-
 
     program
       .command 'state'
