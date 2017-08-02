@@ -1,8 +1,10 @@
 constants =
   HEADER_PRODUCT_TYPE: 'productType'
   HEADER_ID: 'id'
+  HEADER_KEY: 'key'
   HEADER_EXTERNAL_ID: 'externalId'
   HEADER_VARIANT_ID: 'variantId'
+  HEADER_VARIANT_KEY: 'variantKey'
 
   HEADER_NAME: 'name'
   HEADER_DESCRIPTION: 'description'
@@ -52,7 +54,8 @@ for name, value of constants
 
 exports.BASE_HEADERS = [
   constants.HEADER_PRODUCT_TYPE,
-  constants.HEADER_VARIANT_ID
+  constants.HEADER_VARIANT_ID,
+  constants.HEADER_VARIANT_KEY
 ]
 
 exports.BASE_LOCALIZED_HEADERS = [
@@ -67,6 +70,7 @@ exports.BASE_LOCALIZED_HEADERS = [
 
 exports.SPECIAL_HEADERS = [
   constants.HEADER_ID,
+  constants.HEADER_KEY,
   constants.HEADER_SKU,
   constants.HEADER_PRICES,
   constants.HEADER_TAX,
