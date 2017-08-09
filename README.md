@@ -70,6 +70,8 @@ The import command allows to create new products with their variants as well to 
 During update it is possible to concentrate only on those attributes that should be updated.
 This means that the CSV may contain only those columns that contain changed values.
 
+**NOTE:** When importing [LocalizedString](http://dev.commercetools.com/http-api-types.html#localizedstring) fields (eg. name, description, etc.) there has to be provided all languages during the import or the missing languages will get deleted.
+
 ### Usage
 
 ```
