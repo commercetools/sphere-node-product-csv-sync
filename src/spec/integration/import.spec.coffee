@@ -125,7 +125,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    iit 'should update changes on 2nd import run', (done) ->
+    it 'should update changes on 2nd import run', (done) ->
       csv =
         """
         productType,name,variantId,slug
