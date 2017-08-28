@@ -33,9 +33,6 @@ describe 'Export', ->
         [ variant ],
         []
       )
-
-      console.log filteredVariants
-
       actual = filteredVariants[0]
       expected = variant
 
