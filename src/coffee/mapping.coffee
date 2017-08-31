@@ -45,6 +45,9 @@ class Mapping
     if @header.has(CONS.HEADER_ID)
       product.id = rawMaster[@header.toIndex CONS.HEADER_ID]
 
+    if @header.has(CONS.HEADER_KEY)
+      product.key = rawMaster[@header.toIndex CONS.HEADER_KEY]
+
     product.categories = @mapCategories rawMaster, rowIndex
     tax = @mapTaxCategory rawMaster, rowIndex
     product.taxCategory = tax if tax
@@ -195,6 +198,9 @@ class Mapping
     variant =
       id: variantId
       attributes: []
+
+    if @header.has(CONS.HEADER_VARIANT_KEY)
+      variant.key = rawVariant[@header.toIndex CONS.HEADER_VARIANT_KEY]
 
     variant.sku = rawVariant[@header.toIndex CONS.HEADER_SKU] if @header.has CONS.HEADER_SKU
 

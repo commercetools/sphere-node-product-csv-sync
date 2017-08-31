@@ -113,8 +113,8 @@ describe 'Mapping', ->
     it 'should map base product', (done) ->
       csv =
         """
-        productType,id,name,variantId
-        foo,xyz,myProduct,1
+        productType,id,name,variantId,key
+        foo,xyz,myProduct,1,key123
         """
       pt =
         id: '123'
@@ -126,6 +126,7 @@ describe 'Mapping', ->
 
         expectedProduct =
           id: 'xyz'
+          key: 'key123'
           productType:
             typeId: 'product-type'
             id: '123'
@@ -268,13 +269,14 @@ describe 'Mapping', ->
           { name: 'a2', type: { name: 'text' } }
         ]
 
-      @map.header = new Header [ 'a0', 'a1', 'a2', 'sku', 'variantId' ]
+      @map.header = new Header [ 'a0', 'a1', 'a2', 'sku', 'variantId', 'variantKey' ]
       @map.header.toIndex()
-      variant = @map.mapVariant [ 'v0', 'v1', 'v2', 'mySKU', '9' ], 9, productType, 77
+      variant = @map.mapVariant [ 'v0', 'v1', 'v2', 'mySKU', '9', 'vKey123' ], 9, productType, 77
 
       expectedVariant =
         id: 9
         sku: 'mySKU'
+        key: 'vKey123'
         prices: []
         attributes: [
           name: 'a2'
@@ -579,7 +581,7 @@ describe 'Mapping', ->
           id: 'group_123'
       expect(prices[0]).toEqual expectedPrice
 
-    it 'should map muliple prices', ->
+    it 'should map multiple prices', ->
       prices = @map.mapPrices 'EUR 100;UK-USD 200;YEN -999'
       expect(prices.length).toBe 3
       expectedPrice =

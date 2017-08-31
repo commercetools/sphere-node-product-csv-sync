@@ -60,8 +60,8 @@ describe 'Import integration test', ->
     it 'should import a simple product', (done) ->
       csv =
         """
-        productType,name,variantId,slug
-        #{@productType.id},#{@newProductName},1,#{@newProductSlug}
+        productType,name,variantId,slug,key,variantKey
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug},productKey,variantKey
         """
       @importer.import(csv)
       .then (result) =>
@@ -73,6 +73,8 @@ describe 'Import integration test', ->
         p = result.body.results[0]
         expect(p.name).toEqual en: @newProductName
         expect(p.slug).toEqual en: @newProductSlug
+        expect(p.key).toEqual 'productKey'
+        expect(p.masterVariant.key).toEqual 'variantKey'
         done()
       .catch (err) -> done _.prettify(err)
 
@@ -135,8 +137,8 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,name,variantId,slug
-          #{@productType.id},#{@newProductName+'_changed'},1,#{@newProductSlug}
+          productType,name,variantId,slug,key,variantKey
+          #{@productType.id},#{@newProductName+'_changed'},1,#{@newProductSlug},productKey,variantKey
           """
         im = createImporter()
         im.matchBy = 'slug'
@@ -150,6 +152,9 @@ describe 'Import integration test', ->
         p = result.body.results[0]
         expect(p.name).toEqual en: "#{@newProductName}_changed"
         expect(p.slug).toEqual en: @newProductSlug
+        expect(p.key).toEqual 'productKey'
+        expect(p.masterVariant.key).toEqual 'variantKey'
+
         done()
       .catch (err) -> done _.prettify(err)
 

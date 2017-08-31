@@ -46,7 +46,7 @@
     "lodash.merge": "^4.6.0",
     "optimist": "0.6.1",
     "prompt": "0.2.14",
-    "sphere-node-sdk": "^1.17.4",
+    "sphere-node-sdk": "^1.21.1",
     "sphere-node-utils": "0.8.0",
     "tmp": "0.0.28",
     "underscore": "1.8.3",

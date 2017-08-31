@@ -356,7 +356,6 @@ class Import
       config.push { type: 'images', group: 'white' }
     else
       config.push { type: 'images', group: 'black' }
-
     filtered = @sync.config(config)
     .buildActions(product, existingProduct, allSameValueAttributes)
     .filterActions (action) =>
@@ -376,6 +375,8 @@ class Import
         when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
         when 'setSku' then header.has(CONS.HEADER_SKU)
+        when 'setProductVariantKey' then header.has(CONS.HEADER_VARIANT_KEY)
+        when 'setKey' then header.has(CONS.HEADER_KEY)
         when 'addVariant', 'addPrice', 'removePrice', 'changePrice', 'addExternalImage', 'removeImage' then true
         when 'removeVariant' then @allowRemovalOfVariants
         else throw Error "The action '#{action.action}' is not supported. Please contact the commercetools support team!"

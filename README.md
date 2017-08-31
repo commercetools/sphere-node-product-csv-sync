@@ -103,20 +103,21 @@ This means that the CSV may contain only those columns that contain changed valu
 #### Base attributes
 
 To create or update products you need 2 columns.
-You always need the `productType`. Further you need either `variantId` or `sku` to identify the specific variant
+You always need the `productType`. Further you need either `variantId` or `sku` to identify the specific variant.
 
 You can define the `productType` via id or name (as long as it is unique).
+Another base attributes which can be specified are `key` and `variantKey`.
 
 #### Variants
 
 Variants are defined by leaving the `productType` cell empty:
 ```
-productType,name,variantId,myAttribute
-typeName,myProduct,1,value
-,,2,other value
-,,3,val
-otherType,nextProduct,1,foo
-,,2,bar
+productType,name,variantId,variantKey,myAttribute
+typeName,myProduct,1,,value
+,,2,variantKey2,other value
+,,3,variantKey3,val
+otherType,nextProduct,1,,foo
+,,2,variantKey4,bar
 ```
 The CSV above contains:
 ```
@@ -158,8 +159,8 @@ Using the command line option `--language`, you can define in which language the
 
 Multiple languages can be imported by defining for each language an own column with the following schema:
 ```
-productType,name.en,name.de,description.en,description.de,slug.en,slug.de
-myType,my Product,mein Produkt,foo bar,bla bal,my-product,mein-product
+productType,key,name.en,name.de,description.en,description.de,slug.en,slug.de
+myType,productKey,my Product,mein Produkt,foo bar,bla bal,my-product,mein-product
 ```
 
 The pattern for the language header is:

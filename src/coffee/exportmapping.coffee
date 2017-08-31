@@ -68,6 +68,9 @@ class ExportMapping
     if @header.has(CONS.HEADER_ID)
       row[@header.toIndex CONS.HEADER_ID] = product.id
 
+    if @header.has(CONS.HEADER_KEY)
+      row[@header.toIndex CONS.HEADER_KEY] = product.key
+
     if @header.has(CONS.HEADER_PRODUCT_TYPE)
       row[@header.toIndex CONS.HEADER_PRODUCT_TYPE] = productType.name
 
@@ -120,6 +123,9 @@ class ExportMapping
   _mapVariant: (variant, productType, row = []) ->
     if @header.has(CONS.HEADER_VARIANT_ID)
       row[@header.toIndex CONS.HEADER_VARIANT_ID] = variant.id
+
+    if @header.has(CONS.HEADER_VARIANT_KEY)
+      row[@header.toIndex CONS.HEADER_VARIANT_KEY] = variant.key
 
     if @header.has(CONS.HEADER_SKU)
       row[@header.toIndex CONS.HEADER_SKU] = variant.sku

@@ -1,4 +1,5 @@
 {
+  "key": "productKey",
   "productType": {
     "typeId": "product-type",
     "id": ""
@@ -15,6 +16,7 @@
   },
   "masterVariant": {
     "id": 1,
+    "key": "variantKey",
     "sku": "11111",
     "prices": [{
       "value": {
