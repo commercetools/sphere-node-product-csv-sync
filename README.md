@@ -147,7 +147,7 @@ The following product attributes can be localized:
 - description
 - slug
 - metaTitle
-- metaDescriptions
+- metaDescription
 - metaKeywords
 - searchKeywords
 
@@ -258,7 +258,7 @@ https://example.com/image.jpg;http://www.example.com/picture.bmp
 
 The current implementation allows the set the SEO attributes only if all three SEO attributes are present.
 - metaTitle
-- metaDescriptions
+- metaDescription
 - metaKeywords
 
 
