@@ -29,6 +29,15 @@ writeXlsx = (filePath, data) ->
   workbook.xlsx.writeFile(filePath)
 
 describe 'IO Reader test', ->
+  it 'should trim csv header file', (done) ->
+    sampleCsv =
+      """
+      myHeader ,name
+      row1,name1
+      """
+    Reader.parseCsv(sampleCsv).then (data) =>
+      expect(data).toEqual([ [ 'myHeader ,name' ], [ 'row1,name1' ] ])
+      done()
 
   it 'should read xlsx file', (done) ->
     filePath = "/tmp/test.xlsx"

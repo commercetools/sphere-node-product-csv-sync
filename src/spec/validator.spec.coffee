@@ -32,6 +32,19 @@ describe 'Validator', ->
         done()
       .catch (err) -> done _.prettify(err)
 
+    it 'should trim csv cells', (done) ->
+      csv =
+        """
+        myHeader ,name
+        row1,name1
+        """
+      @validator.parse csv
+      .then =>
+        expect(@validator.header).toBeDefined
+        expect(@validator.header.rawHeader).toEqual ['myHeader', 'name']
+        done()
+      .catch (err) -> done _.prettify(err)
+
     it 'should pass everything but the header as content to callback', (done) ->
       csv =
         """
