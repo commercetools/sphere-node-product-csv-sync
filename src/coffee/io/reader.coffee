@@ -35,6 +35,7 @@ class Reader
     options =
       delimiter: delimiter
       skip_empty_lines: true
+      trim: true # trim csv cells
 
     # only buffer can be decoded from another encoding
     if csv instanceof Buffer

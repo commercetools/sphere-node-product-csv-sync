@@ -28,6 +28,7 @@ class Validator
     @csvOptions =
       delimiter: options.csvDelimiter or ','
       quote: options.csvQuote or '"'
+      trim: true
 
   parse: (csvString) ->
     # TODO: use parser with streaming API
