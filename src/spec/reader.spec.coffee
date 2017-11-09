@@ -39,6 +39,24 @@ describe 'IO Reader test', ->
       expect(data).toEqual([ [ 'myHeader ,name' ], [ 'row1,name1' ] ])
       done()
 
+  it 'should stringify richText', (done) ->
+    expected = 'Stringified rich text'
+    richText = [
+      {
+        font: { size: 10, name: 'Arial', family: 2, charset: 1 },
+        text: 'Stringified '
+      },
+      {
+        font: { size: 14, name: 'Arial', family: 2, charset: 1 },
+        text: 'rich text'
+      }
+    ]
+
+    reader = new Reader()
+    actual = reader._stringifyRichText(richText)
+    expect(actual).toBe(expected)
+    done()
+
   it 'should read xlsx file', (done) ->
     filePath = "/tmp/test.xlsx"
     expected = ['TEXT', '1', '2', '', '', 'false', 'true']
