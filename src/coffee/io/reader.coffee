@@ -104,8 +104,8 @@ class Reader
 
   # method will remove styling from richText and return a plain text
   _stringifyRichText: (richText) ->
-    richText
-      .map (chunk) -> chunk.text
-      .join('')
+    richText.reduce((text, chunk) ->
+      text + chunk.text
+    , '')
 
 module.exports = Reader
