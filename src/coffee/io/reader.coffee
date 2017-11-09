@@ -79,10 +79,14 @@ class Reader
         rowValues = row.values
         rowValues.shift()
 
-        rows.push _.map rowValues, (item) ->
+        rows.push _.map rowValues, (item) =>
           if not item?
             item = ""
-          String(item)
+
+          if _.isObject(item) and item.richText
+            @_stringifyRichText(item.richText)
+          else
+            String(item)
       rows
 
   @decode: (buffer, encoding) =>
@@ -97,5 +101,11 @@ class Reader
   getHeader: (header) =>
     @Logger.debug "get header"
     @header
+
+  # method will remove styling from richText and return a plain text
+  _stringifyRichText: (richText) ->
+    richText.reduce((text, chunk) ->
+      text + chunk.text
+    , '')
 
 module.exports = Reader
