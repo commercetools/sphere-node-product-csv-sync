@@ -67,7 +67,7 @@ describe 'Import', ->
       @header = {}
     it 'should map masterVariant', ->
       existingProducts = [
-        { masterVariant: { id: 1, sku: "mySKU" }, variants: [] }
+        { masterVariant: { id: 2, sku: "mySKU" }, variants: [] }
       ]
       #@importer.initMatcher existingProducts
       entry =
@@ -77,7 +77,7 @@ describe 'Import', ->
       expect(_.size productsToUpdate).toBe 1
       product = productsToUpdate[0].product
       expect(product.masterVariant).toBeDefined()
-      expect(product.masterVariant.id).toBe 1
+      expect(product.masterVariant.id).toBe 2
       expect(product.masterVariant.sku).toBe 'mySKU'
       expect(_.size product.variants).toBe 0
       expect(product.masterVariant.attributes).toEqual [{ foo: 'bar' }]
