@@ -246,7 +246,12 @@ class Import
 
         variantInfo = sku2variantInfo[variant.sku]
         variant.id = variantInfo.id
-        if variant.id is 1
+
+        # If the variantId is 1, masterVariant will be matched
+        # Otherwise it tries to match with the SKU
+        # This means if the masterVariant has no SKU and the id is not 1, the
+        # masterVariant will not be updated
+        if variant.id is 1 or variant.sku is existingProduct.masterVariant.sku
           existingProduct.masterVariant = variant
         else
           existingProduct.variants[variantInfo.index] = variant
