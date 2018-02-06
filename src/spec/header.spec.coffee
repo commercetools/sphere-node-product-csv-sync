@@ -19,8 +19,8 @@ describe 'Header', ->
     it 'should return error for each missing header', (done) ->
       csv =
         """
-        foo,sku
-        1,2
+        foo,sku,key
+        1,2,key-123
         """
       @validator.parse csv
       .then =>
@@ -30,11 +30,25 @@ describe 'Header', ->
         done()
       .catch (err) -> done _.prettify(err)
 
+    it 'should return error if no key header', (done) ->
+      csv =
+        """
+        productType,name,variantId
+        1,2,3
+        """
+      @validator.parse csv
+      .then =>
+        errors = @validator.header.validate()
+        expect(errors.length).toBe 1
+        expect(errors[0]).toBe "Required 'key' header missing!"
+        done()
+      .catch (err) -> done _.prettify(err)
+
     it 'should return error when no sku and not variantId header', (done) ->
       csv =
         """
-        foo,productType
-        1,2
+        foo,productType,key
+        1,2,key-123
         """
       @validator.parse csv
       .then =>
@@ -47,8 +61,8 @@ describe 'Header', ->
     it 'should return error on duplicate header', (done) ->
       csv =
         """
-        productType,name,variantId,name
-        1,2,3,4
+        productType,name,key,variantId,name
+        1,2,key-123,3,4
         """
       @validator.parse csv
       .then =>

@@ -44,13 +44,14 @@ describe 'Import and publish test', ->
       @newProductName = TestHelpers.uniqueId 'name-'
       @newProductSlug = TestHelpers.uniqueId 'slug-'
       @newProductSku = TestHelpers.uniqueId 'sku-'
+      @newProductKey = TestHelpers.uniqueId 'key-'
 
     it 'should import products and publish them afterward', (done) ->
       csv =
         """
-        productType,name,variantId,slug,publish
-        #{@productType.id},#{@newProductName},1,#{@newProductSlug},true
-        #{@productType.id},#{@newProductName}1,1,#{@newProductSlug}1,false
+        productType,name,key,variantId,slug,publish
+        #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug},true
+        #{@productType.id},#{@newProductName}1,#{@newProductKey+1},1,#{@newProductSlug}1,false
         """
 
       @importer.import(csv)
@@ -78,9 +79,9 @@ describe 'Import and publish test', ->
     it 'should update products and publish them afterward', (done) ->
       csv =
         """
-        productType,variantId,sku,name,publish
-        #{@productType.id},1,#{@newProductSku},#{@newProductName},true
-        #{@productType.id},1,#{@newProductSku}1,#{@newProductName}1,true
+        productType,key,variantId,sku,name,publish
+        #{@productType.id},#{@newProductKey},1,#{@newProductSku},#{@newProductName},true
+        #{@productType.id},#{@newProductKey+1},1,#{@newProductSku}1,#{@newProductName}1,true
         """
 
       @importer.import(csv)
@@ -89,9 +90,9 @@ describe 'Import and publish test', ->
 
         csv =
           """
-          productType,variantId,sku,name,publish
-          #{@productType.id},1,#{@newProductSku},#{@newProductName}2,true
-          #{@productType.id},1,#{@newProductSku}1,#{@newProductName}12,
+          productType,variantId,sku,name,key,publish
+          #{@productType.id},1,#{@newProductSku},#{@newProductName}2,#{@newProductKey+2},true
+          #{@productType.id},1,#{@newProductSku}1,#{@newProductName}12,#{@newProductKey+3},
           """
         im = createImporter()
         im.import(csv)
@@ -119,10 +120,10 @@ describe 'Import and publish test', ->
     it 'should update and publish product when matching using SKU', (done) ->
       csv =
         """
-        productType,variantId,name,sku,publish
-        #{@productType.id},1,#{@newProductName}1,#{@newProductSku}1,true
-        ,2,,#{@newProductSku}2,false
-        #{@productType.id},1,#{@newProductName}3,#{@newProductSku}3,true
+        productType,variantId,name,key,sku,publish
+        #{@productType.id},1,#{@newProductName}1,#{@newProductKey+1},#{@newProductSku}1,true
+        ,2,,,#{@newProductSku}2,false
+        #{@productType.id},1,#{@newProductName}3,#{@newProductKey+23},#{@newProductSku}3,true
         """
 
       @importer.import(csv)
@@ -135,10 +136,10 @@ describe 'Import and publish test', ->
 
         csv =
           """
-          productType,sku,prices,publish
-          #{@productType.id},#{@newProductSku}1,EUR 111,true
-          #{@productType.id},#{@newProductSku}2,EUR 222,false
-          #{@productType.id},#{@newProductSku}3,EUR 333,false
+          productType,key,sku,prices,publish
+          #{@productType.id},#{@newProductKey+1},#{@newProductSku}1,EUR 111,true
+          #{@productType.id},#{@newProductKey+1},#{@newProductSku}2,EUR 222,false
+          #{@productType.id},#{@newProductKey+23},#{@newProductSku}3,EUR 333,false
           """
         im = createImporter()
         im.import(csv)
@@ -177,10 +178,10 @@ describe 'Import and publish test', ->
     it 'should publish even if there are no update actions', (done) ->
       csv =
         """
-        productType,variantId,name,sku
-        #{@productType.id},1,#{@newProductName}1,#{@newProductSku}1
-        ,2,,#{@newProductSku}2
-        #{@productType.id},1,#{@newProductName}3,#{@newProductSku}3
+        productType,variantId,name,key,sku
+        #{@productType.id},1,#{@newProductName}1,#{@newProductKey+1},#{@newProductSku}1
+        ,2,,,#{@newProductSku}2
+        #{@productType.id},1,#{@newProductName}3,#{@newProductKey+23},#{@newProductSku}3
         """
 
       @importer.import(csv)
@@ -193,9 +194,9 @@ describe 'Import and publish test', ->
 
         csv =
           """
-          productType,sku,publish
-          #{@productType.id},#{@newProductSku}1,true
-          #{@productType.id},#{@newProductSku}3,false
+          productType,key,sku,publish
+          #{@productType.id},#{@newProductKey+1},#{@newProductSku}1,true
+          #{@productType.id},#{@newProductKey+23},#{@newProductSku}3,false
           """
         im = createImporter()
         im.import(csv)

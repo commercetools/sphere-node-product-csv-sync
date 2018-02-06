@@ -55,12 +55,13 @@ describe 'Import integration test', ->
       @newProductName = TestHelpers.uniqueId 'name-'
       @newProductSlug = TestHelpers.uniqueId 'slug-'
       @newProductSku = TestHelpers.uniqueId 'sku-'
+      @newProductKey = TestHelpers.uniqueId 'key-'
       @newProductSku += '"foo"'
 
     it 'should import a simple product', (done) ->
       csv =
         """
-        productType,name,variantId,slug,key,variantKey
+        productType,name,variantId,slug.en,key,variantKey
         #{@productType.id},#{@newProductName},1,#{@newProductSlug},productKey,variantKey
         """
       @importer.import(csv)
@@ -81,8 +82,8 @@ describe 'Import integration test', ->
     it 'should import a product with prices (even when one of them is discounted)', (done) ->
       csv =
         """
-        productType,name,variantId,slug,prices
-        #{@productType.id},#{@newProductName},1,#{@newProductSlug},EUR 899;CH-EUR 999;DE-EUR 999|799;CH-USD 77777700 ##{CHANNEL_KEY}
+        productType,name,key,variantId,slug,prices
+        #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug},EUR 899;CH-EUR 999;DE-EUR 999|799;CH-USD 77777700 ##{CHANNEL_KEY}
         """
 
       @importer.import(csv)
@@ -108,8 +109,8 @@ describe 'Import integration test', ->
     it 'should do nothing on 2nd import run', (done) ->
       csv =
         """
-        productType,name,variantId,slug
-        #{@productType.id},#{@newProductName},1,#{@newProductSlug}
+        productType,name,variantId,slug,key
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug},#{@newProductKey}
         """
       @importer.import(csv)
       .then (result) ->
@@ -128,8 +129,8 @@ describe 'Import integration test', ->
     it 'should update changes on 2nd import run', (done) ->
       csv =
         """
-        productType,name,variantId,slug
-        #{@productType.id},#{@newProductName},1,#{@newProductSlug}
+        productType,name,variantId,slug,key
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug},#{@newProductKey}
         """
       @importer.import(csv)
       .then (result) =>
@@ -138,7 +139,7 @@ describe 'Import integration test', ->
         csv =
           """
           productType,name,variantId,slug,key,variantKey
-          #{@productType.id},#{@newProductName+'_changed'},1,#{@newProductSlug},productKey,variantKey
+          #{@productType.id},#{@newProductName+'_changed'},1,#{@newProductSlug},#{@newProductKey},variantKey
           """
         im = createImporter()
         im.matchBy = 'slug'
@@ -152,7 +153,7 @@ describe 'Import integration test', ->
         p = result.body.results[0]
         expect(p.name).toEqual en: "#{@newProductName}_changed"
         expect(p.slug).toEqual en: @newProductSlug
-        expect(p.key).toEqual 'productKey'
+        expect(p.key).toEqual @newProductKey
         expect(p.masterVariant.key).toEqual 'variantKey'
 
         done()
@@ -161,10 +162,10 @@ describe 'Import integration test', ->
     it 'should handle all kind of attributes and constraints', (done) ->
       csv =
         """
-        productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{TEXT_ATTRIBUTE_NONE},#{SET_ATTRIBUTE_TEXT_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL},#{REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE}
-        #{@productType.id},#{@newProductName},1,#{@newProductSlug},CU1,10,foo,uno;due,enum1
-        ,,2,slug,CU2,20,foo,tre;quattro,enum2
-        ,,3,slug,CU3,30,foo,cinque;sei,enum2,#{@productType.id}
+        productType,name,key,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{TEXT_ATTRIBUTE_NONE},#{SET_ATTRIBUTE_TEXT_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL},#{REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE}
+        #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug},CU1,10,foo,uno;due,enum1
+        ,,,2,slug,CU2,20,foo,tre;quattro,enum2
+        ,,,3,slug,CU3,30,foo,cinque;sei,enum2,#{@productType.id}
         """
       @importer.import(csv)
       .then (result) ->
@@ -178,10 +179,10 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         csv =
           """
-          productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{TEXT_ATTRIBUTE_NONE},#{SET_ATTRIBUTE_TEXT_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL},#{REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE}
-          #{@productType.id},#{@newProductName},1,#{@newProductSlug},CU1,10,bar,uno;due,enum2
-          ,,2,slug,CU2,10,bar,tre;quattro,enum2,#{@productType.id}
-          ,,3,slug,CU3,10,bar,cinque;sei,enum2,#{@productType.id}
+          productType,name,key,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{TEXT_ATTRIBUTE_NONE},#{SET_ATTRIBUTE_TEXT_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL},#{REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE}
+          #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug},CU1,10,bar,uno;due,enum2
+          ,,,2,slug,CU2,10,bar,tre;quattro,enum2,#{@productType.id}
+          ,,,3,slug,CU3,10,bar,cinque;sei,enum2,#{@productType.id}
           """
         im = createImporter()
         im.matchBy = 'slug'
@@ -218,19 +219,22 @@ describe 'Import integration test', ->
       p1 = TestHelpers.uniqueId 'name1-'
       p2 = TestHelpers.uniqueId 'name2-'
       p3 = TestHelpers.uniqueId 'name3-'
-      s1 = TestHelpers.uniqueId 'slug1-'
-      s2 = TestHelpers.uniqueId 'slug2-'
-      s3 = TestHelpers.uniqueId 'slug3-'
+      k1 = TestHelpers.uniqueId 'key1-'
+      k2 = TestHelpers.uniqueId 'key2-'
+      k3 = TestHelpers.uniqueId 'key3-'
       csv =
         """
-        productType,name,variantId,slug,#{TEXT_ATTRIBUTE_NONE}
-        #{@productType.id},#{p1},1,#{s1}
+        productType,name,variantId,key,#{TEXT_ATTRIBUTE_NONE}
+        #{@productType.id},#{p1},1,#{k1}
         ,,2,slug12,x
-        #{@productType.id},#{p2},1,#{s2}
-        #{@productType.id},#{p3},1,#{s3}
+        #{@productType.id},#{p2},1,#{k2}
+        #{@productType.id},#{p3},1,#{k3}
         """
+      console.log @productType.id
       @importer.import(csv)
       .then (result) ->
+        console.log result
+        expect(10).toBe 10
         expect(_.size result).toBe 3
         expect(result[0]).toBe '[row 2] New product created.'
         expect(result[1]).toBe '[row 4] New product created.'
@@ -253,18 +257,18 @@ describe 'Import integration test', ->
         expect(result.body.results[0].name).toEqual {en: p1}
         expect(result.body.results[1].name).toEqual {en: p2}
         expect(result.body.results[2].name).toEqual {en: p3}
-        expect(result.body.results[0].slug).toEqual {en: s1}
-        expect(result.body.results[1].slug).toEqual {en: s2}
-        expect(result.body.results[2].slug).toEqual {en: s3}
+        expect(result.body.results[0].key).toEqual k1
+        expect(result.body.results[1].key).toEqual k2
+        expect(result.body.results[2].key).toEqual k3
         done()
       .catch (err) -> done _.prettify(err)
 
     it 'should handle set of enums', (done) ->
       csv =
         """
-        productType,name,variantId,slug,#{SET_ATTRIBUTE_ENUM_NONE},#{SET_ATTRIBUTE_TEXT_UNIQUE},#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE}
-        #{@productType.id},#{@newProductName},1,#{@newProductSlug},enum1;enum2,foo;bar,10
-        ,,2,slug2,enum2,foo;bar;baz,20
+        productType,name,key,variantId,slug.en,#{SET_ATTRIBUTE_ENUM_NONE},#{SET_ATTRIBUTE_TEXT_UNIQUE},#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE}
+        #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug},enum1;enum2,foo;bar,10
+        ,,,2,slug2,enum2,foo;bar;baz,20
         """
       @importer.import(csv)
       .then (result) ->
@@ -278,9 +282,9 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         csv =
           """
-          productType,name,variantId,slug,#{SET_ATTRIBUTE_ENUM_NONE},#{SET_ATTRIBUTE_TEXT_UNIQUE},#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE}
-          #{@productType.id},#{@newProductName},1,#{@newProductSlug},enum1,bar,100
-          ,,2,slug2,enum2,foo,200
+          productType,name,key,variantId,slug.en,#{SET_ATTRIBUTE_ENUM_NONE},#{SET_ATTRIBUTE_TEXT_UNIQUE},#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE}
+          #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug},enum1,bar,100
+          ,,,2,slug2,enum2,foo,200
           """
         im = createImporter()
         im.matchBy = 'slug'
@@ -302,8 +306,8 @@ describe 'Import integration test', ->
     it 'should handle set of SameForAll enums with new variants', (done) ->
       csv =
         """
-        productType,name,variantId,slug,sku,#{SET_ATTRIBUTE_LENUM_SAME_FOR_ALL},#{TEXT_ATTRIBUTE_NONE},#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en
-        #{@productType.id},#{@newProductSlug},1,#{@newProductSlug},#{@newProductSku},lenum1;lenum2,foo,fooEn
+        productType,name,key,variantId,slug.en,sku,#{SET_ATTRIBUTE_LENUM_SAME_FOR_ALL},#{TEXT_ATTRIBUTE_NONE},#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en
+        #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug},#{@newProductSku},lenum1;lenum2,foo,fooEn
         """
       @importer.import(csv)
       .then (result) ->
@@ -316,20 +320,20 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         csv =
           """
-          productType,name,variantId,slug,sku,#{SET_ATTRIBUTE_LENUM_SAME_FOR_ALL},#{TEXT_ATTRIBUTE_NONE},#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en
-          #{@productType.id},#{@newProductName},1,#{@newProductSlug},#{@newProductSku+1},lenum1;lenum2,foo,fooEn1
-          ,,2,,#{@newProductSku+2},lenum1;lenum2,foo,fooEn2
-          ,,3,,#{@newProductSku+3},lenum1;lenum2,foo,fooEn3
-          ,,4,,#{@newProductSku+4},lenum1;lenum2,foo,fooEn4
-          ,,5,,#{@newProductSku+5},lenum1;lenum2,foo,fooEn5
-          ,,6,,#{@newProductSku+6},lenum1;lenum2,foo,fooEn6
-          ,,7,,#{@newProductSku+7},lenum1;lenum2,foo,fooEn7
-          ,,8,,#{@newProductSku+8},lenum1;lenum2,foo,fooEn8
-          ,,9,,#{@newProductSku+9},lenum1;lenum2,foo,fooEn9
-          ,,10,,#{@newProductSku+10},lenum1;lenum2,foo,fooEn10
-          ,,11,,#{@newProductSku+11},lenum1;lenum2,foo,fooEn11
-          ,,12,,#{@newProductSku+12},lenum1;lenum2,foo,fooEn12
-          ,,13,,#{@newProductSku+13},lenum1;lenum2,foo,fooEn13
+          productType,name,key,variantId,slug.en,sku,#{SET_ATTRIBUTE_LENUM_SAME_FOR_ALL},#{TEXT_ATTRIBUTE_NONE},#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en
+          #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug},#{@newProductSku+1},lenum1;lenum2,foo,fooEn1
+          ,,,2,,#{@newProductSku+2},lenum1;lenum2,foo,fooEn2
+          ,,,3,,#{@newProductSku+3},lenum1;lenum2,foo,fooEn3
+          ,,,4,,#{@newProductSku+4},lenum1;lenum2,foo,fooEn4
+          ,,,5,,#{@newProductSku+5},lenum1;lenum2,foo,fooEn5
+          ,,,6,,#{@newProductSku+6},lenum1;lenum2,foo,fooEn6
+          ,,,7,,#{@newProductSku+7},lenum1;lenum2,foo,fooEn7
+          ,,,8,,#{@newProductSku+8},lenum1;lenum2,foo,fooEn8
+          ,,,9,,#{@newProductSku+9},lenum1;lenum2,foo,fooEn9
+          ,,,10,,#{@newProductSku+10},lenum1;lenum2,foo,fooEn10
+          ,,,11,,#{@newProductSku+11},lenum1;lenum2,foo,fooEn11
+          ,,,12,,#{@newProductSku+12},lenum1;lenum2,foo,fooEn12
+          ,,,13,,#{@newProductSku+13},lenum1;lenum2,foo,fooEn13
           """
         im = createImporter()
         im.matchBy = 'slug'
@@ -356,9 +360,9 @@ describe 'Import integration test', ->
     it 'should remove a variant and change an SameForAll attribute at the same time', (done) ->
       csv =
         """
-        productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
-        #{@productType.id},#{@newProductSlug},1,#{@newProductSlug},foo,10,enum1
-        ,,2,slug-2,bar,20,
+        productType,name,key,variantId,slug.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
+        #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug},foo,10,enum1
+        ,,,2,slug-2,bar,20,
         """
       @importer.import(csv)
       .then (result) =>
@@ -366,8 +370,8 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
-          #{@productType.id},#{@newProductName},1,#{@newProductSlug},foo,10,enum1
+          productType,name,key,variantId,slug.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
+          #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug},foo,10,enum1
           """
         im = createImporter()
         im.matchBy = 'slug'
@@ -389,9 +393,9 @@ describe 'Import integration test', ->
     it 'should not removeVariant if allowRemovalOfVariants is off', (done) ->
       csv =
         """
-        productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
-        #{@productType.id},#{@newProductName},1,#{@newProductSlug},foo,10,enum1
-        ,,2,slug-2,bar,20,
+        productType,name,key,variantId,slug.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
+        #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug},foo,10,enum1
+        ,,,2,slug-2,bar,20,
         """
       @importer.import(csv)
       .then (result) =>
@@ -399,8 +403,8 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
-          #{@productType.id},#{@newProductName},1,#{@newProductSlug},foo,10,enum1
+          productType,name,key,variantId,slug.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
+          #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug},foo,10,enum1
           """
         im = createImporter()
         im.matchBy = 'slug'
@@ -421,9 +425,9 @@ describe 'Import integration test', ->
     it 'should execute SameForAll attribute change before addVariant', (done) ->
       csv =
         """
-        productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
-        #{@productType.id},#{@newProductName},1,#{@newProductSlug},foo,10,enum1
-        ,,2,slug-2,bar,20,
+        productType,name,key,variantId,slug.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
+        #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug},foo,10,enum1
+        ,,,2,slug-2,bar,20,
         """
       @importer.import(csv)
       .then (result) =>
@@ -431,9 +435,9 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
-          #{@productType.id},#{@newProductName},1,#{@newProductSlug},foo,10,enum2
-          ,,2,slug-2,bar,20,enum1
+          productType,name,key,variantId,slug.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL}
+          #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug},foo,10,enum2
+          ,,,2,slug-2,bar,20,enum1
           """
         im = createImporter()
         im.matchBy = 'slug'
@@ -459,8 +463,8 @@ describe 'Import integration test', ->
     it 'should do a partial update of product base attributes', (done) ->
       csv =
         """
-        productType,name.en,description.en,slug.en,variantId,searchKeywords.en,searchKeywords.fr
-        #{@productType.id},#{@newProductName},foo bar,#{@newProductSlug},1,new;search;keywords,nouvelle;trouve
+        productType,name.en,key,description.en,slug.en,variantId,searchKeywords.en,searchKeywords.fr
+        #{@productType.id},#{@newProductName},#{@newProductKey},foo bar,#{@newProductSlug},1,new;search;keywords,nouvelle;trouve
         """
       @importer.import(csv)
       .then (result) =>
@@ -468,8 +472,8 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,slug.en,variantId,searchKeywords.en,searchKeywords.fr
-          #{@productType.id},#{@newProductSlug},1,new;search;keywords,nouvelle;trouve
+          productType,slug.en,key,variantId,searchKeywords.en,searchKeywords.fr
+          #{@productType.id},#{@newProductSlug},#{@newProductKey},1,new;search;keywords,nouvelle;trouve
           """
         im = createImporter()
         im.matchBy = 'slug'
@@ -479,8 +483,8 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         csv =
           """
-          productType,slug,name,variantId,sku,searchKeywords.de
-          #{@productType.id},#{@newProductSlug},#{@newProductName+'_changed'},1,#{@newProductSku},neue;such;schlagwoerter
+          productType,slug.en,key,name,variantId,sku,searchKeywords.de
+          #{@productType.id},#{@newProductSlug},#{@newProductKey},#{@newProductName+'_changed'},1,#{@newProductSku},neue;such;schlagwoerter
           """
         im = createImporter()
         im.matchBy = 'slug'
@@ -510,6 +514,7 @@ describe 'Import integration test', ->
           type: 'product-type'
         slug:
           en: @newProductSlug
+        key: @newProductKey
         searchKeywords:
           en: [
             { text: "new" },
@@ -529,8 +534,8 @@ describe 'Import integration test', ->
       .then ({ body: { masterData: { current: { masterVariant } } } }) =>
         csv =
           """
-          productType,variantId,sku,searchKeywords.en,searchKeywords.fr
-          #{@productType.id},#{masterVariant.id},#{masterVariant.sku},newNew;search;keywords,nouvelleNew;trouveNew
+          productType,slug.en,key,variantId,sku,searchKeywords.en,searchKeywords.fr
+          #{@productType.id},#{@newProductSlug},#{@newProductKey},#{masterVariant.id},#{masterVariant.sku},newNew;search;keywords,nouvelleNew;trouveNew
           """
         im = createImporter()
         im.import(csv)
@@ -565,17 +570,18 @@ describe 'Import integration test', ->
     it 'should do a partial update of localized attributes', (done) ->
       csv =
         """
-        productType,variantId,sku,name,description.en,description.de,description.fr,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.de,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.it
-        #{@productType.id},1,#{@newProductSku},#{@newProductName},foo bar,bla bla,bon jour,english,german,italian
+        productType,variantId,sku,key,name,description.en,description.de,description.fr,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.de,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.it
+        #{@productType.id},1,#{@newProductSku},#{@newProductKey},#{@newProductName},foo bar,bla bla,bon jour,english,german,italian
         """
       @importer.import(csv)
       .then (result) =>
+        console.log result
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,variantId,sku
-          #{@productType.id},1,#{@newProductSku}
+          productType,variantId,sku,key
+          #{@productType.id},1,#{@newProductSku},#{@newProductKey}
           """
         im = createImporter()
         im.import(csv)
@@ -584,8 +590,8 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         csv =
           """
-          productType,variantId,sku,description.de,description.fr,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.it
-          #{@productType.id},1,#{@newProductSku},"Hallo Welt",bon jour,english,ciao
+          productType,variantId,sku,key,description.de,description.fr,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.it
+          #{@productType.id},1,#{@newProductSku},#{@newProductKey},"Hallo Welt",bon jour,english,ciao
           """
         im = createImporter()
         im.import(csv)
@@ -607,9 +613,9 @@ describe 'Import integration test', ->
     it 'should do a partial update of custom attributes', (done) ->
       csv =
         """
-        productType,name,slug,variantId,#{TEXT_ATTRIBUTE_NONE},#{SET_ATTRIBUTE_TEXT_UNIQUE},#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL},#{SET_ATTRIBUTE_LENUM_SAME_FOR_ALL},sku
-        #{@productType.id},#{@newProductName},#{@newProductSlug},1,hello,foo1;bar1,June,10,enum1,lenum1;lenum2,#{@newProductSku+1}
-        ,,,2,hello,foo2;bar2,October,20,,,#{@newProductSku+2}
+        productType,key,name,slug.en,variantId,#{TEXT_ATTRIBUTE_NONE},#{SET_ATTRIBUTE_TEXT_UNIQUE},#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL},#{SET_ATTRIBUTE_LENUM_SAME_FOR_ALL},sku
+        #{@productType.id},#{@newProductKey},#{@newProductName},#{@newProductSlug},1,hello,foo1;bar1,June,10,enum1,lenum1;lenum2,#{@newProductSku+1}
+        ,,,,2,hello,foo2;bar2,October,20,,,#{@newProductSku+2}
         """
       @importer.import(csv)
       .then (result) =>
@@ -617,8 +623,8 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,variantId,sku
-          #{@productType.id},1,#{@newProductSku+1}
+          productType,variantId,sku,key
+          #{@productType.id},1,#{@newProductSku+1},#{@newProductKey}
           ,2,#{@newProductSku+2}
           """
         im = createImporter()
@@ -628,9 +634,9 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         csv =
         """
-        productType,name,slug,variantId,#{SET_ATTRIBUTE_LENUM_SAME_FOR_ALL},#{SET_ATTRIBUTE_TEXT_UNIQUE},sku
-        #{@productType.id},#{@newProductName},#{@newProductSlug},1,lenum2,unique,#{@newProductSku+1}
-        ,,,2,,still-unique,#{@newProductSku+2}
+        productType,name,slug.en,key,variantId,#{SET_ATTRIBUTE_LENUM_SAME_FOR_ALL},#{SET_ATTRIBUTE_TEXT_UNIQUE},sku
+        #{@productType.id},#{@newProductName},#{@newProductSlug},#{@newProductKey},1,lenum2,unique,#{@newProductSku+1}
+        ,,,,2,,still-unique,#{@newProductSku+2}
         """
         im = createImporter()
         im.import(csv)
@@ -663,9 +669,9 @@ describe 'Import integration test', ->
     it 'partial update should not overwrite name, prices and images', (done) ->
       csv =
         """
-        productType,name,slug,variantId,prices,images
-        #{@productType.id},#{@newProductName},#{@newProductSlug},1,EUR 999,//example.com/foo.jpg
-        ,,,2,USD 70000,/example.com/bar.png
+        productType,name,key,slug.en,variantId,prices,images
+        #{@productType.id},#{@newProductName},#{@newProductKey},#{@newProductSlug},1,EUR 999,//example.com/foo.jpg
+        ,,,,2,USD 70000,/example.com/bar.png
         """
       @importer.import(csv)
       .then (result) =>
@@ -673,9 +679,9 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,slug,variantId
-          #{@productType.id},#{@newProductSlug},1
-          ,,2
+          productType,slug.en,key,variantId
+          #{@productType.id},#{@newProductSlug},#{@newProductKey},1
+          ,,,2
           """
         im = createImporter()
         im.matchBy = 'slug'
@@ -699,8 +705,8 @@ describe 'Import integration test', ->
     it 'should do a full update of SEO attribute', (done) ->
       csv =
         """
-        productType,variantId,sku,name,metaTitle,metaDescription,metaKeywords
-        #{@productType.id},1,#{@newProductSku},#{@newProductName},a,b,c
+        productType,variantId,sku,name,key,metaTitle,metaDescription,metaKeywords
+        #{@productType.id},1,#{@newProductSku},#{@newProductName},#{@newProductKey},a,b,c
         """
       @importer.import(csv)
       .then (result) =>
@@ -708,8 +714,8 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,variantId,sku,name,metaTitle,metaDescription,metaKeywords
-          #{@productType.id},1,#{@newProductSku},#{@newProductName},,b,changed
+          productType,variantId,sku,name,key,metaTitle,metaDescription,metaKeywords
+          #{@productType.id},1,#{@newProductSku},#{@newProductName},#{@newProductKey},,b,changed
           """
         im = createImporter()
         im.import(csv)
@@ -730,8 +736,8 @@ describe 'Import integration test', ->
     it 'should do a full update of multi language SEO attribute', (done) ->
       csv =
         """
-        productType,variantId,sku,name,metaTitle.de,metaDescription.de,metaKeywords.de,metaTitle.en,metaDescription.en,metaKeywords.en
-        #{@productType.id},1,#{@newProductSku},#{@newProductName},metaTitleDe,metaDescDe,metaKeyDe,metaTitleEn,metaDescEn,metaKeyEn
+        productType,variantId,sku,name,key,metaTitle.de,metaDescription.de,metaKeywords.de,metaTitle.en,metaDescription.en,metaKeywords.en
+        #{@productType.id},1,#{@newProductSku},#{@newProductName},#{@newProductKey},metaTitleDe,metaDescDe,metaKeyDe,metaTitleEn,metaDescEn,metaKeyEn
         """
       @importer.import(csv)
       .then (result) =>
@@ -739,8 +745,8 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,variantId,sku,name,metaTitle.de,metaDescription.de,metaKeywords.de,metaTitle.en,metaDescription.en,metaKeywords.en
-          #{@productType.id},1,#{@newProductSku},#{@newProductName},,newMetaDescDe,newMetaKeyDe,newMetaTitleEn,newMetaDescEn
+          productType,variantId,sku,name,key,metaTitle.de,metaDescription.de,metaKeywords.de,metaTitle.en,metaDescription.en,metaKeywords.en
+          #{@productType.id},1,#{@newProductSku},#{@newProductName},#{@newProductKey},,newMetaDescDe,newMetaKeyDe,newMetaTitleEn,newMetaDescEn
           """
         im = createImporter()
         im.import(csv)
@@ -761,8 +767,8 @@ describe 'Import integration test', ->
     it 'should update SEO attribute if not all 3 headers are present', (done) ->
       csv =
         """
-        productType,variantId,sku,name,metaTitle,metaDescription,metaKeywords
-        #{@productType.id},1,#{@newProductSku},#{@newProductName},a,b,c
+        productType,variantId,sku,name,key,metaTitle,metaDescription,metaKeywords
+        #{@productType.id},1,#{@newProductSku},#{@newProductName},#{@newProductKey},a,b,c
         """
       @importer.import(csv)
       .then (result) =>
@@ -770,8 +776,8 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
           """
-          productType,variantId,sku,name,metaTitle,metaDescription
-          #{@productType.id},1,#{@newProductSku},#{@newProductName},x,y
+          productType,variantId,sku,name,key,metaTitle,metaDescription
+          #{@productType.id},1,#{@newProductSku},#{@newProductName},#{@newProductKey},x,y
           """
         im = createImporter()
         im.import(csv)
@@ -792,9 +798,9 @@ describe 'Import integration test', ->
     it 'should do a partial update of prices based on SKUs', (done) ->
       csv =
       """
-        productType,name,sku,variantId,prices
-        #{@productType.id},#{@newProductName},#{@newProductSku+1},1,EUR 999
-        ,,#{@newProductSku+2},2,USD 70000
+        productType,name,key,sku,variantId,prices
+        #{@productType.id},#{@newProductName},#{@newProductKey},#{@newProductSku+1},1,EUR 999
+        ,,,#{@newProductSku+2},2,USD 70000
         """
       @importer.import(csv)
       .then (result) =>
@@ -802,9 +808,9 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] New product created.'
         csv =
         """
-          sku,prices,productType
-          #{@newProductSku+1},EUR 1999,#{@productType.name}
-          #{@newProductSku+2},USD 80000,#{@productType.name}
+          key,sku,prices,productType
+          #{@newProductKey},#{@newProductSku+1},EUR 1999,#{@productType.name}
+          #{@newProductKey},#{@newProductSku+2},USD 80000,#{@productType.name}
           """
         im = createImporter()
         im.allowRemovalOfVariants = false
@@ -825,15 +831,14 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-
     it 'should import a simple product with different encoding', (done) ->
       encoding = "win1250"
       @importer.options.encoding = encoding
       @newProductName += "žýáíé"
       csv =
       """
-        productType,name,variantId,slug
-        #{@productType.id},#{@newProductName},1,#{@newProductSlug}
+        productType,name,key,variantId,slug
+        #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug}
         """
       encoded = iconv.encode(csv, encoding)
       @importer.import(encoded)
@@ -855,8 +860,8 @@ describe 'Import integration test', ->
       @newProductName += "žýáíé"
       csv =
       """
-        productType,name,variantId,slug
-        #{@productType.id},#{@newProductName},1,#{@newProductSlug}
+        productType,name,key,variantId,slug
+        #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug}
         """
       encoded = iconv.encode(csv, encoding)
       @importer.import(encoded)
@@ -879,8 +884,8 @@ describe 'Import integration test', ->
       @newProductName += "žýáíé"
       csv =
       """
-        productType,name,variantId,slug
-        #{@productType.id},#{@newProductName},1,#{@newProductSlug}
+        productType,name,key,variantId,slug
+        #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug}
         """
       encoded = iconv.encode(csv, encoding)
       fs.writeFileSync(filePath, encoded)
@@ -904,8 +909,8 @@ describe 'Import integration test', ->
 
       csv =
       """
-        productType,name,sku,variantId,prices,categories
-        #{@productType.id},#{@newProductName},#{@newProductSku+1},1,EUR 999,1;2
+        productType,name,key,sku,variantId,prices,categories
+        #{@productType.id},#{@newProductName},#{@newProductKey},#{@newProductSku+1},1,EUR 999,1;2
         """
 
       TestHelpers.ensureCategories(@client, categories)
@@ -917,8 +922,8 @@ describe 'Import integration test', ->
 
         csv =
         """
-          productType,sku,name.en,name.it,categories
-          #{@productType.name},#{@newProductSku+1},#{newProductNameUpdated},#{newProductNameUpdated}-it,2;3
+          productType,sku,name.en,name.it,key,categories
+          #{@productType.name},#{@newProductSku+1},#{newProductNameUpdated},#{newProductNameUpdated}-it,#{@newProductKey},2;3
           """
         im = createImporter()
         im.allowRemovalOfVariants = false
@@ -946,11 +951,11 @@ describe 'Import integration test', ->
 
       csv =
       """
-        productType,name,sku,variantId,prices
-        #{@productType.id},#{@newProductName},#{skuPrefix+1},1,EUR 899
-        ,,#{skuPrefix+3},2,EUR 899
-        ,,#{skuPrefix+2},3,EUR 899
-        ,,#{skuPrefix+4},4,EUR 899
+        productType,name,key,sku,variantId,prices
+        #{@productType.id},#{@newProductName},#{@newProductKey},#{skuPrefix+1},1,EUR 899
+        ,,,#{skuPrefix+3},2,EUR 899
+        ,,,#{skuPrefix+2},3,EUR 899
+        ,,,#{skuPrefix+4},4,EUR 899
         """
       @importer.import(csv)
       .then (result) =>
@@ -959,11 +964,11 @@ describe 'Import integration test', ->
 
         csv =
         """
-          productType,name,sku,prices
-          #{@productType.id},#{updatedProductName},#{skuPrefix+1},EUR 100
-          ,,#{skuPrefix+2},EUR 200
-          ,,#{skuPrefix+3},EUR 300
-          ,,#{skuPrefix+4},EUR 400
+          productType,name,key,sku,prices
+          #{@productType.id},#{updatedProductName},#{@newProductKey},#{skuPrefix+1},EUR 100
+          ,,,#{skuPrefix+2},EUR 200
+          ,,,#{skuPrefix+3},EUR 300
+          ,,,#{skuPrefix+4},EUR 400
           """
 
         im = createImporter()
@@ -997,8 +1002,8 @@ describe 'Import integration test', ->
       skuPrefix = "sku-"
       csv =
       """
-        productType,name,sku,variantId,categories
-        #{@productType.id},#{@newProductName},#{skuPrefix}1,1,1;2
+        productType,name,key,sku,variantId,categories
+        #{@productType.id},#{@newProductName},#{@newProductKey},#{skuPrefix}1,1,1;2
         """
 
       categories = TestHelpers.generateCategories(10)
@@ -1021,8 +1026,8 @@ describe 'Import integration test', ->
 
         csv =
         """
-          productType,sku
-          #{@productType.id},#{skuPrefix+1}
+          productType,key,sku
+          #{@productType.id},#{@newProductKey},#{skuPrefix+1}
           """
 
         getImporter().import(csv)
@@ -1031,8 +1036,8 @@ describe 'Import integration test', ->
 
         csv =
         """
-          productType,sku,categories
-          #{@productType.id},#{skuPrefix+1},3;4
+          productType,key,sku,categories
+          #{@productType.id},#{@newProductKey},#{skuPrefix+1},3;4
           """
 
         getImporter().import(csv)
@@ -1058,14 +1063,12 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-
-
     it 'should clear categories when an empty value given', (done) ->
       skuPrefix = "sku-"
       csv =
       """
-        productType,name,sku,variantId,categories
-        #{@productType.id},#{@newProductName},#{skuPrefix}1,1,1;2
+        productType,name,key,sku,variantId,categories
+        #{@productType.id},#{@newProductName},#{@newProductKey},#{skuPrefix}1,1,1;2
         """
 
       categories = TestHelpers.generateCategories(4)
@@ -1085,8 +1088,8 @@ describe 'Import integration test', ->
 
         csv =
         """
-          productType,sku,categories
-          #{@productType.id},#{skuPrefix+1},
+          productType,key,sku,categories
+          #{@productType.id},#{@newProductKey},#{skuPrefix+1},
           """
 
         getImporter().import(csv)
@@ -1104,8 +1107,8 @@ describe 'Import integration test', ->
 
         csv =
         """
-          productType,sku,categories
-          #{@productType.id},#{skuPrefix+1},3;4
+          productType,key,sku,categories
+          #{@productType.id},#{@newProductKey},#{skuPrefix+1},3;4
           """
 
         getImporter().import(csv)
@@ -1129,11 +1132,11 @@ describe 'Import integration test', ->
 
       csv =
         """
-        productType,name,sku,variantId,prices
-        #{@productType.id},#{@newProductName},#{skuPrefix+1},1,EUR 100
+        productType,name,key,sku,variantId,prices
+        #{@productType.id},#{@newProductName},#{@newProductKey},#{skuPrefix+1},1,EUR 100
         """
       for i in [2...41]
-        csv += "\n,,#{skuPrefix+i},#{i},EUR 100"
+        csv += "\n,,,#{skuPrefix+i},#{i},EUR 100"
 
       @importer.import(csv)
         .then =>
@@ -1143,11 +1146,11 @@ describe 'Import integration test', ->
           expect(p.variants.length).toEqual 39
           csv =
             """
-            sku,productType,prices
+            sku,productType,key,prices
             """
 
           for i in [1...41]
-            csv += "\n#{skuPrefix+i},#{@productType.id},EUR 200"
+            csv += "\n#{skuPrefix+i},#{@productType.id},#{@newProductKey},EUR 200"
 
           im = createImporter()
           im.allowRemovalOfVariants = false
@@ -1169,25 +1172,24 @@ describe 'Import integration test', ->
           done()
         .catch (err) -> done _.prettify(err)
 
-
     it 'should handle a concurrent modification error when updating by variantId', (done) ->
       skuPrefix = "sku-"
 
       csv =
         """
-        productType,name,sku,variantId,prices
+        productType,name,key,sku,variantId,prices
         """
       for i in [1...2]
-        csv += "\n#{@productType.id},#{@newProductName+i},#{skuPrefix+i},1,EUR 100"
+        csv += "\n#{@productType.id},#{@newProductName+i},#{@newProductKey+i},#{skuPrefix+i},1,EUR 100"
 
       @importer.import(csv)
       .then =>
         csv =
           """
-          productType,name,sku,variantId,prices
+          productType,name,key,sku,variantId,prices
           """
         for i in [1...5]
-          csv += "\n#{@productType.id},#{@newProductName+i},#{skuPrefix}1,1,EUR 2#{i}"
+          csv += "\n#{@productType.id},#{@newProductName+i},#{@newProductKey+i},#{skuPrefix}1,1,EUR 2#{i}"
 
         im = createImporter()
         im.allowRemovalOfVariants = false

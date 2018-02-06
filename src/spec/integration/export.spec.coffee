@@ -76,20 +76,21 @@ describe 'Export integration tests', ->
     .then ->
       done('Export should fail!')
     .catch (err) ->
-      expect(_.size err).toBe 2
+      expect(_.size err).toBe 3
       expect(err[0]).toBe 'There are duplicate header entries!'
       expect(err[1]).toBe "You need either the column 'variantId' or 'sku' to identify your variants!"
+      expect(err[2]).toBe "Required 'key' header missing!"
       done()
 
   it 'should inform that there are no products', (done) ->
     template =
       '''
-      productType,name,variantId
+      productType,name,key,variantId
       '''
     outputLocation = '/tmp/output.csv'
     expectedCSV =
       """
-      productType,name,variantId
+      productType,name,key,variantId
 
       """
     @export.exportDefault(template, outputLocation, false)
@@ -104,13 +105,13 @@ describe 'Export integration tests', ->
   it 'should export based on minimum template', (done) ->
     template =
       '''
-      productType,name,variantId
+      productType,key,variantId
       '''
     outputLocation = '/tmp/output.csv'
     expectedCSV =
       """
-      productType,name,variantId
-      #{@productType.name},,1
+      productType,key,variantId
+      #{@productType.name},productKey,1
       ,,2
 
       """
@@ -126,14 +127,14 @@ describe 'Export integration tests', ->
   it 'should export labels of lenum and set of lenum', (done) ->
     template =
     '''
-      productType,name,variantId,attr-lenum-n.en,attr-set-lenum-n.en
+      productType,name,key,variantId,attr-lenum-n.en,attr-set-lenum-n.en
       '''
     outputLocation = '/tmp/output.csv'
     expectedCSV =
     """
-      productType,name,variantId,attr-lenum-n.en,attr-set-lenum-n.en
-      #{@productType.name},,1
-      ,,2,Enum1,Enum1;Enum2
+      productType,name,key,variantId,attr-lenum-n.en,attr-set-lenum-n.en
+      #{@productType.name},,productKey,1
+      ,,,2,Enum1,Enum1;Enum2
 
       """
     @export.exportDefault(template, outputLocation)
@@ -205,14 +206,14 @@ describe 'Export integration tests', ->
     encoding = 'win1250'
     template =
     '''
-      productType,name,variantId,attr-lenum-n.en,attr-set-lenum-n.en,žškřďťň
+      productType,name,key,variantId,attr-lenum-n.en,attr-set-lenum-n.en,žškřďťň
       '''
     outputLocation = '/tmp/output.csv'
     expectedCSV =
     """
-      productType,name,variantId,attr-lenum-n.en,attr-set-lenum-n.en,žškřďťň
-      #{@productType.name},,1
-      ,,2,Enum1,Enum1;Enum2
+      productType,name,key,variantId,attr-lenum-n.en,attr-set-lenum-n.en,žškřďťň
+      #{@productType.name},,productKey,1
+      ,,,2,Enum1,Enum1;Enum2
 
       """
 
@@ -240,12 +241,12 @@ describe 'Export integration tests', ->
     outputLocation = '/tmp/output.csv'
     template =
     '''
-      productType,name,variantId,money_attribute,prices
+      productType,name,key,variantId,money_attribute,prices
       '''
     expectedCSV =
     """
-      productType,name,variantId,money_attribute,prices
-      #{testProductType.name},,1,EUR 123456;GBP 98765,DE-EUR 12900$2001-09-11T14:00:00.000Z~2015-09-11T14:00:00.000Z
+      productType,name,key,variantId,money_attribute,prices
+      #{testProductType.name},,productKey,1,EUR 123456;GBP 98765,DE-EUR 12900$2001-09-11T14:00:00.000Z~2015-09-11T14:00:00.000Z
 
       """
 
@@ -394,7 +395,7 @@ describe 'Export integration tests', ->
 
     template =
     '''
-      productType,name,sku
+      productType,name,key,sku
       '''
     exporter .exportDefault(template, null)
     .then () ->
@@ -406,7 +407,7 @@ describe 'Export integration tests', ->
   it 'should throw an error when exporting into unsupported encoding', (done) ->
     template =
     '''
-      productType,name,variantId,attr-lenum-n.en,attr-set-lenum-n.en,žškřďťň
+      productType,name,key,variantId,attr-lenum-n.en,attr-set-lenum-n.en,žškřďťň
       '''
     outputLocation = '/tmp/output.csv'
 

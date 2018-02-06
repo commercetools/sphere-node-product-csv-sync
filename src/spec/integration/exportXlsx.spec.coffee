@@ -89,12 +89,12 @@ describe 'Export xlsx integration tests', ->
     outputLocation = '/tmp/output.xlsx'
     template =
       '''
-      productType,name,variantId
+      productType,key,name,variantId
       '''
     expectedResult = [
-      ["productType","name","variantId"],
-      [@productType.name,null,"1"],
-      [null,null,"2"]
+      ["productType","key","name","variantId"],
+      [@productType.name,"productKey",null,"1"],
+      [null,null,null,"2"]
     ]
 
     @export.exportDefault(template, outputLocation)
@@ -112,12 +112,12 @@ describe 'Export xlsx integration tests', ->
     outputLocation = '/tmp/output.xlsx'
     template =
     '''
-      productType,name,variantId,attr-lenum-n.en,attr-set-lenum-n.en
+      productType,name,key,variantId,attr-lenum-n.en,attr-set-lenum-n.en
       '''
     expectedResult = [
-      ["productType","name","variantId","attr-lenum-n.en","attr-set-lenum-n.en"],
-      [@productType.name,null,1],
-      [null,null,2,"Enum1","Enum1;Enum2"]
+      ["productType","name","key","variantId","attr-lenum-n.en","attr-set-lenum-n.en"],
+      [@productType.name,null,"productKey",1],
+      [null,null,null,2,"Enum1","Enum1;Enum2"]
     ]
 
     @export.exportDefault(template, outputLocation)
@@ -190,13 +190,13 @@ describe 'Export xlsx integration tests', ->
     encoding = 'win1250'
     template =
     '''
-      productType,name,variantId,attr-lenum-n.en,attr-set-lenum-n.en,žškřďťň
+      productType,name,key,variantId,attr-lenum-n.en,attr-set-lenum-n.en,žškřďťň
       '''
     outputLocation = '/tmp/output.xlsx'
     expectedResult = [
-      ["productType","name","variantId","attr-lenum-n.en","attr-set-lenum-n.en","žškřďťň"],
-      [@productType.name,null,1],
-      [null,null,2,"Enum1","Enum1;Enum2"]
+      ["productType","name","key","variantId","attr-lenum-n.en","attr-set-lenum-n.en","žškřďťň"],
+      [@productType.name,null,"productKey",1],
+      [null,null,null,2,"Enum1","Enum1;Enum2"]
     ]
 
     # export data in win1250 encoding

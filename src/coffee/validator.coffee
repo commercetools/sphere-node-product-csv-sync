@@ -145,7 +145,7 @@ class Validator
     buildProductsOnFly = (aggr, row, index) =>
       rowIndex = index + 2 # Excel et all start counting at 1 and we already popped the header
       publish = @shouldPublish row
-      if @isProduct row, variantColumn
+      if @isProduct row, variantColumn, aggr
         product =
           master: row
           startRow: rowIndex
@@ -164,12 +164,13 @@ class Validator
           @errors.push "[row #{rowIndex}] We need a product before starting with a variant!"
       else
         @errors.push "[row #{rowIndex}] Could not be identified as product or variant!"
+      aggr.previousRow = row
       aggr
 
     reducer = if @updateVariantsOnly
       buildVariantsOnly
     else buildProductsOnFly
-    content.reduce(reducer, {})
+    content.reduce(reducer, { previousRow: [] })
 
   valProductTypes: (productTypes) ->
     return if @suppressMissingHeaderWarning
@@ -200,14 +201,16 @@ class Validator
   isVariant: (row, variantColumn) ->
     if variantColumn is CONS.HEADER_VARIANT_ID
       variantId = row[@header.toIndex(CONS.HEADER_VARIANT_ID)]
-      parseInt(variantId) > 1
+      parseInt(variantId) > 0
     else
       not @isProduct row
 
-  isProduct: (row, variantColumn) ->
+  isProduct: (row, variantColumn, aggr) ->
     hasProductTypeColumn = not _.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)])
+    # Instead of just checking if the variantId is 1, we check if it has product data
+    # We also check if the previous product variant has the same key
     if variantColumn is CONS.HEADER_VARIANT_ID
-      hasProductTypeColumn and row[@header.toIndex(CONS.HEADER_VARIANT_ID)] is '1'
+      hasProductTypeColumn and aggr.previousRow[@header.toIndex(CONS.HEADER_KEY)] isnt row[@header.toIndex(CONS.HEADER_KEY)]
     else
       hasProductTypeColumn
 

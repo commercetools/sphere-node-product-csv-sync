@@ -69,6 +69,7 @@ describe 'Import integration test', ->
       @newProductName = TestHelpers.uniqueId 'name-'
       @newProductSlug = TestHelpers.uniqueId 'slug-'
       @newProductSku = TestHelpers.uniqueId 'sku-'
+      @newProductKey = TestHelpers.uniqueId 'key-'
 
     it 'should import multiple archived products from CSV', (done) ->
       tempDir = tmp.dirSync({ unsafeCleanup: true })
@@ -76,12 +77,12 @@ describe 'Import integration test', ->
 
       csv = [
         """
-          productType,name,variantId,slug
-          #{@productType.id},#{@newProductName},1,#{@newProductSlug}
+          productType,name,key,variantId,slug
+          #{@productType.id},#{@newProductName},#{@newProductKey},1,#{@newProductSlug}
           """,
         """
-          productType,name,variantId,slug
-          #{@productType.id},#{@newProductName+1},1,#{@newProductSlug+1}
+          productType,name,key,variantId,slug
+          #{@productType.id},#{@newProductName+1},#{@newProductKey+1},1,#{@newProductSlug+1}
           """
       ]
 
@@ -129,12 +130,12 @@ describe 'Import integration test', ->
 
       data = [
         [
-          ["productType","name","variantId","slug"],
-          [@productType.id,@newProductName,1,@newProductSlug]
+          ["productType","name","key","variantId","slug"],
+          [@productType.id,@newProductName,@newProductKey,1,@newProductSlug]
         ],
         [
-          ["productType","name","variantId","slug"],
-          [@productType.id,@newProductName+1,1,@newProductSlug+1]
+          ["productType","name","key","variantId","slug"],
+          [@productType.id,@newProductName+1,@newProductKey+1,1,@newProductSlug+1]
         ]
       ]
 
@@ -164,10 +165,12 @@ describe 'Import integration test', ->
 
         p = result.body.results[0]
         expect(p.name).toEqual en: @newProductName
+        expect(p.key).toEqual @newProductKey
         expect(p.slug).toEqual en: @newProductSlug
 
         p = result.body.results[1]
         expect(p.name).toEqual en: @newProductName+1
+        expect(p.key).toEqual @newProductKey+1
         expect(p.slug).toEqual en: @newProductSlug+1
 
         done()

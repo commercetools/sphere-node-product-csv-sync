@@ -32,19 +32,19 @@ describe 'Impex integration tests', ->
   , 60000 # 60sec
 
   it 'should import and re-export a simple product', (done) ->
-    header = "productType,name.en,slug.en,variantId,sku,prices,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{TEXT_ATTRIBUTE_NONE},#{SET_TEXT_ATTRIBUTE_NONE},#{BOOLEAN_ATTRIBUTE_NONE}"
+    header = "productType,key,name.en,slug.en,variantId,sku,prices,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{TEXT_ATTRIBUTE_NONE},#{SET_TEXT_ATTRIBUTE_NONE},#{BOOLEAN_ATTRIBUTE_NONE}"
     p1 =
       """
-      #{@productType.name},myProduct1,my-slug1,1,sku1,FR-EUR 999;CHF 1099,some Text,foo,false
-      ,,,2,sku2,EUR 799,some other Text,foo,\"t1;t2;t3;Üß\"\"Let's see if we support multi
+      #{@productType.name},productKey-1,myProduct1,my-slug1,1,sku1,FR-EUR 999;CHF 1099,some Text,foo,false
+      ,,,,2,sku2,EUR 799,some other Text,foo,\"t1;t2;t3;Üß\"\"Let's see if we support multi
       line value\"\"\",true
       """
     p2 =
       """
-      #{@productType.name},myProduct2,my-slug2,1,sku3,USD 1899,,,,true
-      ,,,2,sku4,USD 1999,,,,false
-      ,,,3,sku5,USD 2099,,,,true
-      ,,,4,sku6,USD 2199,,,,false
+      #{@productType.name},productKey-2,myProduct2,my-slug2,1,sku3,USD 1899,,,,true
+      ,,,,2,sku4,USD 1999,,,,false
+      ,,,,3,sku5,USD 2099,,,,true
+      ,,,,4,sku6,USD 2199,,,,false
       """
     csv =
       """
@@ -77,11 +77,11 @@ describe 'Impex integration tests', ->
     .catch (err) -> done _.prettify(err)
 
   it 'should import and re-export SEO attributes', (done) ->
-    header = "productType,variantId,name.en,description.en,slug.en,metaTitle.en,metaDescription.en,metaKeywords.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,searchKeywords.en"
+    header = "productType,key,variantId,name.en,description.en,slug.en,metaTitle.en,metaDescription.en,metaKeywords.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,searchKeywords.en"
     p1 =
       """
-      #{@productType.name},1,seoName,seoDescription,seoSlug,seoMetaTitle,seoMetaDescription,seoMetaKeywords,foo,new;search;keywords
-      ,2,,,,,,,bar
+      #{@productType.name},productKey,1,seoName,seoDescription,seoSlug,seoMetaTitle,seoMetaDescription,seoMetaKeywords,foo,new;search;keywords
+      ,,2,,,,,,,bar
       """
     csv =
       """

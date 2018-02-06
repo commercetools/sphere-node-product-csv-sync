@@ -23,6 +23,9 @@ class Header
     if not _.contains(@rawHeader, CONS.HEADER_VARIANT_ID) and not _.contains(@rawHeader, CONS.HEADER_SKU)
       errors.push "You need either the column '#{CONS.HEADER_VARIANT_ID}' or '#{CONS.HEADER_SKU}' to identify your variants!"
 
+    if not _.contains(@rawHeader, CONS.HEADER_KEY)
+      errors.push "Required 'key' header missing!"
+
     errors
 
   # "x,y,z"

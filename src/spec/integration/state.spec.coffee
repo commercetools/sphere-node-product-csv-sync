@@ -30,9 +30,9 @@ describe 'State integration tests', ->
   it 'should publish and unpublish products', (done) ->
     csv =
       """
-      productType,name.en,slug.en,variantId,sku,#{TEXT_ATTRIBUTE_NONE}
-      #{@productType.name},myProduct1,my-slug1,1,sku1,foo
-      #{@productType.name},myProduct2,my-slug2,1,sku2,bar
+      productType,key,name.en,slug.en,variantId,sku,#{TEXT_ATTRIBUTE_NONE}
+      #{@productType.name},product-key-123,myProduct1,my-slug1,1,sku1,foo
+      #{@productType.name},product-key-456,myProduct2,my-slug2,1,sku2,bar
       """
     @importer.import(csv)
     .then (result) =>
@@ -57,9 +57,9 @@ describe 'State integration tests', ->
   it 'should only published products with hasStagedChanges', (done) ->
     csv =
       """
-      productType,name.en,slug.en,variantId,sku,#{TEXT_ATTRIBUTE_NONE}
-      #{@productType.name},myProduct1,my-slug1,1,sku1,foo
-      #{@productType.name},myProduct2,my-slug2,1,sku2,bar
+      productType,key,name.en,slug.en,variantId,sku,#{TEXT_ATTRIBUTE_NONE}
+      #{@productType.name},product-key-123,myProduct1,my-slug1,1,sku1,foo
+      #{@productType.name},product-key-456,myProduct2,my-slug2,1,sku2,bar
       """
     @importer.import(csv)
     .then (result) =>
@@ -73,9 +73,9 @@ describe 'State integration tests', ->
       expect(result[1]).toBe '[row 0] Product published.'
       csv =
         """
-        productType,name.en,slug.en,variantId,sku,#{TEXT_ATTRIBUTE_NONE}
-        #{@productType.name},myProduct1,my-slug1,1,sku1,foo
-        #{@productType.name},myProduct2,my-slug2,1,sku2,baz
+        productType,key,name.en,slug.en,variantId,sku,#{TEXT_ATTRIBUTE_NONE}
+        #{@productType.name},product-key-123,myProduct1,my-slug1,1,sku1,foo
+        #{@productType.name},product-key-456,myProduct2,my-slug2,1,sku2,baz
         """
       im = new Import Config
       im.matchBy = 'slug'
@@ -98,9 +98,9 @@ describe 'State integration tests', ->
   it 'should delete unplublished products', (done) ->
     csv =
       """
-      productType,name.en,slug.en,variantId,sku,#{TEXT_ATTRIBUTE_NONE}
-      #{@productType.name},myProduct1,my-slug1,1,sku1,foo
-      #{@productType.name},myProduct2,my-slug2,1,sku2,bar
+      productType,key,name.en,slug.en,variantId,sku,#{TEXT_ATTRIBUTE_NONE}
+      #{@productType.name},product-key-123,myProduct1,my-slug1,1,sku1,foo
+      #{@productType.name},product-key-456,myProduct2,my-slug2,1,sku2,bar
       """
     @importer.import(csv)
     .then (result) =>

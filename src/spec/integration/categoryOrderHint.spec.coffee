@@ -9,6 +9,7 @@ fs = Promise.promisifyAll require('fs')
 defaultProduct = (productTypeId, categoryId) =>
   name:
     en: 'test product'
+  key: 'product-key-123'
   productType:
     typeId: 'product-type'
     id: productTypeId
@@ -317,13 +318,13 @@ describe 'categoryOrderHints', ->
       .then =>
         template =
           """
-          productType,id,variantId,categoryOrderHints
+          productType,id,key,variantId,categoryOrderHints
           """
         file = '/tmp/output.csv'
         expectedCSV =
           """
-          productType,id,variantId,categoryOrderHints
-          #{@productType.name},#{@product.id},#{@product.lastVariantId},#{@category.id}:0.5
+          productType,id,key,variantId,categoryOrderHints
+          #{@productType.name},#{@product.id},product-key-123,#{@product.lastVariantId},#{@category.id}:0.5
 
           """
         @export.exportDefault(template, file)
@@ -351,13 +352,13 @@ describe 'categoryOrderHints', ->
       .then =>
         template =
           """
-          productType,id,variantId,categoryOrderHints
+          productType,id,key,variantId,categoryOrderHints
           """
         file = '/tmp/output.csv'
         expectedCSV =
           """
-          productType,id,variantId,categoryOrderHints
-          #{@productType.name},#{@product.id},#{@product.lastVariantId},#{@category.externalId}:0.5
+          productType,id,key,variantId,categoryOrderHints
+          #{@productType.name},#{@product.id},product-key-123,#{@product.lastVariantId},#{@category.externalId}:0.5
 
           """
 

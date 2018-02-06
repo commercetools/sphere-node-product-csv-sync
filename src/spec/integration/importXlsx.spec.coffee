@@ -67,12 +67,13 @@ describe 'Import integration test', ->
       @newProductName = TestHelpers.uniqueId 'name-'
       @newProductSlug = TestHelpers.uniqueId 'slug-'
       @newProductSku = TestHelpers.uniqueId 'sku-'
+      @newProductKey = TestHelpers.uniqueId 'key-'
 
     it 'should import a simple product from xlsx', (done) ->
       filePath = "/tmp/test-import.xlsx"
       data = [
-        ["productType","name","variantId","slug"],
-        [@productType.id,@newProductName,1,@newProductSlug]
+        ["productType","name","key","variantId","slug"],
+        [@productType.id,@newProductName,@newProductKey,1,@newProductSlug]
       ]
 
       writeXlsx(filePath, data)
@@ -93,8 +94,8 @@ describe 'Import integration test', ->
     it 'should import a product with prices (even when one of them is discounted)', (done) ->
       filePath = "/tmp/test-import.xlsx"
       data = [
-        ["productType","name","variantId","slug","prices"],
-        [@productType.id,@newProductName,1,@newProductSlug,"EUR 899;CH-EUR 999;DE-EUR 999|799;CH-USD 77777700 ##{CHANNEL_KEY}"]
+        ["productType","name","key","variantId","slug","prices"],
+        [@productType.id,@newProductName,@newProductKey,1,@newProductSlug,"EUR 899;CH-EUR 999;DE-EUR 999|799;CH-USD 77777700 ##{CHANNEL_KEY}"]
       ]
 
       writeXlsx(filePath, data)
@@ -122,8 +123,8 @@ describe 'Import integration test', ->
     it 'should do nothing on 2nd import run', (done) ->
       filePath = "/tmp/test-import.xlsx"
       data = [
-        ["productType","name","variantId","slug"],
-        [@productType.id,@newProductName,1,@newProductSlug]
+        ["productType","name","key","variantId","slug"],
+        [@productType.id,@newProductName,@newProductKey,1,@newProductSlug]
       ]
 
       writeXlsx(filePath, data)
@@ -146,9 +147,9 @@ describe 'Import integration test', ->
     it 'should do a partial update of prices based on SKUs', (done) ->
       filePath = "/tmp/test-import.xlsx"
       data = [
-        ["productType","name","sku","variantId","prices"],
-        [@productType.id,@newProductName,@newProductSku+1,1,"EUR 999"],
-        [null,null,@newProductSku+2,2,"USD 70000"]
+        ["productType","name","key","sku","variantId","prices"],
+        [@productType.id,@newProductName,@newProductKey,@newProductSku+1,1,"EUR 999"],
+        [null,null,null,@newProductSku+2,2,"USD 70000"]
       ]
 
       writeXlsx(filePath, data)

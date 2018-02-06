@@ -89,24 +89,17 @@ describe 'Validator', ->
     it 'should be false for a product', ->
       expect(@validator.isVariant ['myProduct', '1']).toBe false
 
-  describe '#isProduct', ->
-    beforeEach ->
-      @validator.header = new Header CONS.BASE_HEADERS
-
-    it 'should be false for a variantId > 1 with a product type given', ->
-      expect(@validator.isProduct ['foo', '2'], CONS.HEADER_VARIANT_ID).toBe false
-
   describe '#buildProducts', ->
     beforeEach ->
 
     it 'should build 2 products and their variants', (done) ->
       csv =
         """
-        productType,name,variantId
-        foo,n1,1
+        productType,key,variantId
+        foo,key-12,1
         ,,2
         ,,3
-        bar,n2,1
+        bar,key-56,1
         ,,2
         """
       @validator.parse csv
@@ -114,10 +107,10 @@ describe 'Validator', ->
         @validator.buildProducts parsed.data, CONS.HEADER_VARIANT_ID
         expect(@validator.errors.length).toBe 0
         expect(@validator.rawProducts.length).toBe 2
-        expect(@validator.rawProducts[0].master).toEqual ['foo', 'n1', '1']
+        expect(@validator.rawProducts[0].master).toEqual ['foo', 'key-12', '1']
         expect(@validator.rawProducts[0].variants.length).toBe 2
         expect(@validator.rawProducts[0].startRow).toBe 2
-        expect(@validator.rawProducts[1].master).toEqual ['bar', 'n2', '1']
+        expect(@validator.rawProducts[1].master).toEqual ['bar', 'key-56', '1']
         expect(@validator.rawProducts[1].variants.length).toBe 1
         expect(@validator.rawProducts[1].startRow).toBe 5
         done()
@@ -126,34 +119,91 @@ describe 'Validator', ->
     it 'should return error if row isnt a variant nor product', (done) ->
       csv =
         """
-        productType,name,variantId
-        myType,,1
+        productType,key,variantId
+        myType,key-12,1
         ,,1
-        myType,,2
+        myType,key-56,2
         ,,foo
         ,,
         """
       @validator.parse csv
       .then (parsed) =>
         @validator.buildProducts parsed.data, CONS.HEADER_VARIANT_ID
-        expect(@validator.errors.length).toBe 3
-        expect(@validator.errors[0]).toBe '[row 3] Could not be identified as product or variant!'
-        expect(@validator.errors[1]).toBe '[row 5] Could not be identified as product or variant!'
-        expect(@validator.errors[2]).toBe '[row 6] Could not be identified as product or variant!'
+        expect(@validator.errors.length).toBe 2
+        expect(@validator.errors[0]).toBe '[row 5] Could not be identified as product or variant!'
+        expect(@validator.errors[1]).toBe '[row 6] Could not be identified as product or variant!'
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should return error if first row isnt a product row', (done) ->
+    it 'should not return error if first row (masterVariant) is not 1', (done) ->
       csv =
         """
-        productType,name,variantId
-        foo,,2
+        productType,key,variantId
+        foo,key-12,3
         """
       @validator.parse csv
       .then (parsed) =>
         @validator.buildProducts parsed.data, CONS.HEADER_VARIANT_ID
-        expect(@validator.errors.length).toBe 1
-        expect(@validator.errors[0]).toBe '[row 2] We need a product before starting with a variant!'
+        expect(@validator.errors.length).toBe 0
+        expect(@validator.rawProducts.length).toBe 1
+        expect(@validator.rawProducts[0].master).toEqual ['foo', 'key-12', '3']
+        expect(@validator.rawProducts[0].variants.length).toBe 0
+        done()
+      .catch (err) -> done _.prettify(err)
+
+    it 'should not build separate products without filled rows', (done) ->
+      csv =
+        """
+        productType,key,variantId
+        foo,key-12,3
+        ,,1
+        ,,5
+        bar,key-56,2
+        ,,9
+        ,,4
+        """
+      @validator.parse csv
+      .then (parsed) =>
+        @validator.buildProducts parsed.data, CONS.HEADER_VARIANT_ID
+        expect(@validator.errors.length).toBe 0
+        expect(@validator.rawProducts.length).toBe 2
+        expect(@validator.rawProducts[0].master).toEqual ['foo', 'key-12', '3']
+        expect(@validator.rawProducts[0].variants.length).toBe 2
+        expect(@validator.rawProducts[0].variants[0].variant).toEqual ['', '', '1']
+        expect(@validator.rawProducts[0].variants[1].variant).toEqual ['', '', '5']
+        expect(@validator.rawProducts[0].startRow).toBe 2
+        expect(@validator.rawProducts[1].master).toEqual ['bar', 'key-56', '2']
+        expect(@validator.rawProducts[1].variants.length).toBe 2
+        expect(@validator.rawProducts[1].variants[0].variant).toEqual ['', '', '9']
+        expect(@validator.rawProducts[1].variants[1].variant).toEqual ['', '', '4']
+        expect(@validator.rawProducts[1].startRow).toBe 5
+        done()
+      .catch (err) -> done _.prettify(err)
+
+    it 'should not build separate products with filled rows', (done) ->
+      csv =
+        """
+        productType,key,variantId
+        foo,key-12,3
+        foo,key-12,1
+        foo,key-12,5
+        bar,key-56,2
+        bar,key-56,4
+        """
+      @validator.parse csv
+      .then (parsed) =>
+        @validator.buildProducts parsed.data, CONS.HEADER_VARIANT_ID
+        expect(@validator.errors.length).toBe 0
+        expect(@validator.rawProducts.length).toBe 2
+        expect(@validator.rawProducts[0].master).toEqual ['foo', 'key-12', '3']
+        expect(@validator.rawProducts[0].variants.length).toBe 2
+        expect(@validator.rawProducts[0].variants[0].variant).toEqual ['foo', 'key-12', '1']
+        expect(@validator.rawProducts[0].variants[1].variant).toEqual ['foo', 'key-12', '5']
+        expect(@validator.rawProducts[0].startRow).toBe 2
+        expect(@validator.rawProducts[1].master).toEqual ['bar', 'key-56', '2']
+        expect(@validator.rawProducts[1].variants.length).toBe 1
+        expect(@validator.rawProducts[1].variants[0].variant).toEqual ['bar', 'key-56', '4']
+        expect(@validator.rawProducts[1].startRow).toBe 5
         done()
       .catch (err) -> done _.prettify(err)
 
@@ -236,7 +286,7 @@ describe 'Validator', ->
     it 'should return no error', (done) ->
       csv =
         """
-        productType,name,variantId
+        productType,name.en,variantId
         foo,bar,bla
         """
       @validator.parse csv
@@ -249,8 +299,8 @@ describe 'Validator', ->
     it 'should return no error', (done) ->
       csv =
         """
-        productType,name,variantId
-        foo,bar,1
+        productType,key,variantId
+        foo,key-123,1
         """
       @validator.parse csv
       .then (parsed) =>

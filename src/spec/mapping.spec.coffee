@@ -113,8 +113,8 @@ describe 'Mapping', ->
     it 'should map base product', (done) ->
       csv =
         """
-        productType,id,name,variantId,key
-        foo,xyz,myProduct,1,key123
+        productType,id,name.en,variantId,key,slug.en
+        foo,xyz,myProduct,1,key123,slug-123
         """
       pt =
         id: '123'
@@ -133,7 +133,7 @@ describe 'Mapping', ->
           name:
             en: 'myProduct'
           slug:
-            en: 'myproduct'
+            en: 'slug-123'
           masterVariant: {}
           categoryOrderHints: {}
           variants: []
@@ -146,8 +146,8 @@ describe 'Mapping', ->
     it 'should map base product with categories', (done) ->
       csv =
         """
-        productType,id,name,variantId,categories
-        foo,xyz,myProduct,1,ext-123
+        productType,id,name.en,key,variantId,categories
+        foo,xyz,myProduct,key123,1,ext-123
         """
       pt =
         id: '123'
@@ -171,6 +171,7 @@ describe 'Mapping', ->
 
         expectedProduct =
           id: 'xyz'
+          key: 'key123'
           productType:
             typeId: 'product-type'
             id: '123'
@@ -192,8 +193,8 @@ describe 'Mapping', ->
     it 'should map search keywords', (done) ->
       csv =
       """
-        productType,variantId,id,name.en,slug.en,searchKeywords.en,searchKeywords.fr-FR
-        product-type,1,xyz,myProduct,myproduct,some;new;search;keywords,bruxelle;liege;brugge,
+        productType,variantId,id,name.en,key,slug.en,searchKeywords.en,searchKeywords.fr-FR
+        product-type,1,xyz,myProduct,key123,myproduct,some;new;search;keywords,bruxelle;liege;brugge,
         """
       pt =
         id: '123'
@@ -205,6 +206,7 @@ describe 'Mapping', ->
 
         expectedProduct =
           id: 'xyz'
+          key: 'key123'
           productType:
             typeId: 'product-type'
             id: '123'
@@ -225,8 +227,8 @@ describe 'Mapping', ->
     it 'should map empty search keywords', (done) ->
       csv =
         """
-        productType,variantId,id,name.en,slug.en,searchKeywords.en
-        product-type,1,xyz,myProduct,myproduct,
+        productType,variantId,id,name.en,key,slug.en,searchKeywords.en
+        product-type,1,xyz,myProduct,key123,myproduct,
         """
       pt =
         id: '123'
@@ -238,6 +240,7 @@ describe 'Mapping', ->
 
         expectedProduct =
           id: 'xyz'
+          key: 'key123'
           productType:
             typeId: 'product-type'
             id: '123'
@@ -669,10 +672,10 @@ describe 'Mapping', ->
         attributes: []
       csv =
         """
-        productType,name,variantId,sku
-        foo,myProduct,1,x
-        ,,2,y
-        ,,3,z
+        productType,name.en,key,variantId,sku
+        foo,myProduct,key123,1,x
+        ,,,2,y
+        ,,,3,z
         """
       @validator.parse csv
       .then (parsed) =>
@@ -686,6 +689,7 @@ describe 'Mapping', ->
             id: 'myType'
           name:
             en: 'myProduct'
+          key: 'key123'
           slug:
             en: 'myproduct'
           categories: []
@@ -701,7 +705,7 @@ describe 'Mapping', ->
             { id: 2, sku: 'y', prices: [], attributes: [], images: [] }
             { id: 3, sku: 'z', prices: [], attributes: [], images: [] }
           ]
-
+        # console.log(JSON.stringify(data.product, null, 2))
         expect(data.product).toEqual expectedProduct
         done()
       .catch done
@@ -733,6 +737,7 @@ describe 'Mapping', ->
           en: 'myProduct'
         slug:
           en: 'myproduct'
+        key: 'key123'
         categories: []
         categoryOrderHints: {
           categoryId: '0.9'
@@ -749,8 +754,8 @@ describe 'Mapping', ->
     it 'should should map the categoryOrderHints using a category id', (done) ->
       csv =
         """
-        productType,name,variantId,sku,categoryOrderHints
-        foo,myProduct,1,x,#{@exampleCategory.id}:0.9
+        productType,name.en,key,variantId,sku,categoryOrderHints
+        foo,myProduct,key123,1,x,#{@exampleCategory.id}:0.9
         """
       @validator.parse csv
       .then (parsed) =>
@@ -765,8 +770,8 @@ describe 'Mapping', ->
     it 'should should map the categoryOrderHints using a category name', (done) ->
       csv =
         """
-        productType,name,variantId,sku,categoryOrderHints
-        foo,myProduct,1,x,#{@exampleCategory.name.en}:0.9
+        productType,name.en,key,variantId,sku,categoryOrderHints
+        foo,myProduct,key123,1,x,#{@exampleCategory.name.en}:0.9
         """
       @validator.parse csv
       .then (parsed) =>
@@ -781,8 +786,8 @@ describe 'Mapping', ->
     it 'should should map the categoryOrderHints using a category slug', (done) ->
       csv =
         """
-        productType,name,variantId,sku,categoryOrderHints
-        foo,myProduct,1,x,#{@exampleCategory.slug.en}:0.9
+        productType,name.en,key,variantId,sku,categoryOrderHints
+        foo,myProduct,key123,1,x,#{@exampleCategory.slug.en}:0.9
         """
       @validator.parse csv
       .then (parsed) =>
@@ -797,8 +802,8 @@ describe 'Mapping', ->
     it 'should should map the categoryOrderHints using a category externalId', (done) ->
       csv =
         """
-        productType,name,variantId,sku,categoryOrderHints
-        foo,myProduct,1,x,#{@exampleCategory.externalId}:0.9
+        productType,name.en,key,variantId,sku,categoryOrderHints
+        foo,myProduct,key123,1,x,#{@exampleCategory.externalId}:0.9
         """
       @validator.parse csv
       .then (parsed) =>
