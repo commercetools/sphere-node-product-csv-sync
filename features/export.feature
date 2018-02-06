@@ -3,10 +3,10 @@ Feature: Export products
   Scenario: Import some products first
     Given a file named "i.csv" with:
     """
-    productType,name,variantId,sku
-    ImpEx with all types,Product 1,1,sku-1-123
-    ImpEx with all types,Product 2,1,sku-2-123
-    ImpEx with all types,Product 3,1,0123
+    productType,name,key,variantId,sku
+    ImpEx with all types,Product 1,product-key-1,1,sku-1-123
+    ImpEx with all types,Product 2,product-key-2,1,sku-2-123
+    ImpEx with all types,Product 3,product-key-3,1,0123
     """
     When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv i.csv --matchBy sku`
     Then the exit status should be 0
@@ -16,7 +16,7 @@ Feature: Export products
     """
 
   @wip
-  Scenario: Export products with --fileAllRows
+  Scenario: Export products with --fillAllRows
     Given a file named "t.csv" with:
     """
     productType,name,sku

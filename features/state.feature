@@ -6,8 +6,8 @@ Feature: Publish and unpublish products
 
     Given a file named "i.csv" with:
     """
-    productType,variantId,name,sku
-    ImpEx with all types,1,myPublishedProduct,123456789
+    productType,variantId,name,key,sku
+    ImpEx with all types,1,myPublishedProduct,product-key-1234,123456789
     """
     When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv i.csv --matchBy sku`
     Then the exit status should be 0

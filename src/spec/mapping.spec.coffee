@@ -705,7 +705,6 @@ describe 'Mapping', ->
             { id: 2, sku: 'y', prices: [], attributes: [], images: [] }
             { id: 3, sku: 'z', prices: [], attributes: [], images: [] }
           ]
-        # console.log(JSON.stringify(data.product, null, 2))
         expect(data.product).toEqual expectedProduct
         done()
       .catch done

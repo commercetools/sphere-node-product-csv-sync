@@ -1,2 +1,2 @@
-productType,variantId,name,sku
-ImpEx with all types,1,myProduct,12345
+productType,key,variantId,name,sku
+ImpEx with all types,product-key-1234,1,myProduct,12345
