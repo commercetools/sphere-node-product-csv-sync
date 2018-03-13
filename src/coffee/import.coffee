@@ -421,8 +421,8 @@ class Import
       if allUpdateRequests.actions.length
         chunkifiedUpdateRequests = @splitUpdateActionsArray(allUpdateRequests, 500)
         Promise.mapSeries(chunkifiedUpdateRequests, (updateRequest) => @client.products.byId(filtered.getUpdateId()).update(updateRequest))
-        .then (result) =>
-          @publishProduct(result[0].body, rowIndex)
+        .then ([result]) =>
+          @publishProduct(result.body, rowIndex)
           .then -> Promise.resolve "[row #{rowIndex}] Product updated."
         .catch (err) =>
           msg = "[row #{rowIndex}] Problem on updating product:\n#{_.prettify err}\n#{_.prettify err.body}"
