@@ -123,9 +123,7 @@ class Import
           else
             (p) => @processProducts(p)
           Promise.map(_.batchList(products, @_BATCH_SIZE), p, { concurrency: @_CONCURRENCY })
-          .then((results) => results.reduce((agg, r) ->
-            agg.concat(r)
-          , []))
+          .then((results) => _.flatten(results))
 
   _unarchiveProducts: (archivePath) ->
     tempDir = tmp.dirSync({ unsafeCleanup: true })
@@ -420,8 +418,8 @@ class Import
     else
       if allUpdateRequests.actions.length
         chunkifiedUpdateRequests = @splitUpdateActionsArray(allUpdateRequests, 500)
-        Promise.mapSeries(chunkifiedUpdateRequests, (updateRequest) => @client.products.byId(filtered.getUpdateId()).update(updateRequest))
-        .then ([result]) =>
+        Promise.all(_.map chunkifiedUpdateRequests, (updateRequest) => @client.products.byId(filtered.getUpdateId()).update(updateRequest))
+        .then (result) =>
           @publishProduct(result.body, rowIndex)
           .then -> Promise.resolve "[row #{rowIndex}] Product updated."
         .catch (err) =>
