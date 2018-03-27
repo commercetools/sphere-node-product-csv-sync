@@ -157,19 +157,13 @@ describe 'Import and publish test', ->
         expect(p.length).toBe 1
         expect(p[0].variants.length).toBe 1
         expect(p[0].name).toEqual en: "#{@newProductName}1"
-        expect(p[0].masterVariant.prices[0].value).toEqual
-          currencyCode: 'EUR',
-          centAmount: 111
-        expect(p[0].variants[0].prices[0].value).toEqual
-          currencyCode: 'EUR',
-          centAmount: 222
+        expect(p[0].masterVariant.prices[0].value).toEqual jasmine.objectContaining(currencyCode: 'EUR', centAmount: 111)
+        expect(p[0].variants[0].prices[0].value).toEqual jasmine.objectContaining(currencyCode: 'EUR', centAmount: 222)
 
         p = _.where(products, { hasStagedChanges: true })
         expect(p.length).toBe 1
         expect(p[0].name).toEqual en: "#{@newProductName}3"
-        expect(p[0].masterVariant.prices[0].value).toEqual
-          currencyCode: 'EUR',
-          centAmount: 333
+        expect(p[0].masterVariant.prices[0].value).toEqual jasmine.objectContaining(currencyCode: 'EUR', centAmount: 333)
 
         done()
       .catch (err) -> done _.prettify(err)
