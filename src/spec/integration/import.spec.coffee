@@ -1197,3 +1197,51 @@ describe 'Import integration test', ->
         # no concurrentModification found
         done()
       .catch (err) -> done _.prettify(err)
+
+    it 'should split actions if there are more than 500 in actions array', (done) ->
+      numberOfVariants = 501
+      
+      csvCreator = (productType, newProductName, newProductSlug, rows) ->
+        changes = ""
+        i = 0
+        while i < rows
+          changes += "#{productType.id},#{newProductName},#{1+i},#{newProductSlug},#{'productKey'+i},#{'variantKey'+i}\n"
+          i++
+        csv =
+        """
+        #{changes}
+        """
+        csv
+
+      csv =
+        """
+        productType,name,variantId,slug,key,variantKey
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug},productKey0,variantKey0"
+        """
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        csv =
+          """
+          productType,name,variantId,slug,key,variantKey
+          #{csvCreator(@productType, @newProductName, @newProductSlug, numberOfVariants)}
+          """
+        im = createImporter()
+        im.matchBy = 'slug'
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: "#{@newProductName}"
+        expect(p.slug).toEqual en: @newProductSlug
+        expect(p.key).toEqual 'productKey0'
+        expect(p.masterVariant.key).toEqual 'variantKey0'
+        expect(p.variants.length).toBe numberOfVariants-1
+
+        done()
+      .catch (err) -> done _.prettify(err)

@@ -123,9 +123,7 @@ class Import
           else
             (p) => @processProducts(p)
           Promise.map(_.batchList(products, @_BATCH_SIZE), p, { concurrency: @_CONCURRENCY })
-          .then((results) => results.reduce((agg, r) ->
-            agg.concat(r)
-          , []))
+          .then((results) => _.flatten(results))
 
   _unarchiveProducts: (archivePath) ->
     tempDir = tmp.dirSync({ unsafeCleanup: true })
@@ -342,6 +340,19 @@ class Import
     else
       _.contains @blackListedCustomAttributesForUpdate, attributeName
 
+  splitUpdateActionsArray: (updateRequest, chunkSize) ->
+    allActionsArray = updateRequest.actions
+    version = updateRequest.version
+
+    chunkifiedActionsArray = []
+    i = 0
+    while i < allActionsArray.length
+      update = {actions: allActionsArray.slice(i, i + chunkSize), version: version}
+      chunkifiedActionsArray.push update
+      version += chunkSize
+      i += chunkSize
+    return chunkifiedActionsArray
+
   update: (product, existingProduct, id2SameForAllAttributes, header, rowIndex, publish) ->
     product.categoryOrderHints = @_mergeCategoryOrderHints existingProduct, product
     allSameValueAttributes = id2SameForAllAttributes[product.productType.id]
@@ -386,27 +397,28 @@ class Import
         when 'removeVariant' then @allowRemovalOfVariants
         else throw Error "The action '#{action.action}' is not supported. Please contact the commercetools support team!"
 
-    updateRequest = filtered.getUpdatePayload()
+    allUpdateRequests = filtered.getUpdatePayload()
 
     # build update request even if there are no update actions
     if not filtered.shouldUpdate()
-      updateRequest =
+      allUpdateRequests =
         version: existingProduct.version
         actions: []
 
     # check if we should publish product (only if it was not yet published or if there are some changes)
-    if publish and (not existingProduct.published or updateRequest.actions.length)
-      updateRequest.actions.push
+    if publish and (not existingProduct.published or allUpdateRequests.actions.length)
+      allUpdateRequests.actions.push
         action: 'publish'
 
     if @dryRun
-      if updateRequest.actions.length
-        Promise.resolve "[row #{rowIndex}] DRY-RUN - updates for #{existingProduct.id}:\n#{_.prettify updateRequest}"
+      if allUpdateRequests.actions.length
+        Promise.resolve "[row #{rowIndex}] DRY-RUN - updates for #{existingProduct.id}:\n#{_.prettify allUpdateRequests}"
       else
         Promise.resolve "[row #{rowIndex}] DRY-RUN - nothing to update."
     else
-      if updateRequest.actions.length
-        @client.products.byId(filtered.getUpdateId()).update(updateRequest)
+      if allUpdateRequests.actions.length
+        chunkifiedUpdateRequests = @splitUpdateActionsArray(allUpdateRequests, 500)
+        Promise.all(_.map chunkifiedUpdateRequests, (updateRequest) => @client.products.byId(filtered.getUpdateId()).update(updateRequest))
         .then (result) =>
           @publishProduct(result.body, rowIndex)
           .then -> Promise.resolve "[row #{rowIndex}] Product updated."

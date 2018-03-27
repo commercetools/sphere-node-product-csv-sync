@@ -109,3 +109,25 @@ describe 'Import', ->
       expect(product.variants[0].attributes).toEqual [ { foo: 'bar2' } ]
       expect(product.variants[1].id).toBe 4
       expect(product.variants[1].attributes).toEqual [ { foo: 'bar4' } ]
+
+  describe 'splitUpdateActionsArray', ->
+    it 'should split an array when exceeding max amount of allowed actions', ->
+      updateRequest = {
+        actions: [
+          { action: 'updateAction1', payload: 'bar1' },
+          { action: 'updateAction2', payload: 'bar2' },
+          { action: 'updateAction3', payload: 'bar3' },
+          { action: 'updateAction4', payload: 'bar4' },
+          { action: 'updateAction5', payload: 'bar5' },
+          { action: 'updateAction6', payload: 'bar6' },
+          { action: 'updateAction7', payload: 'bar7' },
+          { action: 'updateAction8', payload: 'bar8' },
+          { action: 'updateAction9', payload: 'bar9' },
+          { action: 'updateAction10', payload: 'bar10' }
+        ],
+        version: 1
+      }
+      # max amount of actions = 3
+      splitArray = @importer.splitUpdateActionsArray(updateRequest, 3)
+      # array of 10 actions divided by max of 3 becomes 4 arrays
+      expect(splitArray.length).toEqual 4
