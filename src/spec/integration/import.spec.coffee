@@ -95,11 +95,11 @@ describe 'Import integration test', ->
         p = result.body.results[0]
         expect(_.size p.masterVariant.prices).toBe 4
         prices = p.masterVariant.prices
-        expect(prices[0].value).toEqual { currencyCode: 'EUR', centAmount: 899 }
-        expect(prices[1].value).toEqual { currencyCode: 'EUR', centAmount: 999 }
+        expect(prices[0].value).toEqual jasmine.objectContaining(currencyCode: 'EUR', centAmount: 899)
+        expect(prices[1].value).toEqual jasmine.objectContaining(currencyCode: 'EUR', centAmount: 999)
         expect(prices[1].country).toBe 'CH'
         expect(prices[2].country).toBe 'DE'
-        expect(prices[2].value).toEqual { currencyCode: 'EUR', centAmount: 999 }
+        expect(prices[2].value).toEqual jasmine.objectContaining(currencyCode: 'EUR', centAmount: 999)
         expect(prices[3].channel.typeId).toBe 'channel'
         expect(prices[3].channel.id).toBeDefined()
         done()
@@ -689,9 +689,9 @@ describe 'Import integration test', ->
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
         expect(p.name).toEqual {en: @newProductName}
-        expect(p.masterVariant.prices[0].value).toEqual { centAmount: 999, currencyCode: 'EUR' }
+        expect(p.masterVariant.prices[0].value).toEqual jasmine.objectContaining(centAmount: 999, currencyCode: 'EUR')
         expect(p.masterVariant.images[0].url).toBe '//example.com/foo.jpg'
-        expect(p.variants[0].prices[0].value).toEqual { centAmount: 70000, currencyCode: 'USD' }
+        expect(p.variants[0].prices[0].value).toEqual jasmine.objectContaining(centAmount: 70000, currencyCode: 'USD')
         expect(p.variants[0].images[0].url).toBe '/example.com/bar.png'
         done()
       .catch (err) -> done _.prettify(err)
@@ -819,9 +819,9 @@ describe 'Import integration test', ->
         p = result.body.results[0]
         expect(p.name).toEqual {en: @newProductName}
         expect(p.masterVariant.sku).toBe "#{@newProductSku}1"
-        expect(p.masterVariant.prices[0].value).toEqual { centAmount: 1999, currencyCode: 'EUR' }
+        expect(p.masterVariant.prices[0].value).toEqual jasmine.objectContaining(centAmount: 1999, currencyCode: 'EUR')
         expect(p.variants[0].sku).toBe "#{@newProductSku}2"
-        expect(p.variants[0].prices[0].value).toEqual { centAmount: 80000, currencyCode: 'USD' }
+        expect(p.variants[0].prices[0].value).toEqual jasmine.objectContaining(centAmount: 80000, currencyCode: 'USD')
         done()
       .catch (err) -> done _.prettify(err)
 
@@ -934,7 +934,7 @@ describe 'Import integration test', ->
         expect(p.name).toEqual {en: newProductNameUpdated, it: "#{newProductNameUpdated}-it"}
         expect(_.size(p.categories)).toEqual 2
         expect(p.masterVariant.sku).toBe "#{@newProductSku}1"
-        expect(p.masterVariant.prices[0].value).toEqual { centAmount: 999, currencyCode: 'EUR' }
+        expect(p.masterVariant.prices[0].value).toEqual jasmine.objectContaining(centAmount: 999, currencyCode: 'EUR')
         done()
       .catch (err) ->
         console.dir(err, {depth: 100})
