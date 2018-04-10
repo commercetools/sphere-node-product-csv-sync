@@ -93,11 +93,7 @@ describe 'Export', ->
         [ variant ],
         []
       )
-
-      actual = filteredVariants[0]
-      expected = undefined
-
-      expect(actual).toEqual(expected)
+      expect(filteredVariants[0]).toBeFalsy()
 
   describe 'Function to filter prices', ->
 

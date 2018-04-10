@@ -110,13 +110,14 @@ describe "MatchUtils", ->
       })
 
   describe "mapByCustomAttribute", ->
-    p = product1
-    map = MatchUtils.mapByCustomAttribute("key")(p)
-    expect(map).toEqual({
-      "1": p,
-      "2": p,
-      "3": p
-    })
+    it "should return the map of [customAttributes] -> product", ->
+      p = product1
+      map = MatchUtils.mapByCustomAttribute("key")(p)
+      expect(map).toEqual({
+        "1": p,
+        "2": p,
+        "3": p
+      })
 
   describe "mapIdentifier", ->
     it "should return function which returns an id of product entry", ->
