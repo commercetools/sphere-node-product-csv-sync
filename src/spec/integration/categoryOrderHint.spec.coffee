@@ -39,7 +39,7 @@ newCategory = (name = 'Category name', externalId = 'externalCategoryId') ->
   externalId: externalId
 
 prepareCategoryAndProduct = (done) ->
-  jasmine.getEnv().defaultTimeoutInterval = 90000 # 90 sec
+  jasmine.getEnv().defaultTimeoutInterval = 120000 # 2mins
   @export = new Export client: Config
   @importer = createImporter()
   @importer.suppressMissingHeaderWarning = true

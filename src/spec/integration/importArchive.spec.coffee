@@ -47,7 +47,7 @@ writeXlsx = (filePath, data) ->
 describe 'Import integration test', ->
 
   beforeEach (done) ->
-    jasmine.getEnv().defaultTimeoutInterval = 90000 # 90 sec
+    jasmine.getEnv().defaultTimeoutInterval = 120000 # 2mins
     @importer = createImporter()
     @importer.suppressMissingHeaderWarning = true
     @client = @importer.client
@@ -95,10 +95,7 @@ describe 'Import integration test', ->
           outputStream.on 'close', () -> resolve()
           archive.on 'error', (err) -> reject(err)
           archive.pipe outputStream
-
-          archive.bulk([
-            { expand: true, cwd: tempDir.name, src: ['**'], dest: 'products'}
-          ])
+          archive.glob('**', { cwd: tempDir.name })
           archive.finalize()
       .then =>
         @importer.importManager(archivePath, true)
@@ -148,10 +145,7 @@ describe 'Import integration test', ->
           outputStream.on 'close', () -> resolve()
           archive.on 'error', (err) -> reject(err)
           archive.pipe outputStream
-
-          archive.bulk([
-            { expand: true, cwd: tempDir.name, src: ['**'], dest: 'products'}
-          ])
+          archive.glob('**', { cwd: tempDir.name })
           archive.finalize()
       .then =>
         importer.importManager(archivePath, true)

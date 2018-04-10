@@ -27,8 +27,8 @@ describe 'Import', ->
       expect(importer.client._task._maxParallel).toBe 10
       expect(importer.sync).toBeDefined()
 
-  xdescribe 'match on custom attribute', ->
-    it 'should find match based on custom attribute', ->
+  describe 'match on custom attribute', ->
+    xit 'should find match based on custom attribute', ->
       product =
         id: '123'
         masterVariant:

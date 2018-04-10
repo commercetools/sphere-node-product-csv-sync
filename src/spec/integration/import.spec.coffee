@@ -34,7 +34,7 @@ CHANNEL_KEY = 'retailerA'
 describe 'Import integration test', ->
 
   beforeEach (done) ->
-    jasmine.getEnv().defaultTimeoutInterval = 90000 # 90 sec
+    jasmine.getEnv().defaultTimeoutInterval = 360000 # 3mins
     @importer = createImporter()
     @client = @importer.client
 
@@ -598,9 +598,9 @@ describe 'Import integration test', ->
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
         # TODO: expecting 'foo bar'
-        expect(p.description).toEqual {en: undefined, de: 'Hallo Welt', fr: 'bon jour'}
+        expect(p.description).toEqual jasmine.objectContaining {de: 'Hallo Welt', fr: 'bon jour'}
         # TODO: expecting {de: 'german'}
-        expect(p.masterVariant.attributes[0]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'english', de: undefined, it: 'ciao'}}
+        expect(p.masterVariant.attributes[0]).toEqual jasmine.objectContaining {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'english', it: 'ciao'}}
         done()
       .catch (err) -> done _.prettify(err)
 
@@ -1200,7 +1200,6 @@ describe 'Import integration test', ->
 
     it 'should split actions if there are more than 500 in actions array', (done) ->
       numberOfVariants = 501
-      
       csvCreator = (productType, newProductName, newProductSlug, rows) ->
         changes = ""
         i = 0

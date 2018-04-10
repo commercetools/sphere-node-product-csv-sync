@@ -14,7 +14,7 @@ BOOLEAN_ATTRIBUTE_NONE = 'attr-boolean-n'
 describe 'Impex integration tests', ->
 
   beforeEach (done) ->
-    jasmine.getEnv().defaultTimeoutInterval = 90000 # 90 sec
+    jasmine.getEnv().defaultTimeoutInterval = 120000 # 2mins
     @importer = new Import Config
     @importer.matchBy = 'slug'
     @importer.suppressMissingHeaderWarning = true

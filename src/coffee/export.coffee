@@ -171,10 +171,7 @@ class Export
       output.on 'close', () -> resolve()
       archive.on 'error', (err) -> reject(err)
       archive.pipe output
-
-      archive.bulk([
-        { expand: true, cwd: inputFolder, src: ['**'], dest: 'products'}
-      ])
+      archive.glob('**', { cwd: inputFolder })
       archive.finalize()
 
   exportFull: (output, staged = true) =>
