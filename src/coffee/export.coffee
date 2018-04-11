@@ -1,3 +1,13 @@
+{ createClient } = require '@commercetools/sdk-client'
+{
+  createAuthMiddlewareForClientCredentialsFlow
+  createAuthMiddlewareWithExistingToken
+} = require '@commercetools/sdk-middleware-auth'
+{ createHttpMiddleware } = require '@commercetools/sdk-middleware-http'
+{ createQueueMiddleware } = require '@commercetools/sdk-middleware-queue'
+{ createUserAgentMiddleware } = require '@commercetools/sdk-middleware-user-agent'
+{ createRequestBuilder } = require '@commercetools/api-request-builder'
+
 _ = require 'underscore'
 Csv = require 'csv'
 archiver = require 'archiver'
@@ -7,7 +17,6 @@ Promise = require 'bluebird'
 iconv = require 'iconv-lite'
 fs = Promise.promisifyAll require('fs')
 prompt = Promise.promisifyAll require('prompt')
-{SphereClient} = require 'sphere-node-sdk'
 Types = require './types'
 Categories = require './categories'
 Channels = require './channels'
@@ -27,6 +36,7 @@ tmp.setGracefulCleanup()
 class Export
 
   constructor: (@options = {}) ->
+    @projectKey = @options.authConfig.projectKey
     @options.outputDelimiter = @options.outputDelimiter || ","
     @options.templateDelimiter = @options.templateDelimiter || ","
     @options.encoding = @options.encoding || "utf8"
@@ -39,8 +49,21 @@ class Export
         @options.export?.filterVariantsByAttributes
       )
       filterPrices: @_parseQuery(@options.export?.filterPrices)
-
-    @client = new SphereClient @options.client
+    @client = createClient(middlewares: [
+      createAuthMiddlewareWithExistingToken(
+        if @options.authConfig.accessToken
+        then "Bearer #{@options.authConfig.accessToken}"
+        else ''
+      )
+      createAuthMiddlewareForClientCredentialsFlow
+        host: @options.authConfig.host
+        projectKey: @projectKey
+        credentials: @options.authConfig.credentials
+      createQueueMiddleware
+        concurrency: 10
+      createUserAgentMiddleware @options.userAgentConfig
+      createHttpMiddleware @options.httpConfig
+    ])
 
     # TODO: using single mapping util instead of services
     @typesService = new Types()
@@ -124,28 +147,24 @@ class Export
 
   # return the correct product service in case query string is used or not
   _getProductService: (staged = true, customWherePredicate = false) ->
-    productsService = @client.productProjections
-    perPage = 100
+    productsService = createRequestBuilder({@projectKey})
+      .productProjections
+      .staged(staged)
+      .perPage(100)
 
-    if @queryOptions.queryString
-      query = @_parseQueryString(@queryOptions.queryString)
+    if customWherePredicate
+      productsService.where customWherePredicate
 
-      if customWherePredicate
-        query = @_appendQueryStringPredicate(query, customWherePredicate)
-
-      productsService.byQueryString(@_stringifyQueryString(query), false)
-      productsService
-    else
-      productsService.where(customWherePredicate || '')
-      productsService.all().perPage(perPage).staged(staged)
+      uri: productsService.build()
+      method: 'GET'
 
   _fetchResources: =>
     data = [
-      @typesService.getAll @client
-      @categoryService.getAll @client
-      @channelService.getAll @client
-      @customerGroupService.getAll @client
-      @taxService.getAll @client
+      @typesService.getAll @client, @projectKey
+      @categoryService.getAll @client, @projectKey
+      @channelService.getAll @client, @projectKey
+      @customerGroupService.getAll @client, @projectKey
+      @taxService.getAll @client, @projectKey
     ]
     Promise.all(data)
     .then ([productTypes, categories, channels, customerGroups, taxes]) =>
@@ -255,8 +274,8 @@ class Export
         _.each productTypes.body.results, (productType) ->
           header._productTypeLanguageIndexes(productType)
 
-        @_getProductService(staged, customWherePredicate)
-        .process( (res) =>
+        productsService = @_getProductService(staged, customWherePredicate)
+        @client.process(productsService, (res) =>
           rowsReaded += res.body.count
           console.warn "Fetched #{res.body.count} product(s)."
 

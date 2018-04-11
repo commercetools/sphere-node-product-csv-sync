@@ -35,6 +35,13 @@
     "test": "grunt coverage"
   },
   "dependencies": {
+    "@commercetools/api-request-builder": "^3.7.1",
+    "@commercetools/get-credentials": "^2.1.4",
+    "@commercetools/sdk-client": "^1.5.5",
+    "@commercetools/sdk-middleware-auth": "^3.5.2",
+    "@commercetools/sdk-middleware-http": "^2.3.3",
+    "@commercetools/sdk-middleware-queue": "^1.1.5",
+    "@commercetools/sdk-middleware-user-agent": "^1.2.7",
     "archiver": "^2.1.1",
     "bluebird": "^3.5.1",
     "commander": "2.15.1",

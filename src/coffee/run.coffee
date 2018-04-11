@@ -5,6 +5,7 @@ Csv = require 'csv'
 Promise = require 'bluebird'
 fs = Promise.promisifyAll require('fs')
 {ProjectCredentialsConfig} = require 'sphere-node-utils'
+{getCredentials} = require '@commercetools/get-credentials'
 Importer = require './import'
 Exporter = require './export'
 CONS = require './constants'
@@ -65,17 +66,31 @@ module.exports = class
   @_ensureCredentials: (argv) ->
     if argv.accessToken
       Promise.resolve
-        config:
-          project_key: argv.projectKey
-        access_token: argv.accessToken
+        projectKey: argv.projectKey
+        accessToken: argv.accessToken
+    else if argv.clientId and argv.clientSecret
+      Promise.resolve
+        projectKey: argv.projectKey
+        credentials:
+          clientId: argv.clientId
+          clientSecret: argv.clientSecret
     else
-      ProjectCredentialsConfig.create()
+      getCredentials(argv.projectKey)
       .then (credentials) ->
         Promise.resolve
-          config: credentials.enrichCredentials
-            project_key: argv.projectKey
-            client_id: argv.clientId
-            client_secret: argv.clientSecret
+          projectKey: argv.projectKey
+          credentials: credentials
+            # project_key: argv.projectKey
+            # client_id: argv.clientId
+            # client_secret: argv.clientSecret
+      # .catch(console.error)
+      # ProjectCredentialsConfig.create()
+      # .then (credentials) ->
+      #   Promise.resolve
+      #     config: credentials.enrichCredentials
+      #       project_key: argv.projectKey
+      #       client_id: argv.clientId
+      #       client_secret: argv.clientSecret
 
   @run: (argv) ->
 
@@ -90,9 +105,9 @@ module.exports = class
       .option '-i, --clientId <id>', 'your OAuth client id for the SPHERE.IO API'
       .option '-s, --clientSecret <secret>', 'your OAuth client secret for the SPHERE.IO API'
       .option '--accessToken <token>', 'an OAuth access token for the SPHERE.IO API, used instead of clientId and clientSecret'
-      .option '--sphereHost <host>', 'SPHERE.IO API host to connect to'
+      .option '--sphereHost <host>', 'SPHERE.IO API host to connect to', 'https://api.commercetools.com'
       .option '--sphereProtocol <protocol>', 'SPHERE.IO API protocol to connect to'
-      .option '--sphereAuthHost <host>', 'SPHERE.IO OAuth host to connect to'
+      .option '--sphereAuthHost <host>', 'SPHERE.IO OAuth host to connect to', 'https://auth.commercetools.com'
       .option '--sphereAuthProtocol <protocol>', 'SPHERE.IO OAuth protocol to connect to'
       .option '--timeout [millis]', 'Set timeout for requests (default is 300000)', parseInt, 300000
       .option '--verbose', 'give more feedback during action'
@@ -297,7 +312,7 @@ module.exports = class
         return _subCommandHelp('export') unless program.projectKey
 
         @_ensureCredentials(program)
-        .then (credentials) ->
+        .then (authConfig) ->
           options =
             encoding: opts.encoding
             exportFormat: if opts.xlsx then 'xlsx' else 'csv'
@@ -307,21 +322,21 @@ module.exports = class
             categoryBy: opts.categoryBy
             categoryOrderHintBy: opts.categoryOrderHintBy || 'id'
             debug: Boolean(opts.parent.debug)
-            client: _.extend credentials,
-              timeout: program.timeout
-              user_agent: "#{package_json.name} - Export - #{package_json.version}"
             export:
               show_progress: true
               queryString: opts.queryString
               isQueryEncoded: opts.queryEncoded or false
               filterVariantsByAttributes: opts.filterVariantsByAttributes
               filterPrices: opts.filterPrices
-          options.client.host = program.sphereHost if program.sphereHost
-          options.client.protocol = program.sphereProtocol if program.sphereProtocol
-          if program.sphereAuthHost
-            options.client.oauth_host = program.sphereAuthHost
-            options.client.rejectUnauthorized = false
-          options.client.oauth_protocol = program.sphereAuthProtocol if program.sphereAuthProtocol
+            authConfig: authConfig
+            userAgentConfig:
+              libraryName: "#{package_json.name} - Export"
+              libraryVersion: "#{package_json.version}"
+              contactEmail: 'npmjs@commercetools.com'
+            httpConfig:
+              host: program.sphereHost
+              enableRetry: true
+          options.authConfig.host = program.sphereAuthHost
 
           exporter = new Exporter options
           (if opts.fullExport then Promise.resolve false
@@ -347,6 +362,7 @@ module.exports = class
               process.exit 1
           .catch (err) ->
             console.error "Problems on reading template input: #{err}"
+            console.error err
             process.exit 2
         .catch (err) ->
           console.error "Problems on getting client credentials from config files: #{err}"

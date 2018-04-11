@@ -1,4 +1,5 @@
 _ = require 'underscore'
+{ createRequestBuilder } = require '@commercetools/api-request-builder'
 GLOBALS = require '../lib/globals'
 
 # TODO:
@@ -15,8 +16,11 @@ class Categories
     @id2fqName = {}
     @duplicateNames = []
 
-  getAll: (client) ->
-    client.categories.all().fetch()
+  getAll: (client, projectKey) ->
+    service = createRequestBuilder {projectKey}
+    client.execute
+      uri: service.categories.build()
+      method: 'GET'
 
   buildMaps: (categories) ->
     _.each categories, (category, index) =>

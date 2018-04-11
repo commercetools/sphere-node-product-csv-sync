@@ -1,5 +1,6 @@
 _ = require 'underscore'
 CONS = require './constants'
+{ createRequestBuilder } = require '@commercetools/api-request-builder'
 
 # TODO:
 # - JSDoc
@@ -12,8 +13,11 @@ class Types
     @id2SameForAllAttributes = {}
     @id2nameAttributeDefMap = {}
 
-  getAll: (client) ->
-    client.productTypes.all().fetch()
+  getAll: (client, projectKey) ->
+    service = createRequestBuilder {projectKey}
+    client.execute
+      uri: service.productTypes.build()
+      method: 'GET'
 
   buildMaps: (productTypes) ->
     _.each productTypes, (pt, index) =>

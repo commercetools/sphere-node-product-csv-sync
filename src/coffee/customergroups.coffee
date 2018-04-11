@@ -1,4 +1,6 @@
 _ = require 'underscore'
+{ createRequestBuilder } = require '@commercetools/api-request-builder'
+
 # TODO:
 # - JSDoc
 # - make it util only
@@ -7,8 +9,11 @@ class CustomerGroups
     @name2id = {}
     @id2name = {}
 
-  getAll: (client) ->
-    client.customerGroups.all().fetch()
+  getAll: (client, projectKey) ->
+    service = createRequestBuilder {projectKey}
+    client.execute
+      uri: service.customerGroups.build()
+      method: 'GET'
 
   buildMaps: (customerGroups) ->
     _.each customerGroups, (group) =>
