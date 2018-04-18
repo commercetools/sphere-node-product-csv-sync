@@ -155,8 +155,8 @@ class Export
     if customWherePredicate
       productsService.where customWherePredicate
 
-      uri: productsService.build()
-      method: 'GET'
+    uri: productsService.build()
+    method: 'GET'
 
   _fetchResources: =>
     data = [
