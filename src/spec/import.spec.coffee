@@ -1,31 +1,28 @@
 _ = require 'underscore'
 CONS = require '../lib/constants'
-{Import} = require '../lib/main'
+{ Import } = require '../lib/main'
+Config = require '../config'
 
 describe 'Import', ->
+  { client_id, client_secret, project_key } = Config.config
+  authConfig =
+    projectKey: project_key
+    credentials:
+      clientId: client_id
+      clientSecret: client_secret
+  httpConfig = {}
+  userAgentConfig = {}
   beforeEach ->
-    @importer = new Import()
+    @importer = new Import {
+      authConfig: authConfig
+      httpConfig: httpConfig
+      userAgentConfig: userAgentConfig
+    }
 
   describe '#constructor', ->
-    it 'should initialize without options', ->
-      expect(@importer).toBeDefined()
-      expect(@importer.sync).not.toBeDefined()
-      expect(@importer.client).not.toBeDefined()
-
     it 'should initialize with options', ->
-      importer = new Import
-        config:
-          project_key: 'foo'
-          client_id: 'id'
-          client_secret: 'secret'
-        # logConfig:
-        #   streams: [
-        #     {level: 'warn', stream: process.stdout}
-        #   ]
-      expect(importer).toBeDefined()
-      expect(importer.client).toBeDefined()
-      expect(importer.client._task._maxParallel).toBe 10
-      expect(importer.sync).toBeDefined()
+      expect(@importer).toBeDefined()
+      expect(@importer.client).toBeDefined()
 
   describe 'match on custom attribute', ->
     xit 'should find match based on custom attribute', ->

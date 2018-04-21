@@ -66,11 +66,7 @@ exports.mockProductType = ->
 ###
 exports.setupProductType = (client, productType, product, projectKey) ->
   console.log 'About to cleanup products...'
-
-  productProjectionService = createService('productProjections', projectKey)
-  productsService = createService('products', projectKey)
-  productsDeleteService = createService('products', projectKey)
-  productProjectionUri = productProjectionService
+  productProjectionUri = createService(projectKey, 'productProjections')
     .sort('id')
     .where('published = "true"')
     .perPage(30)
@@ -80,13 +76,6 @@ exports.setupProductType = (client, productType, product, projectKey) ->
     uri: productProjectionUri
     method: 'GET'
   }
-
-  productsUri = productsService
-    .sort('id')
-    .where('published = "true"')
-    .perPage(30)
-    .build()
-
   client.process productProjectionRequest, (payload) ->
     Promise.map payload.body.results, (existingProduct) ->
       data = {
@@ -96,23 +85,24 @@ exports.setupProductType = (client, productType, product, projectKey) ->
           action: 'unpublish'
         ]
       }
-      productsUnublishService = createService('products', projectKey)
+      unublishService = createService(projectKey, 'products')
       unpublishRequest = {
-        uri: productsUnublishService.byId(existingProduct.id).build()
+        uri: unublishService.byId(existingProduct.id).build()
         method: 'POST'
         body: data
       }
       client.execute(unpublishRequest)
   .then ->
-    service = createService('products', projectKey)
+    service = createService(projectKey, 'products')
     request = {
       uri: service.perPage(30).build()
       method: 'GET'
     }
     client.process request, (payload) ->
       Promise.map payload.body.results, (existingProduct) ->
+        deleteService = createService(projectKey, 'products')
         deleteRequest = {
-          uri: productsDeleteService
+          uri: deleteService
             .byId(existingProduct.id)
             .withVersion(existingProduct.version)
             .build()
@@ -122,7 +112,7 @@ exports.setupProductType = (client, productType, product, projectKey) ->
   .then (result) ->
     console.log "Deleted #{_.size result} products, about to ensure productType"
     # ensure the productType exists, otherwise create it
-    service = createService('productTypes', projectKey)
+    service = createService(projectKey, 'productTypes')
     request = {
       uri: service.where("name = \"#{productType.name}\"").perPage(1).build()
       method: 'GET'
@@ -134,7 +124,7 @@ exports.setupProductType = (client, productType, product, projectKey) ->
       Promise.resolve(_.first(result.body.results))
     else
       console.log "Ensuring productType '#{productType.name}'"
-      service = createService('productTypes', projectKey)
+      service = createService(projectKey, 'productTypes')
       request = {
         uri: service.build()
         method: 'POST'
@@ -145,7 +135,7 @@ exports.setupProductType = (client, productType, product, projectKey) ->
   .then (pt) ->
     if product?
       product.productType.id = pt.id
-      service = createService('products', projectKey)
+      service = createService(projectKey, 'products')
       request = {
         uri: service.build()
         method: 'POST'
@@ -158,17 +148,34 @@ exports.setupProductType = (client, productType, product, projectKey) ->
       Promise.resolve pt # returns productType
 
 
-exports.ensureCategories = (client, categoryList) ->
+exports.ensureCategories = (client, categoryList, projectKey) ->
   console.log 'About to cleanup categories...'
-  client.categories
-  .perPage(30)
-  .process (res) ->
-    Promise.map res.body.results, (category) ->
-      client.categories.byId(category.id).delete(category.version)
+  service = createService(projectKey, 'categories')
+  request = {
+    uri: service.perPage(30).build()
+    method: 'GET'
+  }
+  client.process request, (payload) ->
+    Promise.map payload.body.results, (category) ->
+      deleteService = createService(projectKey, 'categories')
+      deleteRequest = {
+        uri: deleteService
+          .byId(category.id)
+          .withVersion(category.version)
+          .build()
+        method: 'DELETE'
+      }
+      client.execute(deleteRequest)
   .then (result) ->
     console.log "Deleted #{_.size result} categories, creating new one"
     Promise.map categoryList, (category) ->
-      client.categories.create(category)
+      service = createService(projectKey, 'categories')
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body: category
+      }
+      client.execute(request)
       .then (result) -> result.body
 
 exports.generateCategories = (len) ->
@@ -185,6 +192,9 @@ exports.generateCategories = (len) ->
     })
   categories
 
-createService = (type, projectKey) ->
+createService = (projectKey, type) ->
   service = createRequestBuilder({ projectKey })[type]
   service
+
+# This enables this function work in this file and in the test files
+exports.createService = createService

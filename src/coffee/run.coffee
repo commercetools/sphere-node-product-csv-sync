@@ -144,7 +144,7 @@ module.exports = class
         return _subCommandHelp('import') unless program.projectKey
 
         @_ensureCredentials(program)
-        .then (credentials) ->
+        .then (authConfig) ->
           options = _.extend credentials,
             timeout: program.timeout
             show_progress: true
@@ -154,14 +154,15 @@ module.exports = class
             importFormat: if opts.xlsx then 'xlsx' else 'csv'
             debug: Boolean(opts.parent.debug)
             mergeCategoryOrderHints: Boolean(opts.mergeCategoryOrderHints)
-
-          options.host = program.sphereHost if program.sphereHost
-          options.protocol = program.sphereProtocol if program.sphereProtocol
-          if program.sphereAuthHost
-            options.oauth_host = program.sphereAuthHost
-            options.rejectUnauthorized = false
-          options.oauth_protocol = program.sphereAuthProtocol if program.sphereAuthProtocol
-
+            authConfig: authConfig
+            userAgentConfig:
+              libraryName: "#{package_json.name} - Export"
+              libraryVersion: "#{package_json.version}"
+              contactEmail: 'npmjs@commercetools.com'
+            httpConfig:
+              host: program.sphereHost
+              enableRetry: true
+          options.authConfig.host = program.sphereAuthHost
           options.continueOnProblems = opts.continueOnProblems or false
 
           # if program.verbose

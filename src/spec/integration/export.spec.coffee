@@ -1,9 +1,3 @@
-{ createClient } = require '@commercetools/sdk-client'
-{ createAuthMiddlewareForClientCredentialsFlow } = require '@commercetools/sdk-middleware-auth'
-{ createHttpMiddleware } = require '@commercetools/sdk-middleware-http'
-# { createQueueMiddleware } = require '@commercetools/sdk-middleware-queue'
-# { createUserAgentMiddleware } = require '@commercetools/sdk-middleware-user-agent'
-# { createRequestBuilder } = require '@commercetools/api-request-builder'
 _ = require 'underscore'
 path = require 'path'
 iconv = require 'iconv-lite'
@@ -36,11 +30,7 @@ describe 'Export integration tests', ->
   beforeEach (done) ->
     jasmine.getEnv().defaultTimeoutInterval = 30000 # 30 sec
     @export = new Export(constructorOptions)
-    @client = createClient({ middlewares: [
-      createAuthMiddlewareForClientCredentialsFlow constructorOptions.authConfig
-      # createUserAgentMiddleware @options.userAgentConfig
-      createHttpMiddleware constructorOptions.httpConfig
-    ] })
+    @client = @export.client
     @productType = TestHelpers.mockProductType()
 
     @product =

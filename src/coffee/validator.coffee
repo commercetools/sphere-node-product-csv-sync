@@ -10,7 +10,7 @@ Header = require './header'
 
 class Validator
 
-  constructor: (options = {}) ->
+  constructor: (options = {}, client, projectKey) ->
     @types = options.types
     @customerGroups = options.customerGroups
     @categories = options.categories
@@ -21,7 +21,8 @@ class Validator
     # TODO:
     # - pass only correct options, not all classes
     # - avoid creating a new instance of the client, since it should be created from Import class
-    @client = new SphereClient options if options.config
+    @client = client
+    @projectKey = projectKey
     @rawProducts = []
     @errors = []
     @suppressMissingHeaderWarning = false
@@ -77,11 +78,11 @@ class Validator
     promise = Promise.resolve(cache)
     if not cache
       promise = Promise.all([
-        @types.getAll @client
-        @customerGroups.getAll @client
-        @categories.getAll @client
-        @taxes.getAll @client
-        @channels.getAll @client
+        @types.getAll @client, @projectKey
+        @customerGroups.getAll @client, @projectKey
+        @categories.getAll @client, @projectKey
+        @taxes.getAll @client, @projectKey
+        @channels.getAll @client, @projectKey
       ])
 
     promise

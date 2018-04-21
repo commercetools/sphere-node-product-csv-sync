@@ -1,3 +1,12 @@
+{ createClient } = require '@commercetools/sdk-client'
+{
+  createAuthMiddlewareForClientCredentialsFlow
+  createAuthMiddlewareWithExistingToken
+} = require '@commercetools/sdk-middleware-auth'
+{ createHttpMiddleware } = require '@commercetools/sdk-middleware-http'
+{ createQueueMiddleware } = require '@commercetools/sdk-middleware-queue'
+{ createUserAgentMiddleware } = require '@commercetools/sdk-middleware-user-agent'
+{ createRequestBuilder } = require '@commercetools/api-request-builder'
 _ = require 'underscore'
 _.mixin require('underscore-mixins')
 Promise = require 'bluebird'
@@ -34,12 +43,26 @@ Channels = require './channels'
 class Import
 
   constructor: (options = {}) ->
-    if options.config #for easier unit testing
-      @client = new SphereClient options
-      @client.setMaxParallel 10
-      @sync = new ProductSync
-      @repeater = new Repeater attempts: 3
-
+    @projectKey = options.authConfig.projectKey
+    @client = createClient(middlewares: [
+      createAuthMiddlewareWithExistingToken(
+        if options.authConfig.accessToken
+        then "Bearer #{options.authConfig.accessToken}"
+        else ''
+      )
+      createAuthMiddlewareForClientCredentialsFlow
+        host: options.authConfig.host
+        projectKey: @projectKey
+        credentials: options.authConfig.credentials
+      createQueueMiddleware
+        concurrency: 10
+      createUserAgentMiddleware options.userAgentConfig
+      createHttpMiddleware options.httpConfig
+    ])
+    @sync = new ProductSync
+    # @client = new SphereClient options
+    # @client.setMaxParallel 10
+    # @repeater = new Repeater attempts: 3
     options.importFormat = options.importFormat || "csv"
     options.csvDelimiter = options.csvDelimiter || ","
     options.encoding = options.encoding || "utf-8"
@@ -65,7 +88,7 @@ class Import
     @options.taxes = new Taxes()
     @options.channels = new Channels()
 
-    @validator = new Validator(@options)
+    @validator = new Validator(@options, @client, @projectKey)
     @validator.suppressMissingHeaderWarning = @suppressMissingHeaderWarning
     @map = new Mapping(@options)
 
@@ -170,7 +193,14 @@ class Import
 
   processProducts: (products) ->
     filterInput = QueryUtils.mapMatchFunction(@matchBy)(products)
-    @client.productProjections.staged().where(filterInput).fetch()
+    productsServiceUri = createRequestBuilder({@projectKey})
+      .productProjections
+      .staged(true)
+      .where(filterInput)
+      .build()
+    @client.execute
+      uri: productsServiceUri
+      method: 'GET'
     .then (payload) =>
       existingProducts = payload.body.results
       console.warn "Comparing against #{payload.body.count} existing product(s) ..."
@@ -187,7 +217,16 @@ class Import
 
   processProductsBasesOnSkus: (products) ->
     filterInput = QueryUtils.mapMatchFunction("sku")(products)
-    @client.productProjections.staged().where(filterInput).fetch()
+    # @client.productProjections.staged().where(filterInput).fetch()
+
+    productsServiceUri = createRequestBuilder({@projectKey})
+      .productProjections
+      .staged(true)
+      .where(filterInput)
+      .build()
+    @client.execute
+      uri: productsServiceUri
+      method: 'GET'
     .then((payload) =>
       existingProducts = payload.body.results
       console.warn "Comparing against #{payload.body.count} existing product(s) ..."
@@ -284,7 +323,16 @@ class Import
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true
 
-    @client.productProjections.staged(remove or publish).perPage(500).process (result) =>
+    productsServiceUri = createRequestBuilder({@projectKey})
+      .productProjections
+      .staged(remove or publish)
+      .perPage(500)
+      .build()
+    request =
+      uri: productsServiceUri
+      method: 'GET'
+
+    @client.process request, (result) =>
       existingProducts = result.body.results
 
       console.warn "Found #{_.size existingProducts} product(s) ..."
@@ -418,7 +466,18 @@ class Import
     else
       if allUpdateRequests.actions.length
         chunkifiedUpdateRequests = @splitUpdateActionsArray(allUpdateRequests, 500)
-        Promise.all(_.map chunkifiedUpdateRequests, (updateRequest) => @client.products.byId(filtered.getUpdateId()).update(updateRequest))
+        Promise.all(_.map chunkifiedUpdateRequests, (updateRequest) =>
+          productsUri = createRequestBuilder({ @projectKey })
+            .products
+            .byId(filtered.getUpdateId())
+            .build()
+          request = {
+            uri: productsUri
+            method: 'POST'
+            body: updateRequest
+          }
+          @client.execute request
+        )
         .then (result) =>
           @publishProduct(result.body, rowIndex)
           .then -> Promise.resolve "[row #{rowIndex}] Product updated."
@@ -440,7 +499,14 @@ class Import
     else if @updatesOnly
       Promise.resolve "[row #{rowIndex}] UPDATES ONLY - nothing done."
     else
-      @client.products.create(product)
+      service = createRequestBuilder({ @projectKey }).products
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body: product
+      }
+      @client.execute request
+      # @client.products.create(product)
       .then (result) =>
         @publishProduct(result.body, rowIndex, true, publish)
         .then -> Promise.resolve "[row #{rowIndex}] New product created."
@@ -479,5 +545,9 @@ class Import
       Promise.resolve "[row #{rowIndex}] Product deleted."
     .catch (err) ->
       Promise.reject "[row #{rowIndex}] Error on deleting product:\n#{_.prettify err}\n#{_.prettify err.body}"
+
+  createService = (type, projectKey) ->
+    service = createRequestBuilder({ projectKey })[type]
+    service
 
 module.exports = Import
