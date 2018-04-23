@@ -4,8 +4,7 @@ prompt = require 'prompt'
 Csv = require 'csv'
 Promise = require 'bluebird'
 fs = Promise.promisifyAll require('fs')
-{ProjectCredentialsConfig} = require 'sphere-node-utils'
-{getCredentials} = require '@commercetools/get-credentials'
+{ getCredentials } = require '@commercetools/get-credentials'
 Importer = require './import'
 Exporter = require './export'
 CONS = require './constants'
@@ -80,18 +79,6 @@ module.exports = class
         Promise.resolve
           projectKey: argv.projectKey
           credentials: credentials
-            # project_key: argv.projectKey
-            # client_id: argv.clientId
-            # client_secret: argv.clientSecret
-      # .catch(console.error)
-      # ProjectCredentialsConfig.create()
-      # .then (credentials) ->
-      #   Promise.resolve
-      #     config: credentials.enrichCredentials
-      #       project_key: argv.projectKey
-      #       client_id: argv.clientId
-      #       client_secret: argv.clientSecret
-
   @run: (argv) ->
 
     _subCommandHelp = (cmd) ->
@@ -217,27 +204,20 @@ module.exports = class
           options = _.extend credentials,
             timeout: program.timeout
             show_progress: true
-            user_agent: "#{package_json.name} - State - #{package_json.version}"
+            authConfig: authConfig
+            userAgentConfig:
+              libraryName: "#{package_json.name} - State"
+              libraryVersion: "#{package_json.version}"
+              contactEmail: 'npmjs@commercetools.com'
+            httpConfig:
+              host: program.sphereHost
+              enableRetry: true
             # logConfig:
             #   streams: [
             #     {level: 'warn', stream: process.stdout}
             #   ]
 
-          options.host = program.sphereHost if program.sphereHost
-          options.protocol = program.sphereProtocol if program.sphereProtocol
-          if program.sphereAuthHost
-            options.oauth_host = program.sphereAuthHost
-            options.rejectUnauthorized = false
-          options.oauth_protocol = program.sphereAuthProtocol if program.sphereAuthProtocol
-
-          # if program.verbose
-          #   options.logConfig.streams = [
-          #     {level: 'info', stream: process.stdout}
-          #   ]
-          # if program.debug
-          #   options.logConfig.streams = [
-          #     {level: 'debug', stream: process.stdout}
-          #   ]
+          options.authConfig.host = program.sphereAuthHost
 
           remove = opts.changeTo is 'delete'
           publish = switch opts.changeTo
@@ -383,35 +363,25 @@ module.exports = class
         return _subCommandHelp('template') unless program.projectKey
 
         @_ensureCredentials(program)
-        .then (credentials) ->
+        .then (authConfig) ->
           options =
             outputDelimiter: opts.outputDelimiter
-            client: credentials
             timeout: program.timeout
             show_progress: true
-            user_agent: "#{package_json.name} - Template - #{package_json.version}"
+            authConfig: authConfig
+            userAgentConfig:
+              libraryName: "#{package_json.name} - Template"
+              libraryVersion: "#{package_json.version}"
+              contactEmail: 'npmjs@commercetools.com'
+            httpConfig:
+              host: program.sphereHost
+              enableRetry: true
             # logConfig:
             #   streams: [
             #     {level: 'warn', stream: process.stdout}
             #   ]
-
-          options.client.host = program.sphereHost if program.sphereHost
-          options.client.protocol = program.sphereProtocol if program.sphereProtocol
-          if program.sphereAuthHost
-            options.client.oauth_host = program.sphereAuthHost
-            options.client.rejectUnauthorized = false
-          options.client.oauth_protocol = program.sphereAuthProtocol if program.sphereAuthProtocol
-
-
-          # if program.verbose
-          #   options.logConfig.streams = [
-          #     {level: 'info', stream: process.stdout}
-          #   ]
-          # if program.debug
-          #   options.logConfig.streams = [
-          #     {level: 'debug', stream: process.stdout}
-          #   ]
-
+          options.authConfig.host = program.sphereAuthHost
+          
           exporter = new Exporter options
           exporter.createTemplate(opts.languages, opts.out, opts.all)
           .then (result) ->

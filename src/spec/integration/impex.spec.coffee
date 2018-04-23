@@ -30,6 +30,7 @@ describe 'Impex integration tests', ->
       authConfig: authConfig
       httpConfig: httpConfig
       userAgentConfig: userAgentConfig
+      encoding: 'utf8'
     }
     @importer = new Import initOptions
     @importer.matchBy = 'slug'
