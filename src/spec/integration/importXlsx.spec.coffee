@@ -15,6 +15,17 @@ fs = Promise.promisifyAll require('fs')
 tmp.setGracefulCleanup()
 CHANNEL_KEY = 'retailerA'
 
+{ client_id, client_secret, project_key } = Config.config
+authConfig = {
+  host: 'https://auth.sphere.io'
+  projectKey: project_key
+  credentials: {
+    clientId: client_id
+    clientSecret: client_secret
+  }
+}
+httpConfig = { host: 'https://api.sphere.io' }
+userAgentConfig = {}
 
 writeXlsx = (filePath, data) ->
   workbook = new Excel.Workbook()
@@ -37,7 +48,11 @@ writeXlsx = (filePath, data) ->
 
 createImporter = ->
   Config.importFormat = "xlsx"
-  im = new Import Config
+  im = new Import {
+    authConfig: authConfig
+    httpConfig: httpConfig
+    userAgentConfig: userAgentConfig
+  }
   im.matchBy = 'sku'
   im.allowRemovalOfVariants = true
   im.suppressMissingHeaderWarning = true
@@ -52,13 +67,12 @@ describe 'Import integration test', ->
 
     @productType = TestHelpers.mockProductType()
 
-    TestHelpers.setupProductType(@client, @productType)
+    TestHelpers.setupProductType(@client, @productType, null, project_key)
     .then (result) =>
       @productType = result
       @client.channels.ensure(CHANNEL_KEY, 'InventorySupply')
     .then -> done()
     .catch (err) -> done _.prettify(err.body)
-    .done()
   , 120000 # 2min
 
   describe '#importXlsx', ->

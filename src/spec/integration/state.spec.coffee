@@ -9,21 +9,34 @@ performAllProducts = -> true
 TEXT_ATTRIBUTE_NONE = 'attr-text-n'
 
 describe 'State integration tests', ->
-
+  { client_id, client_secret, project_key } = Config.config
+  authConfig = {
+    host: 'https://auth.sphere.io'
+    projectKey: project_key
+    credentials: {
+      clientId: client_id
+      clientSecret: client_secret
+    }
+  }
+  httpConfig = { host: 'https://api.sphere.io' }
+  userAgentConfig = {}
   beforeEach (done) ->
-    @importer = new Import Config
+    @importer = new Import {
+      authConfig: authConfig
+      httpConfig: httpConfig
+      userAgentConfig: userAgentConfig
+    }
     @importer.matchBy = 'sku'
     @importer.suppressMissingHeaderWarning = true
     @client = @importer.client
 
     @productType = TestHelpers.mockProductType()
 
-    TestHelpers.setupProductType(@client, @productType)
+    TestHelpers.setupProductType(@client, @productType, null, project_key)
     .then (result) =>
       @productType = result
       done()
     .catch (err) -> done _.prettify(err.body)
-    .done()
   , 50000 # 50sec
 
 
@@ -51,7 +64,6 @@ describe 'State integration tests', ->
       expect(result[1]).toBe '[row 0] Product unpublished.'
       done()
     .catch (err) -> done _.prettify(err)
-    .done()
   , 50000 # 50sec
 
   it 'should only published products with hasStagedChanges', (done) ->
@@ -77,7 +89,11 @@ describe 'State integration tests', ->
         #{@productType.name},myProduct1,my-slug1,1,sku1,foo
         #{@productType.name},myProduct2,my-slug2,1,sku2,baz
         """
-      im = new Import Config
+      im = new Import {
+        authConfig: authConfig
+        httpConfig: httpConfig
+        userAgentConfig: userAgentConfig
+      }
       im.matchBy = 'slug'
       im.suppressMissingHeaderWarning = true
       im.import(csv)
@@ -92,7 +108,6 @@ describe 'State integration tests', ->
       expect(_.contains(result, '[row 0] Product is already published - no staged changes.')).toBe true
       done()
     .catch (err) -> done _.prettify(err)
-    .done()
   , 50000 # 50sec
 
   it 'should delete unplublished products', (done) ->
@@ -114,5 +129,4 @@ describe 'State integration tests', ->
       expect(result[1]).toBe '[row 0] Product deleted.'
       done()
     .catch (err) -> done _.prettify(err)
-    .done()
   , 50000 # 50sec

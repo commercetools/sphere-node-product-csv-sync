@@ -10,8 +10,7 @@
 _ = require 'underscore'
 _.mixin require('underscore-mixins')
 Promise = require 'bluebird'
-{SphereClient, ProductSync, Errors} = require 'sphere-node-sdk'
-{Repeater} = require 'sphere-node-utils'
+{ ProductSync } = require 'sphere-node-sdk'
 CONS = require './constants'
 GLOBALS = require './globals'
 Validator = require './validator'
@@ -60,9 +59,6 @@ class Import
       createHttpMiddleware options.httpConfig
     ])
     @sync = new ProductSync
-    # @client = new SphereClient options
-    # @client.setMaxParallel 10
-    # @repeater = new Repeater attempts: 3
     options.importFormat = options.importFormat || "csv"
     options.csvDelimiter = options.csvDelimiter || ","
     options.encoding = options.encoding || "utf-8"
@@ -524,13 +520,20 @@ class Import
     else if publish and product.published and not product.hasStagedChanges
       Promise.resolve "[row #{rowIndex}] Product is already published - no staged changes."
     else
-      data =
+      service = createService('products', @projectKey)
+      data = {
         id: product.id
         version: product.version
         actions: [
           action: action
         ]
-      @client.products.byId(product.id).update(data)
+      }
+      request = {
+        uri: service.byId(product.id).build()
+        method: 'POST'
+        body: data
+      }
+      @client.execute(request)
       .then (result) ->
         Promise.resolve "[row #{rowIndex}] Product #{action}ed."
       .catch (err) =>
@@ -540,7 +543,12 @@ class Import
           Promise.reject "[row #{rowIndex}] Problem on #{action}ing product:\n#{_.prettify err}\n#{_.prettify err.body}"
 
   deleteProduct: (product, rowIndex) ->
-    @client.products.byId(product.id).delete(product.version)
+    service = createService('products', @projectKey)
+    request = {
+      uri: service.byId(product.id).build()
+      method: 'DELETE'
+    }
+    @client.execute(request)
     .then ->
       Promise.resolve "[row #{rowIndex}] Product deleted."
     .catch (err) ->

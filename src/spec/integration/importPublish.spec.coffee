@@ -11,8 +11,24 @@ fs = Promise.promisifyAll require('fs')
 # will clean temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
 
+{ client_id, client_secret, project_key } = Config.config
+authConfig = {
+  host: 'https://auth.sphere.io'
+  projectKey: project_key
+  credentials: {
+    clientId: client_id
+    clientSecret: client_secret
+  }
+}
+httpConfig = { host: 'https://api.sphere.io' }
+userAgentConfig = {}
+
 createImporter = ->
-  im = new Import Config
+  im = new Import {
+    authConfig: authConfig
+    httpConfig: httpConfig
+    userAgentConfig: userAgentConfig
+  }
   im.matchBy = 'sku'
   im.allowRemovalOfVariants = true
   im.suppressMissingHeaderWarning = true
@@ -29,13 +45,12 @@ describe 'Import and publish test', ->
 
     @productType = TestHelpers.mockProductType()
 
-    TestHelpers.setupProductType(@client, @productType)
+    TestHelpers.setupProductType(@client, @productType, null, project_key)
     .then (result) =>
       @productType = result
       @client.channels.ensure(CHANNEL_KEY, 'InventorySupply')
     .then -> done()
     .catch (err) -> done _.prettify(err.body)
-    .done()
   , 120000 # 2min
 
   describe '#import', ->
@@ -60,7 +75,15 @@ describe 'Import and publish test', ->
           '[row 2] New product created.',
           '[row 3] New product created.'
         ]
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 2
         products = result.body.results
@@ -101,7 +124,15 @@ describe 'Import and publish test', ->
           '[row 2] Product updated.',
           '[row 3] Product updated.'
         ]
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         products = _.where(result.body.results, { published: true })
         expect(_.size products).toBe 2
@@ -148,7 +179,15 @@ describe 'Import and publish test', ->
           '[row 2] Product updated.',
           '[row 4] Product updated.'
         ]
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         products = _.where(result.body.results, { published: true })
         expect(_.size products).toBe 2
@@ -200,7 +239,15 @@ describe 'Import and publish test', ->
           '[row 3] Product update not necessary.'
         ]
 
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         p = _.where(result.body.results, { published: true })
         expect(p.length).toBe 1

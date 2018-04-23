@@ -15,6 +15,17 @@ Excel = require 'exceljs'
 # will clean temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
 
+{ client_id, client_secret, project_key } = Config.config
+authConfig = {
+  host: 'https://auth.sphere.io'
+  projectKey: project_key
+  credentials: {
+    clientId: client_id
+    clientSecret: client_secret
+  }
+}
+httpConfig = { host: 'https://api.sphere.io' }
+userAgentConfig = {}
 
 readXlsx = (filePath) ->
   values = []
@@ -32,10 +43,12 @@ describe 'Export xlsx integration tests', ->
 
   beforeEach (done) ->
     jasmine.getEnv().defaultTimeoutInterval = 30000 # 30 sec
-    @export = new Export
-      exportFormat: "xlsx",
-      client: Config
-
+    @export = new Export {
+      authConfig: authConfig
+      httpConfig: httpConfig
+      userAgentConfig: userAgentConfig
+      exportFormat: "xlsx"
+    }
     @client = @export.client
 
     @productType = TestHelpers.mockProductType()
@@ -80,7 +93,7 @@ describe 'Export xlsx integration tests', ->
         ]
       ]
 
-    TestHelpers.setupProductType(@client, @productType, @product)
+    TestHelpers.setupProductType(@client, @productType, @product, project_key)
     .then -> done()
     .catch (err) -> done _.prettify(err.body)
   , 60000 # 60sec
@@ -168,9 +181,12 @@ describe 'Export xlsx integration tests', ->
       expect(rows.length).toBe 3
       expect(rows[0].toString()).toBe expectedHeader
       expect(rows[2].toString()).toBe expectedVariant
-
-      @client.productProjections.staged(true)
-      .fetch()
+      service = TestHelpers.createService(project_key, 'productProjections')
+      request = {
+        uri: service.staged(true).build()
+        method: 'GET'
+      }
+      @client.execute request
       .then (res) ->
         expect(res.body.results.length).toBe 1
         product = res.body.results[0]
@@ -227,7 +243,7 @@ describe 'Export xlsx integration tests', ->
       [testProductType.name,null,"productKey",1,"EUR 123456;GBP 98765"]
     ]
 
-    TestHelpers.setupProductType(@client, testProductType, testProduct)
+    TestHelpers.setupProductType(@client, testProductType, testProduct, project_key)
     .then =>
       @export.exportDefault(template, outputLocation)
     .then (result) ->
@@ -243,10 +259,12 @@ describe 'Export xlsx integration tests', ->
 
   it 'should do a full xlsx export with queryString', (done) ->
     exporter = new Export {
-      client: Config,
-      exportFormat: "xlsx",
+      authConfig: authConfig
+      httpConfig: httpConfig
+      userAgentConfig: userAgentConfig
+      exportFormat: "xlsx"
       export: {
-        queryString: 'where=name(en = "Foo")&staged=true',
+        queryString: 'where=name(en = "Foo")&staged=true'
         isQueryEncoded: false
       }
     }
@@ -286,9 +304,12 @@ describe 'Export xlsx integration tests', ->
 
         expect(rows[0].toString()).toBe expectedHeader
         expect(rows[2].toString()).toBe expectedVariant
-
-        @client.productProjections.staged(true)
-        .fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service.staged(true).build()
+          method: 'GET'
+        }
+        @client.execute request
         .then (res) ->
           expect(res.body.results.length).toBe 1
           product = res.body.results[0]
@@ -304,10 +325,12 @@ describe 'Export xlsx integration tests', ->
 
   it 'should do a full xlsx export with encoded queryString', (done) ->
     exporter = new Export {
-      client: Config,
-      exportFormat: "xlsx",
+      authConfig: authConfig
+      httpConfig: httpConfig
+      userAgentConfig: userAgentConfig
+      exportFormat: "xlsx"
       export: {
-        queryString: 'where=name(en%20%3D%20%22Foo%22)&staged=true',
+        queryString: 'where=name(en%20%3D%20%22Foo%22)&staged=true'
         isQueryEncoded: true
       }
     }
@@ -347,9 +370,12 @@ describe 'Export xlsx integration tests', ->
 
       expect(rows[0].toString()).toBe expectedHeader
       expect(rows[2].toString()).toBe expectedVariant
-
-      @client.productProjections.staged(true)
-      .fetch()
+      service = TestHelpers.createService(project_key, 'productProjections')
+      request = {
+        uri: service.staged(true).build()
+        method: 'GET'
+      }
+      @client.execute request
       .then (res) ->
         expect(res.body.results.length).toBe 1
         product = res.body.results[0]

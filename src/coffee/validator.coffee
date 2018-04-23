@@ -2,7 +2,6 @@ _ = require 'underscore'
 _.mixin require('underscore.string').exports()
 Promise = require 'bluebird'
 Csv = require 'csv'
-{SphereClient} = require 'sphere-node-sdk'
 CONS = require './constants'
 GLOBALS = require './globals'
 Mapping = require './mapping'

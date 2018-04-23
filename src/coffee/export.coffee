@@ -7,7 +7,6 @@
 { createQueueMiddleware } = require '@commercetools/sdk-middleware-queue'
 { createUserAgentMiddleware } = require '@commercetools/sdk-middleware-user-agent'
 { createRequestBuilder } = require '@commercetools/api-request-builder'
-
 _ = require 'underscore'
 Csv = require 'csv'
 archiver = require 'archiver'
