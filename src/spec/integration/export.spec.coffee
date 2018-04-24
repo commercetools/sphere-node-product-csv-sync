@@ -196,9 +196,14 @@ describe 'Export integration tests', ->
       expect(csv[0]).toBe expectedHeader
       expect(csv[2]).toBe expectedVariant
       expect(csv[3]).toBe ""
-
-      @client.productProjections.staged(true)
-      .fetch()
+      service = TestHelpers.createService(project_key, 'productProjections')
+      request = {
+        uri: service
+          .staged(true)
+          .build()
+        method: 'GET'
+      }
+      @client.execute request
       .then (res) ->
         expect(res.body.results.length).toBe 1
         product = res.body.results[0]
@@ -314,9 +319,14 @@ describe 'Export integration tests', ->
         expect(csv[0]).toBe expectedHeader
         expect(csv[2]).toBe expectedVariant
         expect(csv[3]).toBe ""
-
-        @client.productProjections.staged(true)
-        .fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .staged(true)
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
         .then (res) ->
           expect(res.body.results.length).toBe 1
           product = res.body.results[0]
@@ -373,9 +383,14 @@ describe 'Export integration tests', ->
         expect(csv[0]).toBe expectedHeader
         expect(csv[2]).toBe expectedVariant
         expect(csv[3]).toBe ""
-
-        @client.productProjections.staged(true)
-        .fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .staged(true)
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
         .then (res) ->
           expect(res.body.results.length).toBe 1
           product = res.body.results[0]

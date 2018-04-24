@@ -71,7 +71,27 @@ describe 'Import integration test', ->
     TestHelpers.setupProductType(@client, @productType, null, project_key)
     .then (result) =>
       @productType = result
-      @client.channels.ensure(CHANNEL_KEY, 'InventorySupply')
+      # Check if channel exists
+      service = TestHelpers.createService(project_key, 'channels')
+      request = {
+        uri: service
+          .where("key=\"#{CHANNEL_KEY}\"")
+          .build()
+        method: 'GET'
+      }
+      @client.execute request
+    .then (result) =>
+      # Create the channel if it doesn't exist else ignore
+      if (!result.body.total)
+        service = TestHelpers.createService(project_key, 'channels')
+        request = {
+          uri: service.build()
+          method: 'POST'
+          body:
+            key: CHANNEL_KEY
+            roles: ['InventorySupply']
+        }
+        @client.execute request
     .then -> done()
     .catch (err) -> done _.prettify(err.body)
   , 120000 # 2min
