@@ -184,8 +184,6 @@ module.exports = class
         .catch (err) ->
           console.error "Problems on getting client credentials from config files: #{err}"
           _subCommandHelp('import')
-        .done()
-
 
     program
       .command 'state'
@@ -196,7 +194,6 @@ module.exports = class
       .option '--forceDelete', 'whether to force deletion without asking for confirmation', false
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo <state>'
       .action (opts) =>
-
         return _subCommandHelp('state') unless program.projectKey
 
         @_ensureCredentials(program)
@@ -240,7 +237,6 @@ module.exports = class
               if err.stack then console.error(err.stack)
               console.error err
               process.exit 1
-            .done()
 
           if remove
             if opts.forceDelete
@@ -265,7 +261,6 @@ module.exports = class
         .catch (err) ->
           console.error "Problems on getting client credentials from config files: #{err}"
           _subCommandHelp('state')
-        .done()
 
     program
       .command 'export'
@@ -348,7 +343,6 @@ module.exports = class
         .catch (err) ->
           console.error "Problems on getting client credentials from config files: #{err}"
           _subCommandHelp('export')
-        .done()
 
     program
       .command 'template'
@@ -393,7 +387,6 @@ module.exports = class
         .catch (err) ->
           console.error "Problems on getting client credentials from config files: #{err}"
           _subCommandHelp('template')
-        .done()
 
     program.parse argv
     program.help() if program.args.length is 0
