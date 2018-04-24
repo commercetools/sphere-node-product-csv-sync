@@ -4,7 +4,7 @@ prompt = require 'prompt'
 Csv = require 'csv'
 Promise = require 'bluebird'
 fs = Promise.promisifyAll require('fs')
-{ getCredentials } = require '@commercetools/get-credentials'
+{ProjectCredentialsConfig} = require 'sphere-node-utils'
 Importer = require './import'
 Exporter = require './export'
 CONS = require './constants'
@@ -74,11 +74,17 @@ module.exports = class
           clientId: argv.clientId
           clientSecret: argv.clientSecret
     else
-      getCredentials(argv.projectKey)
+      ProjectCredentialsConfig.create()
       .then (credentials) ->
+        { project_key, client_id, client_secret } = credentials.enrichCredentials
+          project_key: argv.projectKey
+          client_id: argv.clientId
+          client_secret: argv.clientSecret
         Promise.resolve
-          projectKey: argv.projectKey
-          credentials: credentials
+          projectKey: project_key
+          credentials:
+            clientId: client_id
+            clientSecret: client_secret
   @run: (argv) ->
 
     _subCommandHelp = (cmd) ->
@@ -132,7 +138,7 @@ module.exports = class
 
         @_ensureCredentials(program)
         .then (authConfig) ->
-          options = _.extend credentials,
+          options =
             timeout: program.timeout
             show_progress: true
             user_agent: "#{package_json.name} - Import - #{package_json.version}"
@@ -197,8 +203,8 @@ module.exports = class
         return _subCommandHelp('state') unless program.projectKey
 
         @_ensureCredentials(program)
-        .then (credentials) =>
-          options = _.extend credentials,
+        .then (authConfig) =>
+          options =
             timeout: program.timeout
             show_progress: true
             authConfig: authConfig

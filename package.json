@@ -1,89 +1,88 @@
 {
-  "name": "sphere-node-product-csv-sync",
-  "description": "Import and export your products from/to your SPHERE.IO project.",
-  "version": "0.20.4",
-  "homepage": "https://github.com/sphereio/sphere-node-product-csv-sync",
-  "private": false,
-  "author": {
-    "name": "Hajo Eichler",
-    "email": "hajo.eichler@commercetools.de"
-  },
-  "maintainers": [
-    {
-      "name": "Nicola Molinari",
-      "email": "nicola.molinari@commercetools.de"
-    }
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/sphereio/sphere-node-product-csv-sync.git"
-  },
-  "bugs": {
-    "url": "https://github.com/sphereio/sphere-node-product-csv-sync/issues"
-  },
-  "license": "MIT",
-  "bin": {
-    "product-csv-sync": "bin/product-csv-sync"
-  },
-  "main": "main.js",
-  "engines": {
-    "node": ">= 6"
-  },
-  "scripts": {
-    "lint": "grunt coffeelint",
-    "watch": "grunt watch:dev",
-    "test": "grunt coverage"
-  },
-  "dependencies": {
-    "@commercetools/api-request-builder": "^3.7.1",
-    "@commercetools/get-credentials": "^2.1.4",
-    "@commercetools/sdk-client": "^1.5.5",
-    "@commercetools/sdk-middleware-auth": "^3.5.2",
-    "@commercetools/sdk-middleware-http": "^2.3.3",
-    "@commercetools/sdk-middleware-queue": "^1.1.5",
-    "@commercetools/sdk-middleware-user-agent": "^1.2.7",
-    "archiver": "^2.1.1",
-    "bluebird": "^3.5.1",
-    "commander": "2.15.1",
-    "csv": "0.3.7",
-    "exceljs": "^1.1.1",
-    "extract-zip": "^1.6.5",
-    "iconv-lite": "^0.4.19",
-    "lodash.chunk": "^4.2.0",
-    "lodash.merge": "^4.6.0",
-    "optimist": "0.6.1",
-    "prompt": "1.0.0",
-    "sphere-node-sdk": "^1.22.0",
-    "sphere-node-utils": "^0.9.1",
-    "tmp": "0.0.33",
-    "underscore": "1.8.3",
-    "underscore-mixins": "*",
-    "underscore.string": "^3.3.4",
-    "walk-sync": "^0.3.1"
-  },
-  "devDependencies": {
-    "coffeelint": "^2.1.0",
-    "coveralls": "3.0.0",
-    "cuid": "2.1.1",
-    "grunt": "^1.0.1",
-    "grunt-bump": "^0.8.0",
-    "grunt-coffeelint": "0.0.16",
-    "grunt-contrib-clean": "^1.0.0",
-    "grunt-contrib-coffee": "^1.0.0",
-    "grunt-contrib-concat": "^1.0.1",
-    "grunt-contrib-watch": "^1.0.0",
-    "grunt-shell": "^2.1.0",
-    "istanbul": "0.4.5",
-    "jasmine": "3.1.0",
-    "sphere-coffeelint": "git://github.com/sphereio/sphere-coffeelint.git#master"
-  },
-  "keywords": [
-    "sphere",
-    "sphereio",
-    "api",
-    "sync",
-    "import",
-    "export",
-    "csv"
-  ]
+    "name": "sphere-node-product-csv-sync",
+    "description": "Import and export your products from/to your SPHERE.IO project.",
+    "version": "0.20.4",
+    "homepage": "https://github.com/sphereio/sphere-node-product-csv-sync",
+    "private": false,
+    "author": {
+        "name": "Hajo Eichler",
+        "email": "hajo.eichler@commercetools.de"
+    },
+    "maintainers": [
+        {
+            "name": "Nicola Molinari",
+            "email": "nicola.molinari@commercetools.de"
+        }
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/sphereio/sphere-node-product-csv-sync.git"
+    },
+    "bugs": {
+        "url": "https://github.com/sphereio/sphere-node-product-csv-sync/issues"
+    },
+    "license": "MIT",
+    "bin": {
+        "product-csv-sync": "bin/product-csv-sync"
+    },
+    "main": "main.js",
+    "engines": {
+        "node": ">= 6"
+    },
+    "scripts": {
+        "lint": "grunt coffeelint",
+        "watch": "grunt watch:dev",
+        "test": "grunt coverage"
+    },
+    "dependencies": {
+        "@commercetools/api-request-builder": "^3.7.1",
+        "@commercetools/sdk-client": "^1.5.5",
+        "@commercetools/sdk-middleware-auth": "^3.5.2",
+        "@commercetools/sdk-middleware-http": "^2.3.3",
+        "@commercetools/sdk-middleware-queue": "^1.1.5",
+        "@commercetools/sdk-middleware-user-agent": "^1.2.7",
+        "archiver": "^2.1.1",
+        "bluebird": "^3.5.1",
+        "commander": "2.3.0",
+        "csv": "0.3.7",
+        "exceljs": "^1.1.1",
+        "extract-zip": "^1.6.5",
+        "iconv-lite": "^0.4.19",
+        "lodash.chunk": "^4.2.0",
+        "lodash.merge": "^4.6.0",
+        "optimist": "0.6.1",
+        "prompt": "1.0.0",
+        "sphere-node-sdk": "^1.22.0",
+        "sphere-node-utils": "^0.9.1",
+        "tmp": "0.0.33",
+        "underscore": "1.8.3",
+        "underscore-mixins": "*",
+        "underscore.string": "^3.3.4",
+        "walk-sync": "^0.3.1"
+    },
+    "devDependencies": {
+        "coffeelint": "^2.1.0",
+        "coveralls": "3.0.0",
+        "cuid": "2.1.1",
+        "grunt": "^1.0.1",
+        "grunt-bump": "^0.8.0",
+        "grunt-coffeelint": "0.0.16",
+        "grunt-contrib-clean": "^1.0.0",
+        "grunt-contrib-coffee": "^1.0.0",
+        "grunt-contrib-concat": "^1.0.1",
+        "grunt-contrib-watch": "^1.0.0",
+        "grunt-shell": "^2.1.0",
+        "istanbul": "0.4.5",
+        "jasmine": "3.1.0",
+        "sphere-coffeelint": "git://github.com/sphereio/sphere-coffeelint.git#master"
+    },
+    "keywords": [
+        "sphere",
+        "sphereio",
+        "api",
+        "sync",
+        "import",
+        "export",
+        "csv"
+    ]
 }
