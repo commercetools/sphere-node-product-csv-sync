@@ -150,9 +150,14 @@ class Export
       .productProjections
       .staged(staged)
       .perPage(100)
-  
-    if customWherePredicate
-      productsService.where customWherePredicate
+
+    if @queryOptions.queryString
+      query = @_parseQueryString(@queryOptions.queryString)
+	
+      if customWherePredicate
+        query = @_appendQueryStringPredicate(query, customWherePredicate)
+
+      productsService.where(query.where) if query.where
 
     uri: productsService.build()
     method: 'GET'
@@ -256,7 +261,7 @@ class Export
       console.log("Error while processing products batch", err)
       Promise.reject(err)
 
-  export: (templateContent, outputFile, productTypes, staged = true, where = false, createFileWhenEmpty = false) ->
+  export: (templateContent, outputFile, productTypes, staged = true, customWherePredicate = false, createFileWhenEmpty = false) ->
     @_parse(templateContent)
     .then (header) =>
       writer = null
@@ -272,9 +277,7 @@ class Export
 
         _.each productTypes.body.results, (productType) ->
           header._productTypeLanguageIndexes(productType)
-        if @queryOptions.queryString
-          { staged, where } = @_parseQueryString(@queryOptions.queryString)
-        productsService = @_getProductService(staged, where)
+        productsService = @_getProductService(staged, customWherePredicate)
         @client.process(productsService, (res) =>
           rowsReaded += res.body.count
           console.warn "Fetched #{res.body.count} product(s)."

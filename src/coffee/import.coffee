@@ -213,7 +213,6 @@ class Import
 
   processProductsBasesOnSkus: (products) ->
     filterInput = QueryUtils.mapMatchFunction("sku")(products)
-    # @client.productProjections.staged().where(filterInput).fetch()
 
     productsServiceUri = createRequestBuilder({@projectKey})
       .productProjections
@@ -502,7 +501,6 @@ class Import
         body: product
       }
       @client.execute request
-      # @client.products.create(product)
       .then (result) =>
         @publishProduct(result.body, rowIndex, true, publish)
         .then -> Promise.resolve "[row #{rowIndex}] New product created."
@@ -543,12 +541,18 @@ class Import
           Promise.reject "[row #{rowIndex}] Problem on #{action}ing product:\n#{_.prettify err}\n#{_.prettify err.body}"
 
   deleteProduct: (product, rowIndex) ->
-    service = createService('products', @projectKey)
-    request = {
-      uri: service.byId(product.id).build()
-      method: 'DELETE'
-    }
-    @client.execute(request)
+    # Unpublish product first
+    @publishProduct(product, rowIndex, false)
+    .then =>
+      service = createService('products', @projectKey)
+      request = {
+        uri: service
+          .byId(product.id)
+          .withVersion(product.version)
+          .build()
+        method: 'DELETE'
+      }
+      @client.execute(request)
     .then ->
       Promise.resolve "[row #{rowIndex}] Product deleted."
     .catch (err) ->
