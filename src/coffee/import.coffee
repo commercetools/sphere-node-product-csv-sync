@@ -7,10 +7,10 @@
 { createQueueMiddleware } = require '@commercetools/sdk-middleware-queue'
 { createUserAgentMiddleware } = require '@commercetools/sdk-middleware-user-agent'
 { createRequestBuilder } = require '@commercetools/api-request-builder'
+{ createSyncProducts } = require '@commercetools/sync-actions'
 _ = require 'underscore'
 _.mixin require('underscore-mixins')
 Promise = require 'bluebird'
-{ ProductSync } = require 'sphere-node-sdk'
 CONS = require './constants'
 GLOBALS = require './globals'
 Validator = require './validator'
@@ -58,7 +58,6 @@ class Import
       createUserAgentMiddleware options.userAgentConfig
       createHttpMiddleware options.httpConfig
     ])
-    @sync = new ProductSync
     options.importFormat = options.importFormat || "csv"
     options.csvDelimiter = options.csvDelimiter || ","
     options.encoding = options.encoding || "utf-8"
@@ -118,7 +117,6 @@ class Import
       Promise.resolve csv
     .then (parsed) =>
       parsed = @validator.serialize(parsed)
-
       console.warn "CSV file with #{parsed.count} row(s) loaded."
       @map.header = parsed.header
       @validator.validateOffline(parsed.data)
@@ -415,9 +413,11 @@ class Import
       config.push { type: 'images', group: 'white' }
     else
       config.push { type: 'images', group: 'black' }
-    filtered = @sync.config(config)
-    .buildActions(product, existingProduct, allSameValueAttributes)
-    .filterActions (action) =>
+
+    @sync = createSyncProducts(config)
+    actions = @sync.buildActions(product, existingProduct) #, allSameValueAttributes)
+
+    filteredActions = _.filter(actions, (action) =>
       # console.warn "ACTION", action
       switch action.action
         when 'setAttribute', 'setAttributeInAllVariants'
@@ -439,14 +439,12 @@ class Import
         when 'addVariant', 'addPrice', 'removePrice', 'changePrice', 'addExternalImage', 'removeImage' then true
         when 'removeVariant' then @allowRemovalOfVariants
         else throw Error "The action '#{action.action}' is not supported. Please contact the commercetools support team!"
+    )
 
-    allUpdateRequests = filtered.getUpdatePayload()
-
-    # build update request even if there are no update actions
-    if not filtered.shouldUpdate()
-      allUpdateRequests =
-        version: existingProduct.version
-        actions: []
+    allUpdateRequests = {
+      version: existingProduct.version
+      actions: filteredActions
+    }
 
     # check if we should publish product (only if it was not yet published or if there are some changes)
     if publish and (not existingProduct.published or allUpdateRequests.actions.length)
@@ -464,7 +462,7 @@ class Import
         Promise.all(_.map chunkifiedUpdateRequests, (updateRequest) =>
           productsUri = createRequestBuilder({ @projectKey })
             .products
-            .byId(filtered.getUpdateId())
+            .byId(existingProduct.id)
             .build()
           request = {
             uri: productsUri

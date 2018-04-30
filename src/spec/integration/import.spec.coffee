@@ -1013,7 +1013,6 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-
     it 'should import a simple product with different encoding', (done) ->
       encoding = "win1250"
       @importer.options.encoding = encoding
@@ -1289,8 +1288,6 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-
-
     it 'should clear categories when an empty value given', (done) ->
       skuPrefix = "sku-"
       csv =
@@ -1422,7 +1419,6 @@ describe 'Import integration test', ->
 
           done()
         .catch (err) -> done _.prettify(err)
-
 
     it 'should handle a concurrent modification error when updating by variantId', (done) ->
       skuPrefix = "sku-"

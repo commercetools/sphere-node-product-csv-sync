@@ -44,9 +44,16 @@ class Mapping
 
     if @header.has(CONS.HEADER_ID)
       product.id = rawMaster[@header.toIndex CONS.HEADER_ID]
-
     if @header.has(CONS.HEADER_KEY)
       product.key = rawMaster[@header.toIndex CONS.HEADER_KEY]
+    if @header.has(CONS.HEADER_META_TITLE)
+      product.metaTitle = rawMaster[@header.toIndex CONS.HEADER_META_TITLE] or {}
+    if @header.has(CONS.HEADER_META_DESCRIPTION)
+      product.metaDescription = rawMaster[@header.toIndex CONS.HEADER_META_DESCRIPTION] or {}
+    if @header.has(CONS.HEADER_META_KEYWORDS)
+      product.metaKeywords = rawMaster[@header.toIndex CONS.HEADER_META_KEYWORDS] or {}
+    if @header.has(CONS.HEADER_SEARCH_KEYWORDS)
+      product.searchKeywords = rawMaster[@header.toIndex CONS.HEADER_SEARCH_KEYWORDS] or {}
 
     product.categories = @mapCategories rawMaster, rowIndex
     tax = @mapTaxCategory rawMaster, rowIndex
@@ -235,7 +242,13 @@ class Mapping
       when CONS.ATTRIBUTE_TYPE_BOOLEAN then @mapBoolean rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
       when CONS.ATTRIBUTE_TYPE_REFERENCE then @mapReference rawVariant[@header.toIndex attribute.name], attribute, rowIndex
-      else rawVariant[@header.toIndex attribute.name] # works for text, enum and lenum
+      when CONS.ATTRIBUTE_TYPE_ENUM then @mapEnumAttribute rawVariant[@header.toIndex attribute.name], attribute.type.values
+      when CONS.ATTRIBUTE_TYPE_LENUM then @mapEnumAttribute rawVariant[@header.toIndex attribute.name], attribute.type.values
+      else rawVariant[@header.toIndex attribute.name] # works for text
+
+  mapEnumAttribute: (enumKey, enumValues) ->
+    if enumKey
+      _.find enumValues, (value) -> value.key is enumKey
 
   mapSetAttribute: (rawVariant, attributeName, elementType, languageHeader2Index, rowIndex) ->
     if elementType.name is CONS.ATTRIBUTE_TYPE_LTEXT
@@ -259,6 +272,10 @@ class Mapping
               @mapMoney rawValue, attributeName, rowIndex
             when CONS.ATTRIBUTE_TYPE_NUMBER
               @mapNumber rawValue, attributeName, rowIndex
+            when CONS.ATTRIBUTE_TYPE_ENUM
+              @mapEnumAttribute rawValue, elementType.values
+            when CONS.ATTRIBUTE_TYPE_LENUM
+              @mapEnumAttribute rawValue, elementType.values
             else
               rawValue
 
@@ -397,8 +414,6 @@ class Mapping
 
     return if _.isEmpty values
     values
-
-
 
   mapImages: (rawVariant, variantId, rowIndex) ->
     images = []
