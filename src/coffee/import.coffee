@@ -399,6 +399,7 @@ class Import
     allSameValueAttributes = id2SameForAllAttributes[product.productType.id]
     config = [
       { type: 'base', group: 'white' }
+      { type: 'meta', group: 'white' }
       { type: 'references', group: 'white' }
       { type: 'attributes', group: 'white' }
       { type: 'variants', group: 'white' }
