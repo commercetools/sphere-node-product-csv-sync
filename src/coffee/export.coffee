@@ -153,7 +153,7 @@ class Export
 
     if @queryOptions.queryString
       query = @_parseQueryString(@queryOptions.queryString)
-	
+
       if customWherePredicate
         query = @_appendQueryStringPredicate(query, customWherePredicate)
 

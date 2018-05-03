@@ -99,9 +99,7 @@ module.exports = class
       .option '-s, --clientSecret <secret>', 'your OAuth client secret for the SPHERE.IO API'
       .option '--accessToken <token>', 'an OAuth access token for the SPHERE.IO API, used instead of clientId and clientSecret'
       .option '--sphereHost <host>', 'SPHERE.IO API host to connect to', 'https://api.commercetools.com'
-      .option '--sphereProtocol <protocol>', 'SPHERE.IO API protocol to connect to'
       .option '--sphereAuthHost <host>', 'SPHERE.IO OAuth host to connect to', 'https://auth.commercetools.com'
-      .option '--sphereAuthProtocol <protocol>', 'SPHERE.IO OAuth protocol to connect to'
       .option '--timeout [millis]', 'Set timeout for requests (default is 300000)', parseInt, 300000
       .option '--verbose', 'give more feedback during action'
       .option '--debug', 'give as many feedback as possible'

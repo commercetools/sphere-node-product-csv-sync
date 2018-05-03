@@ -418,7 +418,7 @@ class Import
       config.push { type: 'images', group: 'black' }
 
     @sync = createSyncProducts(config)
-    actions = @sync.buildActions(product, existingProduct) #, allSameValueAttributes)
+    actions = @sync.buildActions(product, existingProduct)
 
     filteredActions = _.filter(actions, (action) =>
       # console.warn "ACTION", action
