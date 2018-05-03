@@ -53,9 +53,7 @@ General command line options can be seen by simply executing the command `node l
     -i, --clientId <id>              your OAuth client id for the SPHERE.IO API
     -s, --clientSecret <secret>      your OAuth client secret for the SPHERE.IO API
     --sphereHost <host>              SPHERE.IO API host to connect to
-    --sphereProtocol <protocol>      SPHERE.IO API protocol to connect to
     --sphereAuthHost <host>          SPHERE.IO OAuth host to connect to
-    --sphereAuthProtocol <protocol>  SPHERE.IO OAuth protocol to connect to
     --timeout [millis]               set timeout for requests (default is 300000)
     --verbose                        give more feedback during action
     --debug                          give as many feedback as possible
@@ -131,6 +129,7 @@ row 5: 2nd variant of product in row 4
 
 Non required product attributes
 - slug
+- state
 - metaTitle
 - metaDescription
 - metaKeywords
@@ -192,6 +191,13 @@ myType,123,thisIsTheValueForAllVariants
 ```
 
 > Please note, that values for those attributes on the variant rows are completely ignored
+
+
+#### Product state
+
+In the `state` column, you can define the state of a product. This column must contain the [state](https://docs.commercetools.com/http-api-projects-states.html#state) key. **Unlike the state command above, this state is used for [state transitions](https://docs.commercetools.com/http-api-projects-products.html#transition-state)**
+
+In order to transition the state of a product, simply set the state key in the `state` column to the next state.
 
 #### Tax Category
 
