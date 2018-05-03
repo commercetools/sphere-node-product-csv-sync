@@ -14,6 +14,7 @@ class Mapping
     @customerGroups = options.customerGroups
     @categories = options.categories
     @taxes = options.taxes
+    @states = options.states
     @channels = options.channels
     @continueOnProblems = options.continueOnProblems
     @errors = []
@@ -58,6 +59,8 @@ class Mapping
     product.categories = @mapCategories rawMaster, rowIndex
     tax = @mapTaxCategory rawMaster, rowIndex
     product.taxCategory = tax if tax
+    state = @mapState rawMaster, rowIndex
+    product.state = state if state
     product.categoryOrderHints = @mapCategoryOrderHints rawMaster, rowIndex
 
     for attribName in CONS.BASE_LOCALIZED_HEADERS
@@ -192,6 +195,20 @@ class Mapping
     tax =
       typeId: 'tax-category'
       id: @taxes.name2id[rawTax]
+
+  mapState: (rawMaster, rowIndex) ->
+    return unless @hasValidValueForHeader(rawMaster, CONS.HEADER_STATE)
+    rawState = rawMaster[@header.toIndex CONS.HEADER_STATE]
+    if _.contains(@states.duplicateKeys, rawState)
+      @errors.push "[row #{rowIndex}:#{CONS.HEADER_STATE}] The state '#{rawState}' is not unqiue!"
+      return
+    unless _.has(@states.key2id, rawState)
+      @errors.push "[row #{rowIndex}:#{CONS.HEADER_STATE}] The state '#{rawState}' is unknown!"
+      return
+
+    state =
+      typeId: 'state'
+      id: @states.key2id[rawState]
 
   mapVariant: (rawVariant, variantId, productType, rowIndex, product) ->
     if variantId > 2 and @header.has(CONS.HEADER_VARIANT_ID)

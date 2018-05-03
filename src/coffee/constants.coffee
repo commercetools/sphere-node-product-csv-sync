@@ -5,6 +5,7 @@ constants =
   HEADER_EXTERNAL_ID: 'externalId'
   HEADER_VARIANT_ID: 'variantId'
   HEADER_VARIANT_KEY: 'variantKey'
+  HEADER_STATE: 'state'
 
   HEADER_NAME: 'name'
   HEADER_DESCRIPTION: 'description'
@@ -76,6 +77,7 @@ exports.SPECIAL_HEADERS = [
   constants.HEADER_TAX,
   constants.HEADER_CATEGORIES,
   constants.HEADER_IMAGES,
+  constants.HEADER_STATE
   # TODO: image labels and dimensions
 ]
 

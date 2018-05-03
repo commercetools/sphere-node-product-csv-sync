@@ -47,6 +47,14 @@ createImporter = ->
 CHANNEL_KEY = 'retailerA'
 
 describe 'Import integration test', ->
+  beforeAll (done) ->
+    @client = createImporter().client
+    TestHelpers.ensureChannels(@client, project_key, CHANNEL_KEY)
+    .then =>
+      TestHelpers.ensurePreviousState(@client, project_key)
+    .then =>
+      TestHelpers.ensureNextState(@client, project_key)
+    .then -> done()
 
   beforeEach (done) ->
     jasmine.getEnv().defaultTimeoutInterval = 360000 # 3mins
@@ -58,28 +66,7 @@ describe 'Import integration test', ->
     TestHelpers.setupProductType(@client, @productType, null, project_key)
     .then (result) =>
       @productType = result
-      # Check if channel exists
-      service = TestHelpers.createService(project_key, 'channels')
-      request = {
-        uri: service
-          .where("key=\"#{CHANNEL_KEY}\"")
-          .build()
-        method: 'GET'
-      }
-      @client.execute request
-    .then (result) =>
-      # Create the channel if it doesn't exist else ignore
-      if (!result.body.total)
-        service = TestHelpers.createService(project_key, 'channels')
-        request = {
-          uri: service.build()
-          method: 'POST'
-          body:
-            key: CHANNEL_KEY
-            roles: ['InventorySupply']
-        }
-        @client.execute request
-    .then -> done()
+      done()
     .catch (err) -> done _.prettify(err.body)
   , 120000 # 2min
 
@@ -90,6 +77,44 @@ describe 'Import integration test', ->
       @newProductSlug = TestHelpers.uniqueId 'slug-'
       @newProductSku = TestHelpers.uniqueId 'sku-'
       @newProductSku += '"foo"'
+
+    it 'should transition a product state', (done) ->
+      csv =
+        """
+        productType,name,slug,variantId,key,state
+        #{@productType.id},#{@newProductName},#{@newProductSlug},1,productKey,previous-state
+        """
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        csv =
+        """
+        productType,name,slug,variantId,key,state
+        #{@productType.id},#{@newProductName},#{@newProductSlug},1,productKey,next-state
+        """
+        im = createImporter()
+        im.matchBy = 'slug'
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .expand 'state'
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.state.obj.key).toEqual 'next-state'
+        done()
+      .catch (err) -> done _.prettify(err)
 
     it 'should import a simple product', (done) ->
       csv =

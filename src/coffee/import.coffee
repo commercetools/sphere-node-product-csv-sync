@@ -32,6 +32,7 @@ tmp.setGracefulCleanup()
 Types = require './types'
 Categories = require './categories'
 CustomerGroups = require './customergroups'
+States = require './states'
 Taxes = require './taxes'
 Channels = require './channels'
 
@@ -80,6 +81,7 @@ class Import
     @options.types = new Types()
     @options.customerGroups = new CustomerGroups()
     @options.categories = new Categories()
+    @options.states = new States()
     @options.taxes = new Taxes()
     @options.channels = new Channels()
 
@@ -434,10 +436,11 @@ class Import
         when 'setSearchKeywords' then header.has(CONS.HEADER_SEARCH_KEYWORDS) or header.hasLanguageForBaseAttribute(CONS.HEADER_SEARCH_KEYWORDS)
         when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
+        when 'transitionState' then header.has(CONS.HEADER_STATE)
         when 'setSku' then header.has(CONS.HEADER_SKU)
         when 'setProductVariantKey' then header.has(CONS.HEADER_VARIANT_KEY)
         when 'setKey' then header.has(CONS.HEADER_KEY)
-        when 'addVariant', 'addPrice', 'removePrice', 'changePrice', 'addExternalImage', 'removeImage' then true
+        when 'addVariant', 'addPrice', 'removePrice', 'changePrice', 'addExternalImage', 'removeImage', 'setImageLabel', 'moveImagetoPosition' then true
         when 'removeVariant' then @allowRemovalOfVariants
         else throw Error "The action '#{action.action}' is not supported. Please contact the commercetools support team!"
     )

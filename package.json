@@ -8,10 +8,12 @@
     "name": "Hajo Eichler",
     "email": "hajo.eichler@commercetools.de"
   },
-  "maintainers": [{
-    "name": "Nicola Molinari",
-    "email": "nicola.molinari@commercetools.de"
-  }],
+  "maintainers": [
+    {
+      "name": "Nicola Molinari",
+      "email": "nicola.molinari@commercetools.de"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/sphereio/sphere-node-product-csv-sync.git"
@@ -39,7 +41,7 @@
     "@commercetools/sdk-middleware-http": "^2.3.3",
     "@commercetools/sdk-middleware-queue": "^1.1.5",
     "@commercetools/sdk-middleware-user-agent": "^1.2.7",
-    "@commercetools/sync-actions": "^1.22.2",
+    "@commercetools/sync-actions": "^1.22.3",
     "archiver": "^2.1.1",
     "bluebird": "^3.5.1",
     "commander": "2.3.0",

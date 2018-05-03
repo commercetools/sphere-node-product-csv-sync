@@ -14,6 +14,7 @@ class Validator
     @customerGroups = options.customerGroups
     @categories = options.categories
     @taxes = options.taxes
+    @states = options.states
     @channels = options.channels
 
     options.validator = @
@@ -81,17 +82,19 @@ class Validator
         @customerGroups.getAll @client, @projectKey
         @categories.getAll @client, @projectKey
         @taxes.getAll @client, @projectKey
+        @states.getAll @client, @projectKey
         @channels.getAll @client, @projectKey
       ])
 
     promise
     .then (resources) =>
-      [productTypes, customerGroups, categories, taxes, channels] = resources
+      [productTypes, customerGroups, categories, taxes, states, channels] = resources
       @productTypes = productTypes.body.results
       @types.buildMaps @productTypes
       @customerGroups.buildMaps customerGroups.body.results
       @categories.buildMaps categories.body.results
       @taxes.buildMaps taxes.body.results
+      @states.buildMaps states.body.results
       @channels.buildMaps channels.body.results
       Promise.resolve resources
 

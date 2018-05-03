@@ -192,6 +192,75 @@ exports.generateCategories = (len) ->
     })
   categories
 
+exports.ensurePreviousState = (client, projectKey) ->
+  # Check if states exist
+  service = createService(projectKey, 'states')
+  request = {
+    uri: service
+      .where("key=\"previous-state\"")
+      .build()
+    method: 'GET'
+  }
+  client.execute request
+  .then (result) =>
+    # Create the state if it doesn't exist else ignore
+    if (!result.body.total)
+      service = createService(projectKey, 'states')
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body:
+          key: 'previous-state'
+          type: 'ProductState'
+      }
+      client.execute request
+
+exports.ensureNextState = (client, projectKey) ->
+  # Check if states exist
+  service = createService(projectKey, 'states')
+  request = {
+    uri: service
+      .where("key=\"next-state\"")
+      .build()
+    method: 'GET'
+  }
+  client.execute request
+  .then (result) =>
+    # Create the state if it doesn't exist else ignore
+    if (!result.body.total)
+      service = createService(projectKey, 'states')
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body:
+          key: 'next-state'
+          type: 'ProductState'
+      }
+      client.execute request
+
+exports.ensureChannels = (client, projectKey, channelKey) ->
+  # Check if channel exists
+  service = createService(projectKey, 'channels')
+  request = {
+    uri: service
+      .where("key=\"#{channelKey}\"")
+      .build()
+    method: 'GET'
+  }
+  client.execute request
+  .then (result) =>
+    # Create the channel if it doesn't exist else ignore
+    if (!result.body.total)
+      service = createService(projectKey, 'channels')
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body:
+          key: channelKey
+          roles: ['InventorySupply']
+      }
+      client.execute request
+
 createService = (projectKey, type) ->
   service = createRequestBuilder({ projectKey })[type]
   service
