@@ -1,6 +1,6 @@
 _ = require 'underscore'
 CONS = require './constants'
-{ createRequestBuilder } = require '@commercetools/api-request-builder'
+{ fetchResources } = require './resourceutils'
 
 # TODO:
 # - JSDoc
@@ -14,16 +14,7 @@ class Types
     @id2nameAttributeDefMap = {}
 
   getAll: (client, projectKey) ->
-    service = createRequestBuilder {projectKey}
-    request =
-      uri: service.productTypes.build()
-      method: 'GET'
-    handler = (payload) -> Promise.resolve(payload)
-    client.process request, handler, { accumulate: true }
-      .then (response) ->
-        response.reduce (acc, payload) ->
-          acc.concat(payload.body.results)
-        , []
+    fetchResources(client, projectKey, 'productTypes')
 
   buildMaps: (productTypes) ->
     _.each productTypes, (pt, index) =>

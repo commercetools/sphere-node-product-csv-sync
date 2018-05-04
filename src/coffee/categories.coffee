@@ -1,6 +1,6 @@
 _ = require 'underscore'
-{ createRequestBuilder } = require '@commercetools/api-request-builder'
-GLOBALS = require '../lib/globals'
+GLOBALS = require './globals'
+{ fetchResources } = require './resourceutils'
 
 # TODO:
 # - JSDoc
@@ -17,16 +17,8 @@ class Categories
     @duplicateNames = []
 
   getAll: (client, projectKey) ->
-    service = createRequestBuilder {projectKey}
-    request =
-      uri: service.categories.build()
-      method: 'GET'
-    handler = (payload) -> Promise.resolve(payload)
-    client.process request, handler, { accumulate: true }
-      .then (response) ->
-        response.reduce (acc, payload) ->
-          acc.concat(payload.body.results)
-        , []
+    fetchResources(client, projectKey, 'categories')
+
   buildMaps: (categories) ->
     _.each categories, (category, index) =>
       name = category.name[GLOBALS.DEFAULT_LANGUAGE]

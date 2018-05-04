@@ -1,5 +1,5 @@
 _ = require 'underscore'
-{ createRequestBuilder } = require '@commercetools/api-request-builder'
+{ fetchResources } = require './resourceutils'
 
 # TODO:
 # - JSDoc
@@ -11,16 +11,7 @@ class Taxes
     @duplicateNames = []
 
   getAll: (client, projectKey) ->
-    service = createRequestBuilder {projectKey}
-    request =
-      uri: service.taxCategories.build()
-      method: 'GET'
-    handler = (payload) -> Promise.resolve(payload)
-    client.process request, handler, { accumulate: true }
-      .then (response) ->
-        response.reduce (acc, payload) ->
-          acc.concat(payload.body.results)
-        , []
+    fetchResources(client, projectKey, 'taxCategories')
 
   buildMaps: (taxCategories) ->
     _.each taxCategories, (taxCat) =>
