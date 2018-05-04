@@ -172,13 +172,13 @@ class Export
     ]
     Promise.all(data)
     .then ([productTypes, categories, channels, customerGroups, taxes]) =>
-      @typesService.buildMaps productTypes.body.results
-      @categoryService.buildMaps categories.body.results
-      @channelService.buildMaps channels.body.results
-      @customerGroupService.buildMaps customerGroups.body.results
-      @taxService.buildMaps taxes.body.results
+      @typesService.buildMaps productTypes
+      @categoryService.buildMaps categories
+      @channelService.buildMaps channels
+      @customerGroupService.buildMaps customerGroups
+      @taxService.buildMaps taxes
 
-      console.warn "Fetched #{productTypes.body.total} product type(s)."
+      console.warn "Fetched #{productTypes.length} product type(s)."
       Promise.resolve({productTypes, categories, channels, customerGroups, taxes})
 
   exportDefault: (templateContent, outputFile, staged = true) =>
@@ -203,13 +203,13 @@ class Export
 
     @_fetchResources()
     .then ({productTypes}) =>
-      if not productTypes.body.results.length
+      if not productTypes.length
         return Promise.reject("Project does not have any productTypes.")
 
       tempDir = tmp.dirSync({ unsafeCleanup: true })
       console.log "Creating temp directory in %s", tempDir.name
 
-      Promise.map productTypes.body.results, (type) =>
+      Promise.map productTypes, (type) =>
         console.log 'Processing products with productType "%s"', type.name
         csv = new ExportMapping().createTemplate(type, [lang])
         fileName = _.slugify(type.name)+"_"+type.id+"."+@options.exportFormat
@@ -254,7 +254,7 @@ class Export
         product.variants = _.compact(product.variants)
         data = data.concat exportMapper.mapProduct(
           product,
-          productTypes.body.results
+          productTypes
         )
       writer.write data
     .catch (err) ->
@@ -275,7 +275,7 @@ class Export
         header.toLanguageIndex()
         exportMapper = @_initMapping(header)
 
-        _.each productTypes.body.results, (productType) ->
+        _.each productTypes, (productType) ->
           header._productTypeLanguageIndexes(productType)
         productsService = @_getProductService(staged, customWherePredicate)
         @client.process(productsService, (res) =>

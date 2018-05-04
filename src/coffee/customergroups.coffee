@@ -11,9 +11,15 @@ class CustomerGroups
 
   getAll: (client, projectKey) ->
     service = createRequestBuilder {projectKey}
-    client.execute
+    request =
       uri: service.customerGroups.build()
       method: 'GET'
+    handler = (payload) -> Promise.resolve(payload)
+    client.process request, handler, { accumulate: true }
+      .then (response) ->
+        response.reduce (acc, payload) ->
+          acc.concat(payload.body.results)
+        , []
 
   buildMaps: (customerGroups) ->
     _.each customerGroups, (group) =>

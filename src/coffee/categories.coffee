@@ -18,10 +18,15 @@ class Categories
 
   getAll: (client, projectKey) ->
     service = createRequestBuilder {projectKey}
-    client.execute
+    request =
       uri: service.categories.build()
       method: 'GET'
-
+    handler = (payload) -> Promise.resolve(payload)
+    client.process request, handler, { accumulate: true }
+      .then (response) ->
+        response.reduce (acc, payload) ->
+          acc.concat(payload.body.results)
+        , []
   buildMaps: (categories) ->
     _.each categories, (category, index) =>
       name = category.name[GLOBALS.DEFAULT_LANGUAGE]

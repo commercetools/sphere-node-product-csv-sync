@@ -89,13 +89,13 @@ class Validator
     promise
     .then (resources) =>
       [productTypes, customerGroups, categories, taxes, states, channels] = resources
-      @productTypes = productTypes.body.results
+      @productTypes = productTypes
       @types.buildMaps @productTypes
-      @customerGroups.buildMaps customerGroups.body.results
-      @categories.buildMaps categories.body.results
-      @taxes.buildMaps taxes.body.results
-      @states.buildMaps states.body.results
-      @channels.buildMaps channels.body.results
+      @customerGroups.buildMaps customerGroups
+      @categories.buildMaps categories
+      @taxes.buildMaps taxes
+      @states.buildMaps states
+      @channels.buildMaps channels
       Promise.resolve resources
 
   validateOnline: ->
