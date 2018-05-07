@@ -65,18 +65,26 @@ module.exports = class
   @_ensureCredentials: (argv) ->
     if argv.accessToken
       Promise.resolve
-        config:
-          project_key: argv.projectKey
-        access_token: argv.accessToken
+        projectKey: argv.projectKey
+        accessToken: argv.accessToken
+    else if argv.clientId and argv.clientSecret
+      Promise.resolve
+        projectKey: argv.projectKey
+        credentials:
+          clientId: argv.clientId
+          clientSecret: argv.clientSecret
     else
       ProjectCredentialsConfig.create()
       .then (credentials) ->
+        { project_key, client_id, client_secret } = credentials.enrichCredentials
+          project_key: argv.projectKey
+          client_id: argv.clientId
+          client_secret: argv.clientSecret
         Promise.resolve
-          config: credentials.enrichCredentials
-            project_key: argv.projectKey
-            client_id: argv.clientId
-            client_secret: argv.clientSecret
-
+          projectKey: project_key
+          credentials:
+            clientId: client_id
+            clientSecret: client_secret
   @run: (argv) ->
 
     _subCommandHelp = (cmd) ->
@@ -90,10 +98,8 @@ module.exports = class
       .option '-i, --clientId <id>', 'your OAuth client id for the SPHERE.IO API'
       .option '-s, --clientSecret <secret>', 'your OAuth client secret for the SPHERE.IO API'
       .option '--accessToken <token>', 'an OAuth access token for the SPHERE.IO API, used instead of clientId and clientSecret'
-      .option '--sphereHost <host>', 'SPHERE.IO API host to connect to'
-      .option '--sphereProtocol <protocol>', 'SPHERE.IO API protocol to connect to'
-      .option '--sphereAuthHost <host>', 'SPHERE.IO OAuth host to connect to'
-      .option '--sphereAuthProtocol <protocol>', 'SPHERE.IO OAuth protocol to connect to'
+      .option '--sphereHost <host>', 'SPHERE.IO API host to connect to', 'https://api.commercetools.com'
+      .option '--sphereAuthHost <host>', 'SPHERE.IO OAuth host to connect to', 'https://auth.commercetools.com'
       .option '--timeout [millis]', 'Set timeout for requests (default is 300000)', parseInt, 300000
       .option '--verbose', 'give more feedback during action'
       .option '--debug', 'give as many feedback as possible'
@@ -129,8 +135,8 @@ module.exports = class
         return _subCommandHelp('import') unless program.projectKey
 
         @_ensureCredentials(program)
-        .then (credentials) ->
-          options = _.extend credentials,
+        .then (authConfig) ->
+          options =
             timeout: program.timeout
             show_progress: true
             user_agent: "#{package_json.name} - Import - #{package_json.version}"
@@ -139,14 +145,15 @@ module.exports = class
             importFormat: if opts.xlsx then 'xlsx' else 'csv'
             debug: Boolean(opts.parent.debug)
             mergeCategoryOrderHints: Boolean(opts.mergeCategoryOrderHints)
-
-          options.host = program.sphereHost if program.sphereHost
-          options.protocol = program.sphereProtocol if program.sphereProtocol
-          if program.sphereAuthHost
-            options.oauth_host = program.sphereAuthHost
-            options.rejectUnauthorized = false
-          options.oauth_protocol = program.sphereAuthProtocol if program.sphereAuthProtocol
-
+            authConfig: authConfig
+            userAgentConfig:
+              libraryName: "#{package_json.name} - Export"
+              libraryVersion: "#{package_json.version}"
+              contactEmail: 'npmjs@commercetools.com'
+            httpConfig:
+              host: program.sphereHost
+              enableRetry: true
+          options.authConfig.host = program.sphereAuthHost
           options.continueOnProblems = opts.continueOnProblems or false
 
           # if program.verbose
@@ -181,8 +188,6 @@ module.exports = class
         .catch (err) ->
           console.error "Problems on getting client credentials from config files: #{err}"
           _subCommandHelp('import')
-        .done()
-
 
     program
       .command 'state'
@@ -193,35 +198,27 @@ module.exports = class
       .option '--forceDelete', 'whether to force deletion without asking for confirmation', false
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo <state>'
       .action (opts) =>
-
         return _subCommandHelp('state') unless program.projectKey
 
         @_ensureCredentials(program)
-        .then (credentials) =>
-          options = _.extend credentials,
+        .then (authConfig) =>
+          options =
             timeout: program.timeout
             show_progress: true
-            user_agent: "#{package_json.name} - State - #{package_json.version}"
+            authConfig: authConfig
+            userAgentConfig:
+              libraryName: "#{package_json.name} - State"
+              libraryVersion: "#{package_json.version}"
+              contactEmail: 'npmjs@commercetools.com'
+            httpConfig:
+              host: program.sphereHost
+              enableRetry: true
             # logConfig:
             #   streams: [
             #     {level: 'warn', stream: process.stdout}
             #   ]
 
-          options.host = program.sphereHost if program.sphereHost
-          options.protocol = program.sphereProtocol if program.sphereProtocol
-          if program.sphereAuthHost
-            options.oauth_host = program.sphereAuthHost
-            options.rejectUnauthorized = false
-          options.oauth_protocol = program.sphereAuthProtocol if program.sphereAuthProtocol
-
-          # if program.verbose
-          #   options.logConfig.streams = [
-          #     {level: 'info', stream: process.stdout}
-          #   ]
-          # if program.debug
-          #   options.logConfig.streams = [
-          #     {level: 'debug', stream: process.stdout}
-          #   ]
+          options.authConfig.host = program.sphereAuthHost
 
           remove = opts.changeTo is 'delete'
           publish = switch opts.changeTo
@@ -244,7 +241,6 @@ module.exports = class
               if err.stack then console.error(err.stack)
               console.error err
               process.exit 1
-            .done()
 
           if remove
             if opts.forceDelete
@@ -269,7 +265,6 @@ module.exports = class
         .catch (err) ->
           console.error "Problems on getting client credentials from config files: #{err}"
           _subCommandHelp('state')
-        .done()
 
     program
       .command 'export'
@@ -297,7 +292,7 @@ module.exports = class
         return _subCommandHelp('export') unless program.projectKey
 
         @_ensureCredentials(program)
-        .then (credentials) ->
+        .then (authConfig) ->
           options =
             encoding: opts.encoding
             exportFormat: if opts.xlsx then 'xlsx' else 'csv'
@@ -307,21 +302,21 @@ module.exports = class
             categoryBy: opts.categoryBy
             categoryOrderHintBy: opts.categoryOrderHintBy || 'id'
             debug: Boolean(opts.parent.debug)
-            client: _.extend credentials,
-              timeout: program.timeout
-              user_agent: "#{package_json.name} - Export - #{package_json.version}"
             export:
               show_progress: true
               queryString: opts.queryString
               isQueryEncoded: opts.queryEncoded or false
               filterVariantsByAttributes: opts.filterVariantsByAttributes
               filterPrices: opts.filterPrices
-          options.client.host = program.sphereHost if program.sphereHost
-          options.client.protocol = program.sphereProtocol if program.sphereProtocol
-          if program.sphereAuthHost
-            options.client.oauth_host = program.sphereAuthHost
-            options.client.rejectUnauthorized = false
-          options.client.oauth_protocol = program.sphereAuthProtocol if program.sphereAuthProtocol
+            authConfig: authConfig
+            userAgentConfig:
+              libraryName: "#{package_json.name} - Export"
+              libraryVersion: "#{package_json.version}"
+              contactEmail: 'npmjs@commercetools.com'
+            httpConfig:
+              host: program.sphereHost
+              enableRetry: true
+          options.authConfig.host = program.sphereAuthHost
 
           exporter = new Exporter options
           (if opts.fullExport then Promise.resolve false
@@ -347,11 +342,11 @@ module.exports = class
               process.exit 1
           .catch (err) ->
             console.error "Problems on reading template input: #{err}"
+            console.error err
             process.exit 2
         .catch (err) ->
           console.error "Problems on getting client credentials from config files: #{err}"
           _subCommandHelp('export')
-        .done()
 
     program
       .command 'template'
@@ -366,35 +361,25 @@ module.exports = class
         return _subCommandHelp('template') unless program.projectKey
 
         @_ensureCredentials(program)
-        .then (credentials) ->
+        .then (authConfig) ->
           options =
             outputDelimiter: opts.outputDelimiter
-            client: credentials
             timeout: program.timeout
             show_progress: true
-            user_agent: "#{package_json.name} - Template - #{package_json.version}"
+            authConfig: authConfig
+            userAgentConfig:
+              libraryName: "#{package_json.name} - Template"
+              libraryVersion: "#{package_json.version}"
+              contactEmail: 'npmjs@commercetools.com'
+            httpConfig:
+              host: program.sphereHost
+              enableRetry: true
             # logConfig:
             #   streams: [
             #     {level: 'warn', stream: process.stdout}
             #   ]
-
-          options.client.host = program.sphereHost if program.sphereHost
-          options.client.protocol = program.sphereProtocol if program.sphereProtocol
-          if program.sphereAuthHost
-            options.client.oauth_host = program.sphereAuthHost
-            options.client.rejectUnauthorized = false
-          options.client.oauth_protocol = program.sphereAuthProtocol if program.sphereAuthProtocol
-
-
-          # if program.verbose
-          #   options.logConfig.streams = [
-          #     {level: 'info', stream: process.stdout}
-          #   ]
-          # if program.debug
-          #   options.logConfig.streams = [
-          #     {level: 'debug', stream: process.stdout}
-          #   ]
-
+          options.authConfig.host = program.sphereAuthHost
+          
           exporter = new Exporter options
           exporter.createTemplate(opts.languages, opts.out, opts.all)
           .then (result) ->
@@ -406,7 +391,6 @@ module.exports = class
         .catch (err) ->
           console.error "Problems on getting client credentials from config files: #{err}"
           _subCommandHelp('template')
-        .done()
 
     program.parse argv
     program.help() if program.args.length is 0

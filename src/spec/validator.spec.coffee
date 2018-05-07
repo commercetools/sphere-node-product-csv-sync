@@ -232,8 +232,8 @@ describe 'Validator', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-  xdescribe '#valProduct', ->
-    it 'should return no error', (done) ->
+  describe '#valProduct', ->
+    xit 'should return no error', (done) ->
       csv =
         """
         productType,name,variantId

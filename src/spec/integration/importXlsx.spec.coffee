@@ -15,6 +15,17 @@ fs = Promise.promisifyAll require('fs')
 tmp.setGracefulCleanup()
 CHANNEL_KEY = 'retailerA'
 
+{ client_id, client_secret, project_key } = Config.config
+authConfig = {
+  host: 'https://auth.sphere.io'
+  projectKey: project_key
+  credentials: {
+    clientId: client_id
+    clientSecret: client_secret
+  }
+}
+httpConfig = { host: 'https://api.sphere.io' }
+userAgentConfig = {}
 
 writeXlsx = (filePath, data) ->
   workbook = new Excel.Workbook()
@@ -37,7 +48,11 @@ writeXlsx = (filePath, data) ->
 
 createImporter = ->
   Config.importFormat = "xlsx"
-  im = new Import Config
+  im = new Import {
+    authConfig: authConfig
+    httpConfig: httpConfig
+    userAgentConfig: userAgentConfig
+  }
   im.matchBy = 'sku'
   im.allowRemovalOfVariants = true
   im.suppressMissingHeaderWarning = true
@@ -52,13 +67,32 @@ describe 'Import integration test', ->
 
     @productType = TestHelpers.mockProductType()
 
-    TestHelpers.setupProductType(@client, @productType)
+    TestHelpers.setupProductType(@client, @productType, null, project_key)
     .then (result) =>
       @productType = result
-      @client.channels.ensure(CHANNEL_KEY, 'InventorySupply')
+      # Check if channel exists
+      service = TestHelpers.createService(project_key, 'channels')
+      request = {
+        uri: service
+          .where("key=\"#{CHANNEL_KEY}\"")
+          .build()
+        method: 'GET'
+      }
+      @client.execute request
+    .then (result) =>
+      # Create the channel if it doesn't exist else ignore
+      if (!result.body.total)
+        service = TestHelpers.createService(project_key, 'channels')
+        request = {
+          uri: service.build()
+          method: 'POST'
+          body:
+            key: CHANNEL_KEY
+            roles: ['InventorySupply']
+        }
+        @client.execute request
     .then -> done()
     .catch (err) -> done _.prettify(err.body)
-    .done()
   , 120000 # 2min
 
   describe '#importXlsx', ->
@@ -81,7 +115,16 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged(true)
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -103,7 +146,16 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged(true)
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) ->
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -170,7 +222,16 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged(true)
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]

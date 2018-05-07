@@ -12,23 +12,39 @@ SET_TEXT_ATTRIBUTE_NONE = 'attr-set-text-n'
 BOOLEAN_ATTRIBUTE_NONE = 'attr-boolean-n'
 
 describe 'Impex integration tests', ->
+  { client_id, client_secret, project_key } = Config.config
+  authConfig = {
+    host: 'https://auth.sphere.io'
+    projectKey: project_key
+    credentials: {
+      clientId: client_id
+      clientSecret: client_secret
+    }
+  }
+  httpConfig = { host: 'https://api.sphere.io' }
+  userAgentConfig = {}
 
   beforeEach (done) ->
-    jasmine.getEnv().defaultTimeoutInterval = 90000 # 90 sec
-    @importer = new Import Config
+    jasmine.getEnv().defaultTimeoutInterval = 120000 # 2mins
+    initOptions = {
+      authConfig: authConfig
+      httpConfig: httpConfig
+      userAgentConfig: userAgentConfig
+      encoding: 'utf8'
+    }
+    @importer = new Import initOptions
     @importer.matchBy = 'slug'
     @importer.suppressMissingHeaderWarning = true
-    @exporter = new Export client: Config
+    @exporter = new Export initOptions
     @client = @importer.client
 
     @productType = TestHelpers.mockProductType()
 
-    TestHelpers.setupProductType(@client, @productType)
+    TestHelpers.setupProductType(@client, @productType, null, project_key)
     .then (result) =>
       @productType = result
       done()
     .catch (err) -> done _.prettify(err.body)
-    .done()
   , 60000 # 60sec
 
   it 'should import and re-export a simple product', (done) ->
@@ -64,7 +80,12 @@ describe 'Impex integration tests', ->
       .then (result) =>
         console.log "export", result
         expect(result).toBe 'Export done.'
-        @client.products.all().fetch()
+        service = TestHelpers.createService(project_key, 'products')
+        request = {
+          uri: service.build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (res) ->
         console.log "products %j", res.body
         fs.readFileAsync file, {encoding: 'utf8'}

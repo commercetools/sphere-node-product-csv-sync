@@ -3,7 +3,7 @@ _ = require 'underscore'
 archiver = require 'archiver'
 _.mixin require('underscore-mixins')
 iconv = require 'iconv-lite'
-{Import} = require '../../lib/main'
+{ Import } = require '../../lib/main'
 Config = require '../../config'
 TestHelpers = require './testhelpers'
 cuid = require 'cuid'
@@ -22,8 +22,23 @@ SET_ATTRIBUTE_ENUM_NONE = 'attr-set-enum-n'
 SET_ATTRIBUTE_LENUM_SAME_FOR_ALL = 'attr-set-lenum-sfa'
 REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE = 'attr-ref-product-type-n'
 
+{ client_id, client_secret, project_key } = Config.config
+authConfig = {
+  host: 'https://auth.sphere.io'
+  projectKey: project_key
+  credentials: {
+    clientId: client_id
+    clientSecret: client_secret
+  }
+}
+httpConfig = { host: 'https://api.sphere.io' }
+userAgentConfig = {}
 createImporter = ->
-  im = new Import Config
+  im = new Import {
+    authConfig: authConfig
+    httpConfig: httpConfig
+    userAgentConfig: userAgentConfig
+  }
   im.matchBy = 'sku'
   im.allowRemovalOfVariants = true
   im.suppressMissingHeaderWarning = true
@@ -32,21 +47,27 @@ createImporter = ->
 CHANNEL_KEY = 'retailerA'
 
 describe 'Import integration test', ->
+  beforeAll (done) ->
+    @client = createImporter().client
+    TestHelpers.ensureChannels(@client, project_key, CHANNEL_KEY)
+    .then =>
+      TestHelpers.ensurePreviousState(@client, project_key)
+    .then =>
+      TestHelpers.ensureNextState(@client, project_key)
+    .then -> done()
 
   beforeEach (done) ->
-    jasmine.getEnv().defaultTimeoutInterval = 90000 # 90 sec
+    jasmine.getEnv().defaultTimeoutInterval = 360000 # 3mins
     @importer = createImporter()
     @client = @importer.client
 
     @productType = TestHelpers.mockProductType()
 
-    TestHelpers.setupProductType(@client, @productType)
+    TestHelpers.setupProductType(@client, @productType, null, project_key)
     .then (result) =>
       @productType = result
-      @client.channels.ensure(CHANNEL_KEY, 'InventorySupply')
-    .then -> done()
+      done()
     .catch (err) -> done _.prettify(err.body)
-    .done()
   , 120000 # 2min
 
   describe '#import', ->
@@ -56,6 +77,44 @@ describe 'Import integration test', ->
       @newProductSlug = TestHelpers.uniqueId 'slug-'
       @newProductSku = TestHelpers.uniqueId 'sku-'
       @newProductSku += '"foo"'
+
+    it 'should transition a product state', (done) ->
+      csv =
+        """
+        productType,name,slug,variantId,key,state
+        #{@productType.id},#{@newProductName},#{@newProductSlug},1,productKey,previous-state
+        """
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        csv =
+        """
+        productType,name,slug,variantId,key,state
+        #{@productType.id},#{@newProductName},#{@newProductSlug},1,productKey,next-state
+        """
+        im = createImporter()
+        im.matchBy = 'slug'
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .expand 'state'
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.state.obj.key).toEqual 'next-state'
+        done()
+      .catch (err) -> done _.prettify(err)
 
     it 'should import a simple product', (done) ->
       csv =
@@ -67,7 +126,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -89,7 +156,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) ->
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -146,7 +221,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -189,7 +272,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -243,11 +334,17 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         expect(result[1]).toBe '[row 4] Product update not necessary.'
         expect(result[2]).toBe '[row 5] Product update not necessary.'
-
-        @client.productProjections.staged(true)
-        .where("productType(id=\"#{@productType.id}\")")
-        .sort("name.en")
-        .fetch()
+        
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .sort("name.en")
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) ->
         expect(_.size result.body.results).toBe 3
         expect(result.body.results[0].name).toEqual {en: p1}
@@ -289,7 +386,15 @@ describe 'Import integration test', ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
 
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) ->
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -337,7 +442,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -375,7 +488,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) ->
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -409,8 +530,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product update not necessary.'
-
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) ->
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -441,7 +569,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -488,8 +624,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -502,7 +645,7 @@ describe 'Import integration test', ->
 
     it 'should do a partial update of search keywords', (done) ->
       sku = cuid()
-      @client.products.create
+      product =
         name:
           en: @newProductName
         productType:
@@ -526,6 +669,13 @@ describe 'Import integration test', ->
           ]
         masterVariant:
           sku: sku
+      service = TestHelpers.createService(project_key, 'products')
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body: product
+      }
+      @client.execute request
       .then ({ body: { masterData: { current: { masterVariant } } } }) =>
         csv =
           """
@@ -537,7 +687,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.productProjections.staged(true).where("name (en = \"#{@newProductName}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("name (en = \"#{@newProductName}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) ->
         expect(result.body.results[0].searchKeywords).toEqual
           "en": [
@@ -593,14 +751,22 @@ describe 'Import integration test', ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
 
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) ->
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
         # TODO: expecting 'foo bar'
-        expect(p.description).toEqual {en: undefined, de: 'Hallo Welt', fr: 'bon jour'}
+        expect(p.description).toEqual jasmine.objectContaining {de: 'Hallo Welt', fr: 'bon jour'}
         # TODO: expecting {de: 'german'}
-        expect(p.masterVariant.attributes[0]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'english', de: undefined, it: 'ciao'}}
+        expect(p.masterVariant.attributes[0]).toEqual jasmine.objectContaining {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'english', it: 'ciao'}}
         done()
       .catch (err) -> done _.prettify(err)
 
@@ -637,7 +803,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -683,8 +857,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product update not necessary.'
-
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -716,7 +897,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -747,7 +936,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -778,7 +975,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -813,7 +1018,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -824,7 +1037,6 @@ describe 'Import integration test', ->
         expect(p.variants[0].prices[0].value).toEqual jasmine.objectContaining(centAmount: 80000, currencyCode: 'USD')
         done()
       .catch (err) -> done _.prettify(err)
-
 
     it 'should import a simple product with different encoding', (done) ->
       encoding = "win1250"
@@ -840,7 +1052,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -863,7 +1083,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -889,7 +1117,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -908,7 +1144,7 @@ describe 'Import integration test', ->
         #{@productType.id},#{@newProductName},#{@newProductSku+1},1,EUR 999,1;2
         """
 
-      TestHelpers.ensureCategories(@client, categories)
+      TestHelpers.ensureCategories(@client, categories, project_key)
       .then =>
         @importer.import(csv)
       .then (result) =>
@@ -927,7 +1163,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]
@@ -972,8 +1216,15 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
-
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         p = result.body.results[0]
 
@@ -1012,7 +1263,7 @@ describe 'Import integration test', ->
       getCategoryByExternalId = (list, id) ->
         _.find list, (item) -> item.obj.externalId is String(id)
 
-      TestHelpers.ensureCategories(@client, categories)
+      TestHelpers.ensureCategories(@client, categories, project_key)
       .then =>
         @importer.import(csv)
       .then (result) =>
@@ -1039,12 +1290,16 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-
-        @client.productProjections
-        .staged(true)
-        .expand("categories[*]")
-        .where("productType(id=\"#{@productType.id}\")")
-        .fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .expand("categories[*]")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         p = result.body.results[0]
 
@@ -1057,8 +1312,6 @@ describe 'Import integration test', ->
 
         done()
       .catch (err) -> done _.prettify(err)
-
-
 
     it 'should clear categories when an empty value given', (done) ->
       skuPrefix = "sku-"
@@ -1076,7 +1329,7 @@ describe 'Import integration test', ->
         im.updatesOnly = true
         im
 
-      TestHelpers.ensureCategories(@client, categories)
+      TestHelpers.ensureCategories(@client, categories, project_key)
       .then =>
         @importer.import(csv)
       .then (result) =>
@@ -1093,11 +1346,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-
-        @client.productProjections
-        .staged(true)
-        .where("productType(id=\"#{@productType.id}\")")
-        .fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         p = result.body.results[0]
         expect(_.size(p.categories)).toBe 0
@@ -1112,11 +1369,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-
-        @client.productProjections
-        .staged(true)
-        .where("productType(id=\"#{@productType.id}\")")
-        .fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         p = result.body.results[0]
         expect(_.size(p.categories)).toBe 2
@@ -1126,7 +1387,6 @@ describe 'Import integration test', ->
 
     it 'should handle a concurrent modification error when updating by SKU', (done) ->
       skuPrefix = "sku-"
-
       csv =
         """
         productType,name,sku,variantId,prices
@@ -1137,7 +1397,15 @@ describe 'Import integration test', ->
 
       @importer.import(csv)
         .then =>
-          @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+          service = TestHelpers.createService(project_key, 'productProjections')
+          request = {
+            uri: service
+              .where("productType(id=\"#{@productType.id}\")")
+              .staged true
+              .build()
+            method: 'GET'
+          }
+          @client.execute request
         .then (result) =>
           p = result.body.results[0]
           expect(p.variants.length).toEqual 39
@@ -1154,7 +1422,15 @@ describe 'Import integration test', ->
           im.updatesOnly = true
           im.import csv
         .then =>
-          @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+          service = TestHelpers.createService(project_key, 'productProjections')
+          request = {
+            uri: service
+              .where("productType(id=\"#{@productType.id}\")")
+              .staged true
+              .build()
+            method: 'GET'
+          }
+          @client.execute request
         .then (result) =>
           p = result.body.results[0]
           p.variants.push p.masterVariant
@@ -1168,7 +1444,6 @@ describe 'Import integration test', ->
 
           done()
         .catch (err) -> done _.prettify(err)
-
 
     it 'should handle a concurrent modification error when updating by variantId', (done) ->
       skuPrefix = "sku-"
@@ -1198,9 +1473,8 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should split actions if there are more than 500 in actions array', (done) ->
+    xit 'should split actions if there are more than 500 in actions array', (done) ->
       numberOfVariants = 501
-      
       csvCreator = (productType, newProductName, newProductSlug, rows) ->
         changes = ""
         i = 0
@@ -1233,7 +1507,15 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.productProjections.staged(true).where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 1
         p = result.body.results[0]

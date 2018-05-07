@@ -82,9 +82,9 @@ module.exports = (grunt) ->
         stderr: true
         failOnError: true
       jasmine:
-        command: "jasmine-node --captureExceptions test"
+        command: "jasmine --random=false test/**/*.spec.js"
       coverage:
-        command: "node_modules/.bin/istanbul cover jasmine-node --captureExceptions test && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
+        command: "node_modules/.bin/istanbul cover jasmine -- --random=false --stop-on-failure=true test/**/*.spec.js && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
       publish:
         command: 'npm publish'
 

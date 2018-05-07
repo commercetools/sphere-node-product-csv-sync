@@ -1,4 +1,6 @@
 _ = require 'underscore'
+{ fetchResources } = require './resourceutils'
+
 # TODO:
 # - JSDoc
 # - make it util only
@@ -7,8 +9,8 @@ class CustomerGroups
     @name2id = {}
     @id2name = {}
 
-  getAll: (client) ->
-    client.customerGroups.all().fetch()
+  getAll: (client, projectKey) ->
+    fetchResources(client, projectKey, 'customerGroups')
 
   buildMaps: (customerGroups) ->
     _.each customerGroups, (group) =>

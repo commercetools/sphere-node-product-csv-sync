@@ -2,7 +2,6 @@ _ = require 'underscore'
 _.mixin require('underscore.string').exports()
 Promise = require 'bluebird'
 Csv = require 'csv'
-{SphereClient} = require 'sphere-node-sdk'
 CONS = require './constants'
 GLOBALS = require './globals'
 Mapping = require './mapping'
@@ -10,18 +9,20 @@ Header = require './header'
 
 class Validator
 
-  constructor: (options = {}) ->
+  constructor: (options = {}, client, projectKey) ->
     @types = options.types
     @customerGroups = options.customerGroups
     @categories = options.categories
     @taxes = options.taxes
+    @states = options.states
     @channels = options.channels
 
     options.validator = @
     # TODO:
     # - pass only correct options, not all classes
     # - avoid creating a new instance of the client, since it should be created from Import class
-    @client = new SphereClient options if options.config
+    @client = client
+    @projectKey = projectKey
     @rawProducts = []
     @errors = []
     @suppressMissingHeaderWarning = false
@@ -77,22 +78,24 @@ class Validator
     promise = Promise.resolve(cache)
     if not cache
       promise = Promise.all([
-        @types.getAll @client
-        @customerGroups.getAll @client
-        @categories.getAll @client
-        @taxes.getAll @client
-        @channels.getAll @client
+        @types.getAll @client, @projectKey
+        @customerGroups.getAll @client, @projectKey
+        @categories.getAll @client, @projectKey
+        @taxes.getAll @client, @projectKey
+        @states.getAll @client, @projectKey
+        @channels.getAll @client, @projectKey
       ])
 
     promise
     .then (resources) =>
-      [productTypes, customerGroups, categories, taxes, channels] = resources
-      @productTypes = productTypes.body.results
+      [productTypes, customerGroups, categories, taxes, states, channels] = resources
+      @productTypes = productTypes
       @types.buildMaps @productTypes
-      @customerGroups.buildMaps customerGroups.body.results
-      @categories.buildMaps categories.body.results
-      @taxes.buildMaps taxes.body.results
-      @channels.buildMaps channels.body.results
+      @customerGroups.buildMaps customerGroups
+      @categories.buildMaps categories
+      @taxes.buildMaps taxes
+      @states.buildMaps states
+      @channels.buildMaps channels
       Promise.resolve resources
 
   validateOnline: ->

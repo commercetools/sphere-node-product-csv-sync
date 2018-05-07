@@ -27,7 +27,7 @@
   },
   "main": "main.js",
   "engines": {
-    "node": ">= 4.5"
+    "node": ">= 6"
   },
   "scripts": {
     "lint": "grunt coffeelint",
@@ -35,18 +35,24 @@
     "test": "grunt coverage"
   },
   "dependencies": {
-    "archiver": "^1.1.0",
+    "@commercetools/api-request-builder": "^3.7.1",
+    "@commercetools/sdk-client": "^1.5.5",
+    "@commercetools/sdk-middleware-auth": "^3.5.2",
+    "@commercetools/sdk-middleware-http": "^2.3.3",
+    "@commercetools/sdk-middleware-queue": "^1.1.5",
+    "@commercetools/sdk-middleware-user-agent": "^1.2.7",
+    "@commercetools/sync-actions": "^1.22.3",
+    "archiver": "^2.1.1",
     "bluebird": "^3.5.1",
     "commander": "2.3.0",
     "csv": "0.3.7",
-    "exceljs": "^0.2.28",
+    "exceljs": "^1.1.1",
     "extract-zip": "^1.6.5",
     "iconv-lite": "^0.4.19",
-    "lodash.chunk": "^3.0.1",
+    "lodash.chunk": "^4.2.0",
     "lodash.merge": "^4.6.0",
     "optimist": "0.6.1",
-    "prompt": "0.2.14",
-    "sphere-node-sdk": "^1.22.0",
+    "prompt": "1.0.0",
     "sphere-node-utils": "^0.9.1",
     "tmp": "0.0.33",
     "underscore": "1.8.3",
@@ -55,9 +61,9 @@
     "walk-sync": "^0.3.1"
   },
   "devDependencies": {
-    "coffeelint": "^1.14.2",
-    "coveralls": "2.11.14",
-    "cuid": "1.3.8",
+    "coffeelint": "^2.1.0",
+    "coveralls": "3.0.0",
+    "cuid": "2.1.1",
     "grunt": "^1.0.1",
     "grunt-bump": "^0.8.0",
     "grunt-coffeelint": "0.0.16",
@@ -66,8 +72,8 @@
     "grunt-contrib-concat": "^1.0.1",
     "grunt-contrib-watch": "^1.0.0",
     "grunt-shell": "^2.1.0",
-    "istanbul": "0.2.7",
-    "jasmine-node": "1.14.5",
+    "istanbul": "0.4.5",
+    "jasmine": "3.1.0",
     "sphere-coffeelint": "git://github.com/sphereio/sphere-coffeelint.git#master"
   },
   "keywords": [

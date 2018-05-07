@@ -1,6 +1,6 @@
 _ = require 'underscore'
-CONS = require '../lib/constants'
-GLOBALS = require '../lib/globals'
+CONS = require './constants'
+GLOBALS = require './globals'
 
 # TODO:
 # - JSDoc

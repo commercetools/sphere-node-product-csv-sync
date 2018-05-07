@@ -19,7 +19,15 @@ variantFactory = ({ country, published } = {}) ->
 describe 'Export', ->
 
   beforeEach ->
-    @exporter = new Export({ client: Config })
+    {client_id, client_secret, project_key} = Config.config
+    authConfig =
+      projectKey: project_key
+      credentials:
+        clientId: client_id
+        clientSecret: client_secret
+    httpConfig = {}
+    userAgentConfig = {}
+    @exporter = new Export({ authConfig, httpConfig, userAgentConfig })
 
   describe 'Function to filter variants by attributes', ->
 
@@ -93,11 +101,7 @@ describe 'Export', ->
         [ variant ],
         []
       )
-
-      actual = filteredVariants[0]
-      expected = undefined
-
-      expect(actual).toEqual(expected)
+      expect(filteredVariants[0]).toBeFalsy()
 
   describe 'Function to filter prices', ->
 

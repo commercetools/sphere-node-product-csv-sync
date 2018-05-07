@@ -1,8 +1,16 @@
+{ createClient } = require '@commercetools/sdk-client'
+{
+  createAuthMiddlewareForClientCredentialsFlow
+  createAuthMiddlewareWithExistingToken
+} = require '@commercetools/sdk-middleware-auth'
+{ createHttpMiddleware } = require '@commercetools/sdk-middleware-http'
+{ createQueueMiddleware } = require '@commercetools/sdk-middleware-queue'
+{ createUserAgentMiddleware } = require '@commercetools/sdk-middleware-user-agent'
+{ createRequestBuilder } = require '@commercetools/api-request-builder'
+{ createSyncProducts } = require '@commercetools/sync-actions'
 _ = require 'underscore'
 _.mixin require('underscore-mixins')
 Promise = require 'bluebird'
-{SphereClient, ProductSync, Errors} = require 'sphere-node-sdk'
-{Repeater} = require 'sphere-node-utils'
 CONS = require './constants'
 GLOBALS = require './globals'
 Validator = require './validator'
@@ -24,6 +32,7 @@ tmp.setGracefulCleanup()
 Types = require './types'
 Categories = require './categories'
 CustomerGroups = require './customergroups'
+States = require './states'
 Taxes = require './taxes'
 Channels = require './channels'
 
@@ -34,12 +43,22 @@ Channels = require './channels'
 class Import
 
   constructor: (options = {}) ->
-    if options.config #for easier unit testing
-      @client = new SphereClient options
-      @client.setMaxParallel 10
-      @sync = new ProductSync
-      @repeater = new Repeater attempts: 3
-
+    @projectKey = options.authConfig.projectKey
+    @client = createClient(middlewares: [
+      createAuthMiddlewareWithExistingToken(
+        if options.authConfig.accessToken
+        then "Bearer #{options.authConfig.accessToken}"
+        else ''
+      )
+      createAuthMiddlewareForClientCredentialsFlow
+        host: options.authConfig.host
+        projectKey: @projectKey
+        credentials: options.authConfig.credentials
+      createQueueMiddleware
+        concurrency: 10
+      createUserAgentMiddleware options.userAgentConfig
+      createHttpMiddleware options.httpConfig
+    ])
     options.importFormat = options.importFormat || "csv"
     options.csvDelimiter = options.csvDelimiter || ","
     options.encoding = options.encoding || "utf-8"
@@ -62,10 +81,11 @@ class Import
     @options.types = new Types()
     @options.customerGroups = new CustomerGroups()
     @options.categories = new Categories()
+    @options.states = new States()
     @options.taxes = new Taxes()
     @options.channels = new Channels()
 
-    @validator = new Validator(@options)
+    @validator = new Validator(@options, @client, @projectKey)
     @validator.suppressMissingHeaderWarning = @suppressMissingHeaderWarning
     @map = new Mapping(@options)
 
@@ -99,7 +119,6 @@ class Import
       Promise.resolve csv
     .then (parsed) =>
       parsed = @validator.serialize(parsed)
-
       console.warn "CSV file with #{parsed.count} row(s) loaded."
       @map.header = parsed.header
       @validator.validateOffline(parsed.data)
@@ -170,7 +189,14 @@ class Import
 
   processProducts: (products) ->
     filterInput = QueryUtils.mapMatchFunction(@matchBy)(products)
-    @client.productProjections.staged().where(filterInput).fetch()
+    productsServiceUri = createRequestBuilder({@projectKey})
+      .productProjections
+      .staged(true)
+      .where(filterInput)
+      .build()
+    @client.execute
+      uri: productsServiceUri
+      method: 'GET'
     .then (payload) =>
       existingProducts = payload.body.results
       console.warn "Comparing against #{payload.body.count} existing product(s) ..."
@@ -187,7 +213,15 @@ class Import
 
   processProductsBasesOnSkus: (products) ->
     filterInput = QueryUtils.mapMatchFunction("sku")(products)
-    @client.productProjections.staged().where(filterInput).fetch()
+
+    productsServiceUri = createRequestBuilder({@projectKey})
+      .productProjections
+      .staged(true)
+      .where(filterInput)
+      .build()
+    @client.execute
+      uri: productsServiceUri
+      method: 'GET'
     .then((payload) =>
       existingProducts = payload.body.results
       console.warn "Comparing against #{payload.body.count} existing product(s) ..."
@@ -284,7 +318,16 @@ class Import
   changeState: (publish = true, remove = false, filterFunction) ->
     @publishProducts = true
 
-    @client.productProjections.staged(remove or publish).perPage(500).process (result) =>
+    productsServiceUri = createRequestBuilder({@projectKey})
+      .productProjections
+      .staged(remove or publish)
+      .perPage(500)
+      .build()
+    request =
+      uri: productsServiceUri
+      method: 'GET'
+
+    @client.process request, (result) =>
       existingProducts = result.body.results
 
       console.warn "Found #{_.size existingProducts} product(s) ..."
@@ -358,6 +401,7 @@ class Import
     allSameValueAttributes = id2SameForAllAttributes[product.productType.id]
     config = [
       { type: 'base', group: 'white' }
+      { type: 'meta', group: 'white' }
       { type: 'references', group: 'white' }
       { type: 'attributes', group: 'white' }
       { type: 'variants', group: 'white' }
@@ -372,9 +416,11 @@ class Import
       config.push { type: 'images', group: 'white' }
     else
       config.push { type: 'images', group: 'black' }
-    filtered = @sync.config(config)
-    .buildActions(product, existingProduct, allSameValueAttributes)
-    .filterActions (action) =>
+
+    @sync = createSyncProducts(config)
+    actions = @sync.buildActions(product, existingProduct)
+
+    filteredActions = _.filter(actions, (action) =>
       # console.warn "ACTION", action
       switch action.action
         when 'setAttribute', 'setAttributeInAllVariants'
@@ -390,20 +436,19 @@ class Import
         when 'setSearchKeywords' then header.has(CONS.HEADER_SEARCH_KEYWORDS) or header.hasLanguageForBaseAttribute(CONS.HEADER_SEARCH_KEYWORDS)
         when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
+        when 'transitionState' then header.has(CONS.HEADER_STATE)
         when 'setSku' then header.has(CONS.HEADER_SKU)
         when 'setProductVariantKey' then header.has(CONS.HEADER_VARIANT_KEY)
         when 'setKey' then header.has(CONS.HEADER_KEY)
-        when 'addVariant', 'addPrice', 'removePrice', 'changePrice', 'addExternalImage', 'removeImage' then true
+        when 'addVariant', 'addPrice', 'removePrice', 'changePrice', 'addExternalImage', 'removeImage', 'setImageLabel', 'moveImagetoPosition' then true
         when 'removeVariant' then @allowRemovalOfVariants
         else throw Error "The action '#{action.action}' is not supported. Please contact the commercetools support team!"
+    )
 
-    allUpdateRequests = filtered.getUpdatePayload()
-
-    # build update request even if there are no update actions
-    if not filtered.shouldUpdate()
-      allUpdateRequests =
-        version: existingProduct.version
-        actions: []
+    allUpdateRequests = {
+      version: existingProduct.version
+      actions: filteredActions
+    }
 
     # check if we should publish product (only if it was not yet published or if there are some changes)
     if publish and (not existingProduct.published or allUpdateRequests.actions.length)
@@ -418,7 +463,18 @@ class Import
     else
       if allUpdateRequests.actions.length
         chunkifiedUpdateRequests = @splitUpdateActionsArray(allUpdateRequests, 500)
-        Promise.all(_.map chunkifiedUpdateRequests, (updateRequest) => @client.products.byId(filtered.getUpdateId()).update(updateRequest))
+        Promise.all(_.map chunkifiedUpdateRequests, (updateRequest) =>
+          productsUri = createRequestBuilder({ @projectKey })
+            .products
+            .byId(existingProduct.id)
+            .build()
+          request = {
+            uri: productsUri
+            method: 'POST'
+            body: updateRequest
+          }
+          @client.execute request
+        )
         .then (result) =>
           @publishProduct(result.body, rowIndex)
           .then -> Promise.resolve "[row #{rowIndex}] Product updated."
@@ -440,7 +496,13 @@ class Import
     else if @updatesOnly
       Promise.resolve "[row #{rowIndex}] UPDATES ONLY - nothing done."
     else
-      @client.products.create(product)
+      service = createRequestBuilder({ @projectKey }).products
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body: product
+      }
+      @client.execute request
       .then (result) =>
         @publishProduct(result.body, rowIndex, true, publish)
         .then -> Promise.resolve "[row #{rowIndex}] New product created."
@@ -458,13 +520,20 @@ class Import
     else if publish and product.published and not product.hasStagedChanges
       Promise.resolve "[row #{rowIndex}] Product is already published - no staged changes."
     else
-      data =
+      service = createService('products', @projectKey)
+      data = {
         id: product.id
         version: product.version
         actions: [
           action: action
         ]
-      @client.products.byId(product.id).update(data)
+      }
+      request = {
+        uri: service.byId(product.id).build()
+        method: 'POST'
+        body: data
+      }
+      @client.execute(request)
       .then (result) ->
         Promise.resolve "[row #{rowIndex}] Product #{action}ed."
       .catch (err) =>
@@ -474,10 +543,25 @@ class Import
           Promise.reject "[row #{rowIndex}] Problem on #{action}ing product:\n#{_.prettify err}\n#{_.prettify err.body}"
 
   deleteProduct: (product, rowIndex) ->
-    @client.products.byId(product.id).delete(product.version)
+    # Unpublish product first
+    @publishProduct(product, rowIndex, false)
+    .then =>
+      service = createService('products', @projectKey)
+      request = {
+        uri: service
+          .byId(product.id)
+          .withVersion(product.version)
+          .build()
+        method: 'DELETE'
+      }
+      @client.execute(request)
     .then ->
       Promise.resolve "[row #{rowIndex}] Product deleted."
     .catch (err) ->
       Promise.reject "[row #{rowIndex}] Error on deleting product:\n#{_.prettify err}\n#{_.prettify err.body}"
+
+  createService = (type, projectKey) ->
+    service = createRequestBuilder({ projectKey })[type]
+    service
 
 module.exports = Import

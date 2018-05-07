@@ -1,5 +1,6 @@
 _ = require 'underscore'
-GLOBALS = require '../lib/globals'
+GLOBALS = require './globals'
+{ fetchResources } = require './resourceutils'
 
 # TODO:
 # - JSDoc
@@ -15,8 +16,8 @@ class Categories
     @id2fqName = {}
     @duplicateNames = []
 
-  getAll: (client) ->
-    client.categories.all().fetch()
+  getAll: (client, projectKey) ->
+    fetchResources(client, projectKey, 'categories')
 
   buildMaps: (categories) ->
     _.each categories, (category, index) =>

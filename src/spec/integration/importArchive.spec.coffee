@@ -14,12 +14,26 @@ fs = Promise.promisifyAll require('fs')
 tmp.setGracefulCleanup()
 
 CHANNEL_KEY = 'retailerA'
-
+{ client_id, client_secret, project_key } = Config.config
+authConfig = {
+  host: 'https://auth.sphere.io'
+  projectKey: project_key
+  credentials: {
+    clientId: client_id
+    clientSecret: client_secret
+  }
+}
+httpConfig = { host: 'https://api.sphere.io' }
+userAgentConfig = {}
 
 createImporter = (format) ->
   config = JSON.parse(JSON.stringify(Config)) # cloneDeep
   config.importFormat = format || "csv"
-  im = new Import config
+  im = new Import {
+    authConfig: authConfig
+    httpConfig: httpConfig
+    userAgentConfig: userAgentConfig
+  }
   im.matchBy = 'sku'
   im.allowRemovalOfVariants = true
   im.suppressMissingHeaderWarning = true
@@ -47,20 +61,39 @@ writeXlsx = (filePath, data) ->
 describe 'Import integration test', ->
 
   beforeEach (done) ->
-    jasmine.getEnv().defaultTimeoutInterval = 90000 # 90 sec
+    jasmine.getEnv().defaultTimeoutInterval = 120000 # 2mins
     @importer = createImporter()
     @importer.suppressMissingHeaderWarning = true
     @client = @importer.client
 
     @productType = TestHelpers.mockProductType()
 
-    TestHelpers.setupProductType(@client, @productType)
+    TestHelpers.setupProductType(@client, @productType, null, project_key)
     .then (result) =>
       @productType = result
-      @client.channels.ensure(CHANNEL_KEY, 'InventorySupply')
+      # Check if channel exists
+      service = TestHelpers.createService(project_key, 'channels')
+      request = {
+        uri: service
+          .where("key=\"#{CHANNEL_KEY}\"")
+          .build()
+        method: 'GET'
+      }
+      @client.execute request
+    .then (result) =>
+      # Create the channel if it doesn't exist else ignore
+      if (!result.body.total)
+        service = TestHelpers.createService(project_key, 'channels')
+        request = {
+          uri: service.build()
+          method: 'POST'
+          body:
+            key: CHANNEL_KEY
+            roles: ['InventorySupply']
+        }
+        @client.execute request
     .then -> done()
     .catch (err) -> done _.prettify(err.body)
-    .done()
   , 120000 # 2min
 
   describe '#import', ->
@@ -95,17 +128,21 @@ describe 'Import integration test', ->
           outputStream.on 'close', () -> resolve()
           archive.on 'error', (err) -> reject(err)
           archive.pipe outputStream
-
-          archive.bulk([
-            { expand: true, cwd: tempDir.name, src: ['**'], dest: 'products'}
-          ])
+          archive.glob('**', { cwd: tempDir.name })
           archive.finalize()
       .then =>
         @importer.importManager(archivePath, true)
       .then =>
-        @client.productProjections.staged(true)
-          .sort("createdAt", "ASC")
-          .where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .sort("createdAt", "ASC")
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 2
 
@@ -148,17 +185,21 @@ describe 'Import integration test', ->
           outputStream.on 'close', () -> resolve()
           archive.on 'error', (err) -> reject(err)
           archive.pipe outputStream
-
-          archive.bulk([
-            { expand: true, cwd: tempDir.name, src: ['**'], dest: 'products'}
-          ])
+          archive.glob('**', { cwd: tempDir.name })
           archive.finalize()
       .then =>
         importer.importManager(archivePath, true)
       .then =>
-        @client.productProjections.staged(true)
-        .sort("createdAt", "ASC")
-        .where("productType(id=\"#{@productType.id}\")").fetch()
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .sort("createdAt", "ASC")
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(_.size result.body.results).toBe 2
 

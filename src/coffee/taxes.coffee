@@ -1,4 +1,5 @@
 _ = require 'underscore'
+{ fetchResources } = require './resourceutils'
 
 # TODO:
 # - JSDoc
@@ -9,8 +10,8 @@ class Taxes
     @id2name = {}
     @duplicateNames = []
 
-  getAll: (client) ->
-    client.taxCategories.all().fetch()
+  getAll: (client, projectKey) ->
+    fetchResources(client, projectKey, 'taxCategories')
 
   buildMaps: (taxCategories) ->
     _.each taxCategories, (taxCat) =>

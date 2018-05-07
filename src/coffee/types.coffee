@@ -1,5 +1,6 @@
 _ = require 'underscore'
 CONS = require './constants'
+{ fetchResources } = require './resourceutils'
 
 # TODO:
 # - JSDoc
@@ -12,8 +13,8 @@ class Types
     @id2SameForAllAttributes = {}
     @id2nameAttributeDefMap = {}
 
-  getAll: (client) ->
-    client.productTypes.all().fetch()
+  getAll: (client, projectKey) ->
+    fetchResources(client, projectKey, 'productTypes')
 
   buildMaps: (productTypes) ->
     _.each productTypes, (pt, index) =>

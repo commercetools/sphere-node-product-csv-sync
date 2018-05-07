@@ -6,7 +6,19 @@ TestHelpers = require './testhelpers'
 Promise = require 'bluebird'
 fs = Promise.promisifyAll require('fs')
 
-defaultProduct = (productTypeId, categoryId) =>
+{ client_id, client_secret, project_key } = Config.config
+authConfig = {
+  host: 'https://auth.sphere.io'
+  projectKey: project_key
+  credentials: {
+    clientId: client_id
+    clientSecret: client_secret
+  }
+}
+httpConfig = { host: 'https://api.sphere.io' }
+userAgentConfig = {}
+
+defaultProduct = (productTypeId, categoryId) ->
   name:
     en: 'test product'
   productType:
@@ -21,7 +33,11 @@ defaultProduct = (productTypeId, categoryId) =>
   masterVariant: {}
 
 createImporter = ->
-  im = new Import Config
+  im = new Import {
+    authConfig: authConfig
+    httpConfig: httpConfig
+    userAgentConfig: userAgentConfig
+  }
   im.allowRemovalOfVariants = true
   im.suppressMissingHeaderWarning = true
   im
@@ -39,23 +55,53 @@ newCategory = (name = 'Category name', externalId = 'externalCategoryId') ->
   externalId: externalId
 
 prepareCategoryAndProduct = (done) ->
-  jasmine.getEnv().defaultTimeoutInterval = 90000 # 90 sec
-  @export = new Export client: Config
+  jasmine.getEnv().defaultTimeoutInterval = 120000 # 2mins
+  @export = new Export {
+    authConfig: authConfig
+    httpConfig: httpConfig
+    userAgentConfig: userAgentConfig
+  }
   @importer = createImporter()
   @importer.suppressMissingHeaderWarning = true
   @client = @importer.client
 
   console.log 'create a category to work with'
-  @client.categories.save(newCategory())
+  service = TestHelpers.createService(project_key, 'categories')
+  request = {
+    uri: service.build()
+    method: 'POST'
+    body: newCategory()
+  }
+  @client.execute request
   .then (results) =>
     @category = results.body
     console.log "Created #{results.length} categories"
 
     @productType = TestHelpers.mockProductType()
-    TestHelpers.setupProductType(@client, @productType)
+    TestHelpers.setupProductType(@client, @productType, null, project_key)
   .then (result) =>
     @productType = result
-    @client.channels.ensure(CHANNEL_KEY, 'InventorySupply')
+    # Check if channel exists
+    service = TestHelpers.createService(project_key, 'channels')
+    request = {
+      uri: service
+        .where("key=\"#{CHANNEL_KEY}\"")
+        .build()
+      method: 'GET'
+    }
+    @client.execute request
+  .then (result) =>
+    # Create the channel if it doesn't exist else ignore
+    if (!result.body.total)
+      service = TestHelpers.createService(project_key, 'channels')
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body:
+          key: CHANNEL_KEY
+          roles: ['InventorySupply']
+      }
+      @client.execute request
   .then -> done()
   .catch (error) -> done(_.prettify(error))
 
@@ -67,26 +113,57 @@ describe 'categoryOrderHints', ->
 
     afterEach (done) ->
       console.log 'About to delete all categories'
-      @client.categories.process (payload) =>
+      service = TestHelpers.createService(project_key, 'categories')
+      request = {
+        uri: service.build()
+        method: 'GET'
+      }
+      @client.process request, (payload) =>
         console.log "Deleting #{payload.body.count} categories"
         Promise.map payload.body.results, (category) =>
-          @client.categories.byId(category.id).delete(category.version)
+          service = TestHelpers.createService(project_key, 'categories')
+          request = {
+            uri: service
+              .byId(category.id)
+              .withVersion(category.version)
+              .build()
+            method: 'DELETE'
+          }
+          @client.execute request
       .then (results) =>
         console.log "Deleted #{results.length} categories"
         console.log "Delete all the created products"
-        @client.products.process (payload) =>
+        service = TestHelpers.createService(project_key, 'products')
+        request = {
+          uri: service.build()
+          method: 'GET'
+        }
+        @client.process request, (payload) =>
           console.log "Deleting #{payload.body.count} products"
           Promise.map payload.body.results, (product) =>
-            @client.products.byId(product.id).delete(product.version)
+            service = TestHelpers.createService(project_key, 'products')
+            request = {
+              uri: service
+                .byId(product.id)
+                .withVersion(product.version)
+                .build()
+              method: 'DELETE'
+            }
+            @client.execute request
       .then (results) ->
         console.log "Deleted #{results.length} products"
         done()
       .catch (error) -> done(_.prettify(error))
-    , 60000 # 1min
+    , 90000 # 90secs
 
     it 'should add categoryOrderHints', (done) ->
-
-      @client.products.save(defaultProduct(@productType.id, @category.id))
+      service = TestHelpers.createService(project_key, 'products')
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body: defaultProduct(@productType.id, @category.id)
+      }
+      @client.execute request
       .then (result) =>
         @product = result.body
         csv =
@@ -100,15 +177,25 @@ describe 'categoryOrderHints', ->
         im.import(csv)
       .then (result) =>
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.products.byId(@product.id).fetch()
+        service = TestHelpers.createService(project_key, 'products')
+        request = {
+          uri: service.byId(@product.id).build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.5'}
         done()
       .catch (err) -> done _.prettify(err)
 
     it 'should add categoryOrderHints when using an external category id', (done) ->
-
-      @client.products.save(defaultProduct(@productType.id, @category.id))
+      service = TestHelpers.createService(project_key, 'products')
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body: defaultProduct(@productType.id, @category.id)
+      }
+      @client.execute request
       .then (result) =>
         @product = result.body
         csv =
@@ -122,15 +209,25 @@ describe 'categoryOrderHints', ->
         im.import(csv)
       .then (result) =>
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.products.byId(@product.id).fetch()
+        service = TestHelpers.createService(project_key, 'products')
+        request = {
+          uri: service.byId(@product.id).build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.5'}
         done()
       .catch (err) -> done _.prettify(err)
 
     it 'should add categoryOrderHints when using an category name', (done) ->
-
-      @client.products.save(defaultProduct(@productType.id, @category.id))
+      service = TestHelpers.createService(project_key, 'products')
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body: defaultProduct(@productType.id, @category.id)
+      }
+      @client.execute request
       .then (result) =>
         @product = result.body
         csv =
@@ -144,15 +241,25 @@ describe 'categoryOrderHints', ->
         im.import(csv)
       .then (result) =>
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.products.byId(@product.id).fetch()
+        service = TestHelpers.createService(project_key, 'products')
+        request = {
+          uri: service.byId(@product.id).build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.5'}
         done()
       .catch (err) -> done _.prettify(err)
 
     it 'should add categoryOrderHints when using an category slug', (done) ->
-
-      @client.products.save(defaultProduct(@productType.id, @category.id))
+      service = TestHelpers.createService(project_key, 'products')
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body: defaultProduct(@productType.id, @category.id)
+      }
+      @client.execute request
       .then (result) =>
         @product = result.body
         csv =
@@ -166,19 +273,27 @@ describe 'categoryOrderHints', ->
         im.import(csv)
       .then (result) =>
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.products.byId(@product.id).fetch()
+        service = TestHelpers.createService(project_key, 'products')
+        request = {
+          uri: service.byId(@product.id).build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.5'}
         done()
       .catch (err) -> done _.prettify(err)
 
     it 'should remove categoryOrderHints', (done) ->
-
-      @client.products.save(
-        _.extend {}, defaultProduct(@productType.id, @category.id),
+      service = TestHelpers.createService(project_key, 'products')
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body: _.extend {}, defaultProduct(@productType.id, @category.id),
           categoryOrderHints:
             "#{@category.id}": '0.5'
-      )
+      }
+      @client.execute request
       .then (result) =>
         @product = result.body
         csv =
@@ -192,19 +307,27 @@ describe 'categoryOrderHints', ->
         im.import(csv)
       .then (result) =>
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.products.byId(@product.id).fetch()
+        service = TestHelpers.createService(project_key, 'products')
+        request = {
+          uri: service.byId(@product.id).build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(result.body.masterData.staged.categoryOrderHints).toEqual {}
         done()
       .catch (err) -> done _.prettify(err)
 
     it 'should change categoryOrderHints', (done) ->
-
-      @client.products.save(
-        _.extend {}, defaultProduct(@productType.id, @category.id),
+      service = TestHelpers.createService(project_key, 'products')
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body: _.extend {}, defaultProduct(@productType.id, @category.id),
           categoryOrderHints:
             "#{@category.id}": '0.5'
-      )
+      }
+      @client.execute request
       .then (result) =>
         @product = result.body
         csv =
@@ -218,15 +341,25 @@ describe 'categoryOrderHints', ->
         im.import(csv)
       .then (result) =>
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.products.byId(@product.id).fetch()
+        service = TestHelpers.createService(project_key, 'products')
+        request = {
+          uri: service.byId(@product.id).build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.9'}
         done()
       .catch (err) -> done _.prettify(err)
 
     it 'should add another categoryOrderHint', (done) ->
-
-      @client.categories.save(newCategory('Second category', 'externalId2'))
+      service = TestHelpers.createService(project_key, 'categories')
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body: newCategory('Second category', 'externalId2')
+      }
+      @client.execute request
       .then (result) =>
         @newCategory = result.body
         productDraft = _.extend {}, defaultProduct(@productType.id, @category.id),
@@ -236,8 +369,13 @@ describe 'categoryOrderHints', ->
         productDraft.categories.push
           typeId: 'category'
           id: @newCategory.id
-
-        @client.products.save(productDraft)
+        service = TestHelpers.createService(project_key, 'products')
+        request = {
+          uri: service.build()
+          method: 'POST'
+          body: productDraft
+        }
+        @client.execute request
       .then (result) =>
         @product = result.body
         csv =
@@ -253,7 +391,12 @@ describe 'categoryOrderHints', ->
         im.import(csv)
       .then (result) =>
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.products.byId(@product.id).fetch()
+        service = TestHelpers.createService(project_key, 'products')
+        request = {
+          uri: service.byId(@product.id).build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         product = result.body.masterData.staged
         expect(product.categoryOrderHints).toEqual
@@ -263,8 +406,13 @@ describe 'categoryOrderHints', ->
       .catch (err) -> done _.prettify(err)
 
     it 'should add another categoryOrderHint when matching by SKU', (done) ->
-
-      @client.categories.save(newCategory('Second category', 'externalId2'))
+      service = TestHelpers.createService(project_key, 'categories')
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body: newCategory('Second category', 'externalId2')
+      }
+      @client.execute request
       .then (result) =>
         @newCategory = result.body
         productDraft = _.extend {}, defaultProduct(@productType.id, @category.id),
@@ -275,8 +423,13 @@ describe 'categoryOrderHints', ->
         productDraft.categories.push
           typeId: 'category'
           id: @newCategory.id
-
-        @client.products.save(productDraft)
+        service = TestHelpers.createService(project_key, 'products')
+        request = {
+          uri: service.build()
+          method: 'POST'
+          body: productDraft
+        }
+        @client.execute request
       .then (result) =>
         @product = result.body
         csv =
@@ -291,7 +444,12 @@ describe 'categoryOrderHints', ->
         im.import(csv)
       .then (result) =>
         expect(result[0]).toBe '[row 2] Product updated.'
-        @client.products.byId(@product.id).fetch()
+        service = TestHelpers.createService(project_key, 'products')
+        request = {
+          uri: service.byId(@product.id).build()
+          method: 'GET'
+        }
+        @client.execute request
       .then (result) =>
         product = result.body.masterData.staged
         expect(product.categoryOrderHints).toEqual
@@ -305,15 +463,23 @@ describe 'categoryOrderHints', ->
     beforeEach prepareCategoryAndProduct
 
     it 'should export categoryOrderHints', (done) ->
-
-      @client.products.save(
-        _.extend {}, defaultProduct(@productType.id, @category.id),
+      service = TestHelpers.createService(project_key, 'products')
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body: _.extend {}, defaultProduct(@productType.id, @category.id),
           categoryOrderHints:
             "#{@category.id}": '0.5'
-      )
+      }
+      @client.execute request
       .then (result) =>
         @product = result.body
-        @client.products.byId(@product.id).fetch()
+        service = TestHelpers.createService(project_key, 'products')
+        request = {
+          uri: service.byId(@product.id).build()
+          method: 'GET'
+        }
+        @client.execute request
       .then =>
         template =
           """
@@ -336,18 +502,29 @@ describe 'categoryOrderHints', ->
         .catch (err) -> done _.prettify(err)
 
     it 'should export categoryOrderHints with category externalId', (done) ->
-      customExport = new Export
-        client: Config
+      customExport = new Export {
+        authConfig: authConfig
+        httpConfig: httpConfig
+        userAgentConfig: userAgentConfig
         categoryOrderHintBy: 'externalId'
-
-      @client.products.save(
-        _.extend {}, defaultProduct(@productType.id, @category.id),
+      }
+      service = TestHelpers.createService(project_key, 'products')
+      request = {
+        uri: service.build()
+        method: 'POST'
+        body: _.extend {}, defaultProduct(@productType.id, @category.id),
           categoryOrderHints:
             "#{@category.id}": '0.5'
-      )
+      }
+      @client.execute request
       .then (result) =>
         @product = result.body
-        @client.products.byId(@product.id).fetch()
+        service = TestHelpers.createService(project_key, 'products')
+        request = {
+          uri: service.byId(@product.id).build()
+          method: 'GET'
+        }
+        @client.execute request
       .then =>
         template =
           """
