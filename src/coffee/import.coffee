@@ -209,7 +209,7 @@ class Import
       Promise.resolve result
 
   isConcurrentModification: (err) ->
-    err.body.statusCode == 409
+    err.body?.statusCode == 409
 
   processProductsBasesOnSkus: (products) ->
     filterInput = QueryUtils.mapMatchFunction("sku")(products)
