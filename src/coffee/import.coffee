@@ -396,6 +396,24 @@ class Import
       i += chunkSize
     return chunkifiedActionsArray
 
+  updateProductInBatches: (existingProduct, chunkifiedUpdateRequests) ->
+    # Send update requests in series and for every request set the latest prod.version
+    # see: http://bluebirdjs.com/docs/api/promise.reduce.html
+    Promise.reduce(chunkifiedUpdateRequests, (existingProduct, updateRequest) =>
+      updateRequest.version = existingProduct.version
+      productsUri = createRequestBuilder({ @projectKey })
+        .products
+        .byId(existingProduct.id)
+        .build()
+      request = {
+        uri: productsUri
+        method: 'POST'
+        body: updateRequest
+      }
+      @client.execute request
+        .then (res) -> res.body
+    , existingProduct)
+
   update: (product, existingProduct, id2SameForAllAttributes, header, rowIndex, publish) ->
     product.categoryOrderHints = @_mergeCategoryOrderHints existingProduct, product
     allSameValueAttributes = id2SameForAllAttributes[product.productType.id]
@@ -463,20 +481,9 @@ class Import
     else
       if allUpdateRequests.actions.length
         chunkifiedUpdateRequests = @splitUpdateActionsArray(allUpdateRequests, 500)
-        Promise.all(_.map chunkifiedUpdateRequests, (updateRequest) =>
-          productsUri = createRequestBuilder({ @projectKey })
-            .products
-            .byId(existingProduct.id)
-            .build()
-          request = {
-            uri: productsUri
-            method: 'POST'
-            body: updateRequest
-          }
-          @client.execute request
-        )
-        .then (result) =>
-          @publishProduct(result.body, rowIndex)
+        @updateProductInBatches(existingProduct, chunkifiedUpdateRequests)
+        .then (resProduct) =>
+          @publishProduct(resProduct, rowIndex)
           .then -> Promise.resolve "[row #{rowIndex}] Product updated."
         .catch (err) =>
           msg = "[row #{rowIndex}] Problem on updating product:\n#{_.prettify err}\n#{_.prettify err.body}"

@@ -1527,3 +1527,63 @@ describe 'Import integration test', ->
 
         done()
       .catch (err) -> done _.prettify(err)
+
+    it 'should update product with multiple update requests', (done) ->
+      client = @importer.client
+
+      mockProduct = {
+        key: 'mockProduct',
+        name: {
+          en: 'test product'
+        },
+        productType: {
+          typeId: 'product-type',
+          id: @productType.id
+        },
+        slug: {
+          en: 'test-product'
+        },
+        description: {
+          en: 'test description'
+        },
+        masterVariant: {
+          sku: 'var1',
+          key: 'var1'
+        },
+        variants: []
+      }
+      request = {
+        uri: TestHelpers.createService(project_key, 'products').build()
+        method: 'POST'
+        body: mockProduct
+      }
+
+      client.execute(request)
+        .then (res) =>
+          mockUpdateRequests = [{
+            version: null, ## will be taken from existing product
+            actions: [{
+              action: 'changeName',
+              name: {
+                en: 'updated name'
+              }
+            }]
+          }, {
+            version: null, ## will be taken from existing product
+            actions: [{
+              action: 'setDescription',
+              description: {
+                en: 'updated description'
+              }
+            }]
+          }]
+          @importer.updateProductInBatches(res.body, mockUpdateRequests)
+        .then (res) =>
+          expect(res.masterData.staged.name).toEqual({
+            en: 'updated name'
+          })
+          expect(res.masterData.staged.description).toEqual({
+            en: 'updated description'
+          })
+          done()
+        .catch (err) -> done _.prettify(err)
