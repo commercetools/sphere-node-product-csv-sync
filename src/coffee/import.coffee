@@ -482,8 +482,8 @@ class Import
       if allUpdateRequests.actions.length
         chunkifiedUpdateRequests = @splitUpdateActionsArray(allUpdateRequests, 500)
         @updateProductInBatches(existingProduct, chunkifiedUpdateRequests)
-        .then (resProduct) =>
-          @publishProduct(resProduct, rowIndex)
+        .then (updatedProduct) =>
+          @publishProduct(updatedProduct, rowIndex)
           .then -> Promise.resolve "[row #{rowIndex}] Product updated."
         .catch (err) =>
           msg = "[row #{rowIndex}] Problem on updating product:\n#{_.prettify err}\n#{_.prettify err.body}"
