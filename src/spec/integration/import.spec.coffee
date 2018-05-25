@@ -1530,7 +1530,6 @@ describe 'Import integration test', ->
 
     it 'should update product with multiple update requests', (done) ->
       client = @importer.client
-
       mockProduct = {
         key: 'mockProduct',
         name: {
