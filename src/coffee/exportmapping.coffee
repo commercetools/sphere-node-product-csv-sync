@@ -13,6 +13,7 @@ class ExportMapping
     @typesService = options.typesService
     @categoryService = options.categoryService
     @channelService = options.channelService
+    @stateService = options.stateService
     @customerGroupService = options.customerGroupService
     @taxService = options.taxService
     @header = options.header
@@ -70,6 +71,10 @@ class ExportMapping
 
     if @header.has(CONS.HEADER_KEY)
       row[@header.toIndex CONS.HEADER_KEY] = product.key
+
+    if @header.has(CONS.HEADER_STATE) and _.has(product, 'state')
+      if _.has @stateService.id2key, product.state.id
+        row[@header.toIndex CONS.HEADER_STATE] = @stateService.id2key[product.state.id]
 
     if @header.has(CONS.HEADER_PRODUCT_TYPE)
       row[@header.toIndex CONS.HEADER_PRODUCT_TYPE] = productType.name
