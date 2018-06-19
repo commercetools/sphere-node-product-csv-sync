@@ -410,7 +410,7 @@ describe 'Export integration tests', ->
     '''
       productType,name,sku
       '''
-    exporter .exportDefault(template, null)
+    exporter.exportDefault(template, null)
     .then () ->
       done('Export should fail!')
     .catch (err) ->
