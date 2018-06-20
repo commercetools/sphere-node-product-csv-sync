@@ -362,6 +362,25 @@ describe 'ExportMapping', ->
       row = @exportMapping._mapBaseProduct(product, type)
       expect(row).toEqual [ 'myTax' ]
 
+    it 'should map state key', ->
+      @exportMapping.header = new Header([CONS.HEADER_STATE])
+      @exportMapping.header.toIndex()
+      @exportMapping.stateService =
+        id2key:
+          state123: 'myState'
+
+      product =
+        id: '123'
+        masterVariant:
+          attributes: []
+        state:
+          id: 'state123'
+      type =
+        name: 'myType'
+        id: 'typeId123'
+      row = @exportMapping._mapBaseProduct(product, type)
+      expect(row).toEqual [ 'myState' ]
+
 
     it 'should map localized base attributes', ->
       @exportMapping.header = new Header(['name.de','slug.it','description.en','searchKeywords.de'])
