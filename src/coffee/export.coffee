@@ -21,6 +21,7 @@ Categories = require './categories'
 Channels = require './channels'
 CustomerGroups = require './customergroups'
 Header = require './header'
+States = require './states'
 Taxes = require './taxes'
 ExportMapping = require './exportmapping'
 Writer = require './io/writer'
@@ -70,6 +71,7 @@ class Export
     @channelService = new Channels()
     @customerGroupService = new CustomerGroups()
     @taxService = new Taxes()
+    @stateService = new States()
 
     @createdFiles = {}
 
@@ -131,6 +133,7 @@ class Export
       typesService: @typesService
       customerGroupService: @customerGroupService
       taxService: @taxService
+      stateService: @stateService
       header: header
     new ExportMapping(@options)
 
@@ -169,14 +172,16 @@ class Export
       @channelService.getAll @client, @projectKey
       @customerGroupService.getAll @client, @projectKey
       @taxService.getAll @client, @projectKey
+      @stateService.getAll @client, @projectKey
     ]
     Promise.all(data)
-    .then ([productTypes, categories, channels, customerGroups, taxes]) =>
+    .then ([productTypes, categories, channels, customerGroups, taxes, states]) =>
       @typesService.buildMaps productTypes
       @categoryService.buildMaps categories
       @channelService.buildMaps channels
       @customerGroupService.buildMaps customerGroups
       @taxService.buildMaps taxes
+      @stateService.buildMaps states
 
       console.warn "Fetched #{productTypes.length} product type(s)."
       Promise.resolve({productTypes, categories, channels, customerGroups, taxes})
