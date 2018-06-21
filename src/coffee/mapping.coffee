@@ -78,7 +78,7 @@ class Mapping
 
   ensureValidSlug: (slug, rowIndex, appendix = '') ->
     unless _.isString(slug) and slug.length > 2
-      @errors.push "[row #{rowIndex}:#{CONS.HEADER_SLUG}] Can't generate valid slug out of '#{slug}'!"
+      @errors.push "[row #{rowIndex}:#{CONS.HEADER_SLUG}] Can't generate valid slug out of '#{slug}'! If you did not provide slug in your file, please do so as slug could not be auto-generated from the product name given."
       return
     @slugs or= []
     currentSlug = "#{slug}#{appendix}"
