@@ -15,6 +15,18 @@ tmp = require 'tmp'
 # will clean temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
 
+SpecReporter = require('jasmine-spec-reporter').SpecReporter
+jasmine.getEnv().clearReporters()
+jasmine.getEnv().addReporter(new SpecReporter({
+  spec: {
+    displayPending: true
+  }
+}))
+
+process.on('unhandledRejection', (error) ->
+  console.error('unhandledRejection', error)
+)
+
 describe 'Export integration tests', ->
   { client_id, client_secret, project_key } = Config.config
   constructorOptions = {
