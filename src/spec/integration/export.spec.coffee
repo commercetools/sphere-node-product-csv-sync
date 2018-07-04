@@ -441,8 +441,9 @@ describe 'Export integration tests', ->
     @export.exportDefault(template, outputLocation)
     .then () ->
       done("Should throw an exception with unsupported encoding")
-    .catch (err) ->
+    .catch (err) =>
       expect(err.message).toBe "Encoding does not exist: unsupportedEncoding"
+      @export.options.encoding = 'utf8'
       done()
 
   it 'should export current state of products', (done) ->
@@ -459,7 +460,6 @@ describe 'Export integration tests', ->
       uri: uriService.build(),
       method: 'GET'
     }
-
     client.execute(request)
     .then (products) =>
       products = products.body.results
