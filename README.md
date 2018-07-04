@@ -396,6 +396,7 @@ productType,name.en,variantId
     -q, --queryString <query>     Query string to specify the sub-set of products to export
     -l, --language [lang]         Language used on export for localised attributes (except lenums) and category names (default is en)
     --queryEncoded                Whether the given query string is already encoded or not
+    --current                     Will export current product version instead of staged one
     --fillAllRows                 When given product attributes like name will be added to each variant row.
     --categoryBy                  Define which identifier should be used for the categories column - options 'namedPath'(default), 'slug' and 'externalId'.
     --categoryOrderHintBy         Define which identifier should be used for the categoryOrderHints column - options 'categoryId'(default), 'id' or 'externalId'.
