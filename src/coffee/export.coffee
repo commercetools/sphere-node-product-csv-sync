@@ -160,7 +160,7 @@ class Export
       uri: productsService.build()
       method: 'GET'
     else
-      productsService.where(customWherePredicate || '')
+      productsService.where(customWherePredicate) if customWherePredicate
 
       uri: productsService.build()
       method: 'GET'
