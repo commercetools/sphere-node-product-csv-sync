@@ -73,8 +73,6 @@ class Export
         host: options.authConfig.host
         projectKey: projectKey
         credentials: options.authConfig.credentials
-      createQueueMiddleware
-        concurrency: 10
       createUserAgentMiddleware options.userAgentConfig
       createHttpMiddleware options.httpConfig
     ])
@@ -148,9 +146,6 @@ class Export
     query.where = if query.where then query.where + " AND "+predicate else predicate
     query
 
-  _stringifyQueryString: (query) ->
-    decodeURIComponent(queryStringParser.stringify(query))
-
   # return the correct product service in case query string is used or not
   _getProductService: (staged = true, customWherePredicate = false) ->
     productsService = createRequestBuilder({@projectKey})
@@ -166,8 +161,13 @@ class Export
 
       productsService.where(query.where) if query.where
 
-    uri: productsService.build()
-    method: 'GET'
+      uri: productsService.build()
+      method: 'GET'
+    else
+      productsService.where(customWherePredicate) if customWherePredicate
+
+      uri: productsService.build()
+      method: 'GET'
 
   _fetchResources: =>
     data = [
