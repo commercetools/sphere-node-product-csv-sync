@@ -48,7 +48,7 @@
     "csv": "0.3.7",
     "exceljs": "^1.1.1",
     "extract-zip": "^1.6.5",
-    "iconv-lite": "^0.4.19",
+    "iconv-lite": "0.4.19",
     "lodash.chunk": "^4.2.0",
     "lodash.merge": "^4.6.0",
     "optimist": "0.6.1",
@@ -74,6 +74,8 @@
     "grunt-shell": "^2.1.0",
     "istanbul": "0.4.5",
     "jasmine": "3.1.0",
+    "jasmine-spec-reporter": "^4.2.1",
+    "sinon": "^6.1.0",
     "sphere-coffeelint": "git://github.com/sphereio/sphere-coffeelint.git#master"
   },
   "keywords": [

@@ -49,19 +49,8 @@ class Export
         @options.export?.filterVariantsByAttributes
       )
       filterPrices: @_parseQuery(@options.export?.filterPrices)
-    @client = createClient(middlewares: [
-      createAuthMiddlewareWithExistingToken(
-        if @options.authConfig.accessToken
-        then "Bearer #{@options.authConfig.accessToken}"
-        else ''
-      )
-      createAuthMiddlewareForClientCredentialsFlow
-        host: @options.authConfig.host
-        projectKey: @projectKey
-        credentials: @options.authConfig.credentials
-      createUserAgentMiddleware @options.userAgentConfig
-      createHttpMiddleware @options.httpConfig
-    ])
+
+    @client = @_createClient()
 
     # TODO: using single mapping util instead of services
     @typesService = new Types()
@@ -72,6 +61,21 @@ class Export
     @stateService = new States()
 
     @createdFiles = {}
+
+  _createClient: (options = @options, projectKey = @projectKey) ->
+    createClient(middlewares: [
+      createAuthMiddlewareWithExistingToken(
+        if options.authConfig.accessToken
+        then "Bearer #{options.authConfig.accessToken}"
+        else ''
+      )
+      createAuthMiddlewareForClientCredentialsFlow
+        host: options.authConfig.host
+        projectKey: projectKey
+        credentials: options.authConfig.credentials
+      createUserAgentMiddleware options.userAgentConfig
+      createHttpMiddleware options.httpConfig
+    ])
 
   _parseQuery: (queryStr) ->
     if !queryStr then return null

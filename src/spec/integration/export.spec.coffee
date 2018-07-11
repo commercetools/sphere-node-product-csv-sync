@@ -1,5 +1,6 @@
 _ = require 'underscore'
 path = require 'path'
+sinon = require 'sinon'
 iconv = require 'iconv-lite'
 _.mixin require('underscore-mixins')
 Promise = require 'bluebird'
@@ -7,11 +8,24 @@ fs = Promise.promisifyAll require('fs')
 Config = require '../../config'
 TestHelpers = require './testhelpers'
 { Export } = require '../../lib/main'
+{ createRequestBuilder } = require '@commercetools/api-request-builder'
 extract = require 'extract-zip'
 extractArchive = Promise.promisify(extract)
 tmp = require 'tmp'
 # will clean temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
+
+SpecReporter = require('jasmine-spec-reporter').SpecReporter
+jasmine.getEnv().clearReporters()
+jasmine.getEnv().addReporter(new SpecReporter({
+  spec: {
+    displayPending: true
+  }
+}))
+
+process.on('unhandledRejection', (error) ->
+  console.error('unhandledRejection', error)
+)
 
 describe 'Export integration tests', ->
   { client_id, client_secret, project_key } = Config.config
@@ -28,7 +42,7 @@ describe 'Export integration tests', ->
     userAgentConfig: {}
   }
   beforeEach (done) ->
-    jasmine.getEnv().defaultTimeoutInterval = 30000 # 30 sec
+    jasmine.getEnv().defaultTimeoutInterval = 50000 # 50 sec
     @export = new Export(constructorOptions)
     @client = @export.client
     @productType = TestHelpers.mockProductType()
@@ -76,7 +90,6 @@ describe 'Export integration tests', ->
     .then -> done()
     .catch (err) -> done _.prettify(err.body)
   , 60000 # 60sec
-
 
   it 'should inform about a bad header in the template', (done) ->
     template =
@@ -428,6 +441,86 @@ describe 'Export integration tests', ->
     @export.exportDefault(template, outputLocation)
     .then () ->
       done("Should throw an exception with unsupported encoding")
-    .catch (err) ->
+    .catch (err) =>
       expect(err.message).toBe "Encoding does not exist: unsupportedEncoding"
+      @export.options.encoding = 'utf8'
       done()
+
+  it 'should export current state of products', (done) ->
+    client =  @export._createClient()
+    processSpy = sinon.spy(@export, '_processChunk')
+
+    # change staged vs current version of a product
+    uriService = createRequestBuilder({projectKey: @export.projectKey})
+      .productProjections
+      .staged(true)
+      .perPage(100)
+
+    request = {
+      uri: uriService.build(),
+      method: 'GET'
+    }
+    client.execute(request)
+    .then (products) =>
+      products = products.body.results
+      expect(products.length).toBe 1
+
+      uriService = createRequestBuilder({projectKey: @export.projectKey})
+        .products
+        .byId(products[0].id)
+
+      request = {
+        version: products[0].version,
+        actions: [
+          {
+            action: 'changeSlug',
+            slug: {
+              en: 'CURRENT-SLUG'
+            }
+          },
+          {
+            action: 'publish'
+          },
+          {
+            action: 'changeSlug',
+            slug: {
+              en: 'STAGED-SLUG'
+            }
+          }
+        ]
+      }
+
+      client.execute({
+        uri: uriService.build(),
+        method: 'POST',
+        body: JSON.stringify(request)
+      })
+    .then =>
+      template =
+      '''
+        productType,sku,slug.en
+        '''
+      outputLocation = '/tmp/output.csv'
+      @export.exportDefault(template, outputLocation, true) # export staged
+    .then () =>
+      products = processSpy.lastCall.args[1] # fetched products
+      expect(products.length).toBe 1
+      expect(products[0].slug.en).toBe 'STAGED-SLUG'
+
+      template =
+        '''
+        productType,sku,slug.en
+        '''
+      outputLocation = '/tmp/output.csv'
+      @export.exportDefault(template, outputLocation, false) # export current
+    .then () ->
+      products = processSpy.lastCall.args[1] # fetched products
+      expect(products.length).toBe 1
+      expect(products[0].slug.en).toBe 'CURRENT-SLUG'
+
+      processSpy.restore()
+      done()
+    .catch (err) ->
+
+      console.log(err)
+      done _.prettify(err)
