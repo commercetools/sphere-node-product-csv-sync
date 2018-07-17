@@ -112,6 +112,7 @@ class Import
 
     @validator.fetchResources(@resourceCache)
     .then (resources) =>
+      @states = @validator.states
       @resourceCache = resources
 
       if _.isString(csv) || csv instanceof Buffer
@@ -418,7 +419,7 @@ class Import
   update: (product, existingProduct, id2SameForAllAttributes, header, rowIndex, publish) ->
     product.categoryOrderHints = @_mergeCategoryOrderHints existingProduct, product
     if (not product.state? and not existingProduct.state? and @defaultState?)
-      product.state = { typeId : "state", id : @validator.states.key2id[@defaultState] }
+      product.state = { typeId : "state", id : @states.key2id[@defaultState] }
     allSameValueAttributes = id2SameForAllAttributes[product.productType.id]
     config = [
       { type: 'base', group: 'white' }
@@ -504,7 +505,7 @@ class Import
 
   create: (product, rowIndex, publish = false) ->
     if (not product.state? and @defaultState?)
-      product.state = { typeId : "state", id : @validator.states.key2id[@defaultState] }
+      product.state = { typeId : "state", id : @states.key2id[@defaultState] }
     if @dryRun
       Promise.resolve "[row #{rowIndex}] DRY-RUN - create new product."
     else if @updatesOnly
