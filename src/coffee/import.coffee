@@ -72,6 +72,7 @@ class Import
     @blackListedCustomAttributesForUpdate = []
     @customAttributeNameToMatch = undefined
     @matchBy = CONS.HEADER_ID
+    @defaultState = options.defaultState
     @options = options
     @_BATCH_SIZE = 20
     @_CONCURRENCY = 20
@@ -416,6 +417,8 @@ class Import
 
   update: (product, existingProduct, id2SameForAllAttributes, header, rowIndex, publish) ->
     product.categoryOrderHints = @_mergeCategoryOrderHints existingProduct, product
+    if (not product.state? and not existingProduct.state? and @defaultState?)
+      product.state = { typeId : "state", id : @validator.states.key2id[@defaultState] }
     allSameValueAttributes = id2SameForAllAttributes[product.productType.id]
     config = [
       { type: 'base', group: 'white' }
@@ -455,7 +458,8 @@ class Import
         when 'setSearchKeywords' then header.has(CONS.HEADER_SEARCH_KEYWORDS) or header.hasLanguageForBaseAttribute(CONS.HEADER_SEARCH_KEYWORDS)
         when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
-        when 'transitionState' then header.has(CONS.HEADER_STATE)
+        when 'transitionState'
+          if (@defaultState?) then true else header.has(CONS.HEADER_STATE)
         when 'setSku' then header.has(CONS.HEADER_SKU)
         when 'setProductVariantKey' then header.has(CONS.HEADER_VARIANT_KEY)
         when 'setKey' then header.has(CONS.HEADER_KEY)
@@ -499,6 +503,8 @@ class Import
         Promise.resolve "[row #{rowIndex}] Product update not necessary."
 
   create: (product, rowIndex, publish = false) ->
+    if (not product.state? and @defaultState?)
+      product.state = { typeId : "state", id : @validator.states.key2id[@defaultState] }
     if @dryRun
       Promise.resolve "[row #{rowIndex}] DRY-RUN - create new product."
     else if @updatesOnly

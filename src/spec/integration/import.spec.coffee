@@ -116,11 +116,11 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should import a simple product', (done) ->
+    it 'should import a simple product, without setting state', (done) ->
       csv =
         """
-        productType,name,variantId,slug,key,variantKey
-        #{@productType.id},#{@newProductName},1,#{@newProductSlug},productKey,variantKey
+        productType,name,variantId,slug,key,variantKey,state
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug},productKey,variantKey,
         """
       @importer.import(csv)
       .then (result) =>
@@ -141,9 +141,52 @@ describe 'Import integration test', ->
         expect(p.name).toEqual en: @newProductName
         expect(p.slug).toEqual en: @newProductSlug
         expect(p.key).toEqual 'productKey'
+        expect(p.state).toBeUndefined
         expect(p.masterVariant.key).toEqual 'variantKey'
         done()
       .catch (err) -> done _.prettify(err)
+
+    it 'should set state for a newly-created product when configured to do so', (done) ->
+      csv =
+        """
+        productType,name,variantId,slug,key,variantKey,state
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug},productKey,variantKey,
+        """
+      @importer = new Import {
+        authConfig: authConfig
+        httpConfig: httpConfig
+        userAgentConfig: userAgentConfig
+        defaultState: 'previous-state'
+      }
+      @importer.matchBy = 'sku'
+      @importer.allowRemovalOfVariants = true
+      @importer.suppressMissingHeaderWarning = true
+      @client = @importer.client
+
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+          .where("productType(id=\"#{@productType.id}\")")
+          .staged true
+          .expand 'state'
+          .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: @newProductName
+        expect(p.slug).toEqual en: @newProductSlug
+        expect(p.key).toEqual 'productKey'
+        expect(p.state.obj.key).toEqual 'previous-state'
+        expect(p.masterVariant.key).toEqual 'variantKey'
+        done()
+        .catch (err) -> done _.prettify(err)
 
     it 'should import a product with prices (even when one of them is discounted)', (done) ->
       csv =
@@ -236,10 +279,75 @@ describe 'Import integration test', ->
         expect(p.name).toEqual en: "#{@newProductName}_changed"
         expect(p.slug).toEqual en: @newProductSlug
         expect(p.key).toEqual 'productKey'
+        expect(p.state).toBeUndefined
         expect(p.masterVariant.key).toEqual 'variantKey'
 
         done()
       .catch (err) -> done _.prettify(err)
+
+    it 'should set default state on update when configured to do so, and product lacks state', (done) ->
+      csv =
+        """
+        productType,name,variantId,slug
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug}
+        """
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        csv =
+          """
+          productType,name,variantId,slug,key,variantKey
+          #{@productType.id},#{@newProductName+'_changed'},1,#{@newProductSlug},productKey,variantKey
+          """
+        im = new Import {
+          authConfig: authConfig
+          httpConfig: httpConfig
+          userAgentConfig: userAgentConfig
+          defaultState: 'previous-state'
+        }
+        im.matchBy = 'slug'
+        im.allowRemovalOfVariants = true
+        im.suppressMissingHeaderWarning = true
+        @client = im.client
+
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+          .where("productType(id=\"#{@productType.id}\")")
+          .staged true
+          .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) =>
+        p = result.body.results[0]
+        expect(p.state).toBeUndefined
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+          .where("productType(id=\"#{@productType.id}\")")
+          .staged true
+          .expand 'state'
+          .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: "#{@newProductName}_changed"
+        expect(p.slug).toEqual en: @newProductSlug
+        expect(p.key).toEqual 'productKey'
+        expect(p.state.obj.key).toEqual 'previous-state'
+        expect(p.masterVariant.key).toEqual 'variantKey'
+
+        done()
+        .catch (err) -> done _.prettify(err)
 
     it 'should handle all kind of attributes and constraints', (done) ->
       csv =
@@ -1473,7 +1581,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    xit 'should split actions if there are more than 500 in actions array', (done) ->
+    it 'should split actions if there are more than 500 in actions array', (done) ->
       numberOfVariants = 501
       csvCreator = (productType, newProductName, newProductSlug, rows) ->
         changes = ""
