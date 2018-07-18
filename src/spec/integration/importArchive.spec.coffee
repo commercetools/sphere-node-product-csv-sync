@@ -102,6 +102,7 @@ describe 'Import integration test', ->
       @newProductName = TestHelpers.uniqueId 'name-'
       @newProductSlug = TestHelpers.uniqueId 'slug-'
       @newProductSku = TestHelpers.uniqueId 'sku-'
+      console.log ("[0m[01;34mName: #{@newProductName}; slug: #{@newProductSlug}; sku: #{@newProductSku}[0m")
 
     it 'should import multiple archived products from CSV', (done) ->
       tempDir = tmp.dirSync({ unsafeCleanup: true })
