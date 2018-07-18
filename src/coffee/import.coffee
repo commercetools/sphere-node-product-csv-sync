@@ -25,6 +25,8 @@ Reader = require './io/reader'
 deepMerge = require 'lodash.merge'
 fs = Promise.promisifyAll require('fs')
 
+util = require ('util')
+
 # will clean temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
 
@@ -150,7 +152,7 @@ class Import
     tempDir = tmp.dirSync({ unsafeCleanup: true })
     console.log "Unarchiving file #{archivePath}"
 
-    extractArchive(archivePath, {dir: tempDir.name, onEntry: (entry, zipfile) -> console.log ("[0m[01;33m#{entry})[0m") } )
+    extractArchive(archivePath, {dir: tempDir.name, onEntry: (entry, zipfile) -> console.log ("[0m[01;33m#{util.inspect(entry)})[0m") } )
     .then =>
       filePredicate = "**/*.#{@options.importFormat}"
       console.log "Loading files '#{filePredicate}'from", tempDir.name
