@@ -152,7 +152,7 @@ class Import
     tempDir = tmp.dirSync({ unsafeCleanup: true })
     console.log "Unarchiving file #{archivePath}"
 
-    extractArchive(archivePath, {dir: tempDir.name, onEntry: (entry, zipfile) -> console.log ("[0m[01;33m#{util.inspect(entry)})[0m") } )
+    extractArchive(archivePath, {dir: tempDir.name, onEntry: (entry, zipfile) -> console.log ("[0m[01;33mArchive entry: #{entry.fileName})[0m") } )
     .then =>
       filePredicate = "**/*.#{@options.importFormat}"
       console.log "Loading files '#{filePredicate}'from", tempDir.name
@@ -366,6 +366,7 @@ class Import
     Promise.all _.map products, (entry) =>
       existingProduct = matchFn(entry)
       if existingProduct?
+        console.log ("[0m[01;33mExisting product: #{util.inspect(entry.product)})[0m")
         @update(entry.product, existingProduct, types.id2SameForAllAttributes, entry.header, entry.rowIndex, entry.publish)
         .catch (msg) =>
           if msg == 'ConcurrentModification'
@@ -374,6 +375,7 @@ class Import
           else
             Promise.reject msg
       else
+        console.log ("[0m[01;33mCreating product: #{util.inspect(entry.product)})[0m")
         @create(entry.product, entry.rowIndex, entry.publish)
 
   _mergeCategoryOrderHints: (existingProduct, product) ->
