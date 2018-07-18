@@ -121,6 +121,7 @@ describe 'Import and publish test', ->
 
 
     it 'should update products and publish them afterward', (done) ->
+      console.log ("[0m[01;33mStart test[0m")
       csv =
         """
         productType,variantId,sku,name,publish
