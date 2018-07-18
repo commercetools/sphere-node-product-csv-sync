@@ -11,6 +11,8 @@ fs = Promise.promisifyAll require('fs')
 # will clean temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
 
+util = require('util')
+
 { client_id, client_secret, project_key } = Config.config
 authConfig = {
   host: 'https://auth.sphere.io'
@@ -140,6 +142,7 @@ describe 'Import and publish test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 2
+        console.log ("[0m[01;31mResults: #{util.inspect(result)})[0m")
         expect(result).toEqual [
           '[row 2] Product updated.',
           '[row 3] Product updated.'
