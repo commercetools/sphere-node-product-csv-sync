@@ -77,6 +77,7 @@ describe 'Import integration test', ->
       @newProductSlug = TestHelpers.uniqueId 'slug-'
       @newProductSku = TestHelpers.uniqueId 'sku-'
       @newProductSku += '"foo"'
+      console.log ("[0m[01;34mName: #{@newProductName}; slug: #{@newProductSlug}; sku: #{@newProductSku}[0m")
 
     it 'should transition a product state', (done) ->
       csv =
@@ -442,7 +443,7 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         expect(result[1]).toBe '[row 4] Product update not necessary.'
         expect(result[2]).toBe '[row 5] Product update not necessary.'
-        
+
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
           uri: service
