@@ -33,7 +33,7 @@ notifications:
     on_failure: change
 env:
   global:
-    - secure: nd50EfL32KaVoqMGNp4/gyl1XwvTDDRVfiMpMjHajorp9kAfMfFWVqo7N43PT9or2Bkks1h9/cFrDMLFwOz/Oc+D6CCcuvhEJbRq7gcMvaR5Ei2rEo2hG+Liph5EAj7yeiFoI73D4Oj0iQY/+qleRh451I4x3XW5ef8AP8pV+D8=
-    - secure: dQ35ND3Dd5FSBcePLRv7InBPkbvYm0011/xkPJeyOkLPLSmB+SXxTzBZur50YZELld9CYfNvMLkBluaNTjP/hVcb921Q53UUKG/k36X38sWXACQzIwEvbOHnU7p+A42oJDQWGLi1AKZrTUvaMZiEFf4HyB04dKnf+Xsc5aXwKQE=
-    - secure: d06TBgyndHegzTVf9aX7EkJvaQx1sDavv6jcfWQ2umhIvkK+hFN5T2+i2aTdOAzsmkew/zjKgVnY7sJ5eTCmCzd5HVKZz+EVGX/xr7Wo6omdyEyRkXliARQoaYumFUs9JFAAZXEUEvT52ClkeulGOF8yPFgh98KMmismsE9qapA=
+    - secure: adpy37rxbdN5Z3PVmWfDZupr49PJogs1yE0/ATaK1oEdji1Sd4Zqmlsh+AfaXR7TzmdY/77EuKYbFJ0clK0QisV0ISyiKGM04EVyi0gAiV52k6LLMMs9LNmcTCm6B2oapQ7Jty7vk0jzi9XgVTicU65yx4YdKtn6Gkj+ygXbpCE=
+    - secure: AQsFzgFzDW6bbz71OmQIZlQzX3N9/6GEm4tJmc45WZZ+PCE/GWePA3SFiRnBC2egTO+6ZiiUFmg9aDwiFLtLa4z6kDlzNQWZy4Fg1hMXKXz8FVvLzaW3X6st/MC6YUNpuJO1Zr5ghtgt6IMhrMpqCeMxqjdCTQjOIwI1y9FORl0=
+    - secure: YfkeSyk3cJr7G4x0mg5yYjCtJQUE4lKmGt7HFAFxxqGZ5KHcXYu43i1RrMV73X+LeqRzGSxDWaXcssocCGs6Iv8nGpiytlmC4LdRizz1cLq+nqVgizJAJjv6NL71p1wBjuD0ZsWaXbAdpy5ddBDxcwVirOiLfe8wjU4gQAiqTtg=
 sudo: false
