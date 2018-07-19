@@ -141,10 +141,11 @@ describe 'Import and publish test', ->
           """
         im = createImporter()
         im.import(csv)
-      .then (result) =>
-        expect(_.size result).toBe 2
-        console.log ("[0m[01;31mResults: #{util.inspect(result)})[0m")
-        expect(result).toEqual [
+      .then (result2) =>
+        expect(_.size result2).toBe 2
+        console.log ("[0m[01;31mResults: #{util.inspect(result2)})[0m")
+        console.log (result2)
+        expect(result2).toEqual [
           '[row 2] Product updated.',
           '[row 3] Product updated.'
         ]
