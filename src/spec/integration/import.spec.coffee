@@ -186,7 +186,48 @@ describe 'Import integration test', ->
         expect(p.state.obj.key).toEqual 'previous-state'
         expect(p.masterVariant.key).toEqual 'variantKey'
         done()
-        .catch (err) -> done _.prettify(err)
+      .catch (err) -> done _.prettify(err)
+
+    it 'should not fall over when the default state does not exist', (done) ->
+      csv =
+        """
+        productType,name,variantId,slug,key,variantKey,state
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug},productKey,variantKey,
+        """
+      @importer = new Import {
+        authConfig: authConfig
+        httpConfig: httpConfig
+        userAgentConfig: userAgentConfig
+        defaultState: 'nonexistent-state'
+      }
+      @importer.matchBy = 'sku'
+      @importer.allowRemovalOfVariants = true
+      @importer.suppressMissingHeaderWarning = true
+      @client = @importer.client
+
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+          .where("productType(id=\"#{@productType.id}\")")
+          .staged true
+          .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: @newProductName
+        expect(p.slug).toEqual en: @newProductSlug
+        expect(p.key).toEqual 'productKey'
+        expect(p.state).toBeUndefined
+        expect(p.masterVariant.key).toEqual 'variantKey'
+        done()
+      .catch (err) -> done _.prettify(err)
 
     it 'should import a product with prices (even when one of them is discounted)', (done) ->
       csv =
@@ -347,7 +388,7 @@ describe 'Import integration test', ->
         expect(p.masterVariant.key).toEqual 'variantKey'
 
         done()
-        .catch (err) -> done _.prettify(err)
+      .catch (err) -> done _.prettify(err)
 
     it 'should handle all kind of attributes and constraints', (done) ->
       csv =

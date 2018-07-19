@@ -110,7 +110,7 @@ describe 'State integration tests', ->
     .catch (err) -> done _.prettify(err)
   , 50000 # 50sec
 
-  it 'should delete unplublished products', (done) ->
+  it 'should delete unpublished products', (done) ->
     csv =
       """
       productType,name.en,slug.en,variantId,sku,#{TEXT_ATTRIBUTE_NONE}
