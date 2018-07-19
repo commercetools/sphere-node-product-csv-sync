@@ -161,18 +161,24 @@ describe 'Import and publish test', ->
         }
         @client.execute request
       .then (result) =>
+        console.log ("[0m[01;32mGot to l. 164[0m")
         products = _.where(result.body.results, { published: true })
         expect(_.size products).toBe 2
 
         p = _.where(products, { hasStagedChanges: false })
+        console.log ("[0m[01;32mGot to l. 169[0m")
         expect(p.length).toBe 1
         expect(p[0].name).toEqual en: "#{@newProductName}2"
 
         p = _.where(products, { hasStagedChanges: true })
+        console.log ("[0m[01;32mGot to l. 174[0m")
         expect(p.length).toBe 1
         expect(p[0].name).toEqual en: "#{@newProductName}12"
+        console.log ("[0m[01;32mGot to l. 177[0m")
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) ->
+        console.log ("[0m[01;34mAt l. 180[0m")
+        done _.prettify(err)
 
     it 'should update and publish product when matching using SKU', (done) ->
       csv =
