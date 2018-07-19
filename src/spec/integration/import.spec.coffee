@@ -99,6 +99,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee l.102")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -264,6 +265,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee l.268")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -315,6 +317,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee l.320")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -380,6 +383,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee l.386")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -493,6 +497,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee l.500")
         expect(result[0]).toBe '[row 2] Product updated.'
 
         service = TestHelpers.createService(project_key, 'productProjections')
@@ -550,6 +555,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee l.558")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -596,6 +602,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee l.605")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -677,6 +684,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee l.687")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -732,6 +740,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee l.742")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -795,6 +804,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee l.807")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -858,6 +868,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee l.871")
         expect(result[0]).toBe '[row 2] Product updated.'
 
         service = TestHelpers.createService(project_key, 'productProjections')
@@ -911,6 +922,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee l.925")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -1005,6 +1017,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee l.1020")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -1044,6 +1057,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee l.1060")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -1083,6 +1097,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee l.1100")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -1126,6 +1141,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -1271,6 +1287,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -1398,6 +1415,7 @@ describe 'Import integration test', ->
         getImporter().import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -1454,6 +1472,7 @@ describe 'Import integration test', ->
         getImporter().import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -1477,6 +1496,7 @@ describe 'Import integration test', ->
         getImporter().import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -1615,6 +1635,7 @@ describe 'Import integration test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 1
+        console.log ("[0m[01;31mChecking for 'Product updated' at import.spec.coffee")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {

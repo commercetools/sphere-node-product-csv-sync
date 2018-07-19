@@ -176,6 +176,7 @@ describe 'categoryOrderHints', ->
         )
         im.import(csv)
       .then (result2) =>
+        console.log ("[0m[01;31mChecking for 'Product updated' at categoryOrderHint.spec.coffee l.179")
         expect(result2[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'products')
         request = {
@@ -208,6 +209,7 @@ describe 'categoryOrderHints', ->
         )
         im.import(csv)
       .then (result2) =>
+        console.log ("[0m[01;31mChecking for 'Product updated' at categoryOrderHint.spec.coffee l.212")
         expect(result2[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'products')
         request = {
@@ -240,6 +242,7 @@ describe 'categoryOrderHints', ->
         )
         im.import(csv)
       .then (result2) =>
+        console.log ("[0m[01;31mChecking for 'Product updated' at categoryOrderHint.spec.coffee l.243")
         expect(result2[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'products')
         request = {
@@ -272,6 +275,7 @@ describe 'categoryOrderHints', ->
         )
         im.import(csv)
       .then (result2) =>
+        console.log ("[0m[01;31mChecking for 'Product updated' at categoryOrderHint.spec.coffee l.278")
         expect(result2[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'products')
         request = {
@@ -306,6 +310,7 @@ describe 'categoryOrderHints', ->
         )
         im.import(csv)
       .then (result) =>
+        console.log ("[0m[01;31mChecking for 'Product updated' at categoryOrderHint.spec.coffee l.313")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'products')
         request = {
@@ -340,6 +345,7 @@ describe 'categoryOrderHints', ->
         )
         im.import(csv)
       .then (result) =>
+        console.log ("[0m[01;31mChecking for 'Product updated' at categoryOrderHint.spec.coffee l.348")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'products')
         request = {
@@ -390,6 +396,7 @@ describe 'categoryOrderHints', ->
         im.mergeCategoryOrderHints = true
         im.import(csv)
       .then (result) =>
+        console.log ("[0m[01;31mChecking for 'Product updated' at categoryOrderHint.spec.coffee l.399")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'products')
         request = {
@@ -443,6 +450,7 @@ describe 'categoryOrderHints', ->
         im.mergeCategoryOrderHints = true
         im.import(csv)
       .then (result) =>
+        console.log ("[0m[01;31mChecking for 'Product updated' at categoryOrderHint.spec.coffee l.453")
         expect(result[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'products')
         request = {

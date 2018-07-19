@@ -202,6 +202,7 @@ describe 'Import and publish test', ->
         im.import(csv)
       .then (result2) =>
         expect(_.size result2).toBe 2
+        console.log ("[0m[01;31mChecking for 'Product updated' at l.205")
         expect(result2).toEqual [
           '[row 2] Product updated.',
           '[row 4] Product updated.'
@@ -261,6 +262,7 @@ describe 'Import and publish test', ->
         im.import(csv)
       .then (result) =>
         expect(_.size result).toBe 2
+        console.log ("[0m[01;31mChecking for 'Product updated' at l.265")
         expect(result).toEqual [
           '[row 2] Product updated.',
           '[row 3] Product update not necessary.'
