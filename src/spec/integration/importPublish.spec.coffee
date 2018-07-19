@@ -148,6 +148,7 @@ describe 'Import and publish test', ->
           '[row 2] Product updated.',
           '[row 3] Product updated.'
         ]
+        console.log ("[0m[01;32mGot past problematic assertion[0m")
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
           uri: service
