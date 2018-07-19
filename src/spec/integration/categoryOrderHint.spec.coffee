@@ -90,9 +90,9 @@ prepareCategoryAndProduct = (done) ->
       method: 'GET'
     }
     @client.execute request
-  .then (result) =>
+  .then (result2) =>
     # Create the channel if it doesn't exist else ignore
-    if (!result.body.total)
+    if (!result2.body.total)
       service = TestHelpers.createService(project_key, 'channels')
       request = {
         uri: service.build()
@@ -150,8 +150,8 @@ describe 'categoryOrderHints', ->
               method: 'DELETE'
             }
             @client.execute request
-      .then (results) ->
-        console.log "Deleted #{results.length} products"
+      .then (results2) ->
+        console.log "Deleted #{results2.length} products"
         done()
       .catch (error) -> done(_.prettify(error))
     , 90000 # 90secs
@@ -175,16 +175,16 @@ describe 'categoryOrderHints', ->
           continueOnProblems: true
         )
         im.import(csv)
-      .then (result) =>
-        expect(result[0]).toBe '[row 2] Product updated.'
+      .then (result2) =>
+        expect(result2[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'products')
         request = {
           uri: service.byId(@product.id).build()
           method: 'GET'
         }
         @client.execute request
-      .then (result) =>
-        expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.5'}
+      .then (result2) =>
+        expect(result2.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.5'}
         done()
       .catch (err) -> done _.prettify(err)
 
@@ -207,16 +207,16 @@ describe 'categoryOrderHints', ->
           continueOnProblems: true
         )
         im.import(csv)
-      .then (result) =>
-        expect(result[0]).toBe '[row 2] Product updated.'
+      .then (result2) =>
+        expect(result2[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'products')
         request = {
           uri: service.byId(@product.id).build()
           method: 'GET'
         }
         @client.execute request
-      .then (result) =>
-        expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.5'}
+      .then (result3) =>
+        expect(result3.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.5'}
         done()
       .catch (err) -> done _.prettify(err)
 
@@ -239,16 +239,16 @@ describe 'categoryOrderHints', ->
           continueOnProblems: true
         )
         im.import(csv)
-      .then (result) =>
-        expect(result[0]).toBe '[row 2] Product updated.'
+      .then (result2) =>
+        expect(result2[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'products')
         request = {
           uri: service.byId(@product.id).build()
           method: 'GET'
         }
         @client.execute request
-      .then (result) =>
-        expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.5'}
+      .then (result3) =>
+        expect(result3.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.5'}
         done()
       .catch (err) -> done _.prettify(err)
 
@@ -271,16 +271,16 @@ describe 'categoryOrderHints', ->
           continueOnProblems: true
         )
         im.import(csv)
-      .then (result) =>
-        expect(result[0]).toBe '[row 2] Product updated.'
+      .then (result2) =>
+        expect(result2[0]).toBe '[row 2] Product updated.'
         service = TestHelpers.createService(project_key, 'products')
         request = {
           uri: service.byId(@product.id).build()
           method: 'GET'
         }
         @client.execute request
-      .then (result) =>
-        expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.5'}
+      .then (result3) =>
+        expect(result3.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.5'}
         done()
       .catch (err) -> done _.prettify(err)
 

@@ -79,9 +79,9 @@ describe 'Import integration test', ->
         method: 'GET'
       }
       @client.execute request
-    .then (result) =>
+    .then (result2) =>
       # Create the channel if it doesn't exist else ignore
-      if (!result.body.total)
+      if (!result2.body.total)
         service = TestHelpers.createService(project_key, 'channels')
         request = {
           uri: service.build()
@@ -126,9 +126,9 @@ describe 'Import integration test', ->
           method: 'GET'
         }
         @client.execute request
-      .then (result) =>
-        expect(_.size result.body.results).toBe 1
-        p = result.body.results[0]
+      .then (result2) =>
+        expect(_.size result2.body.results).toBe 1
+        p = result2.body.results[0]
         expect(p.name).toEqual en: @newProductName
         expect(p.slug).toEqual en: @newProductSlug
         done()
@@ -157,9 +157,9 @@ describe 'Import integration test', ->
           method: 'GET'
         }
         @client.execute request
-      .then (result) ->
-        expect(_.size result.body.results).toBe 1
-        p = result.body.results[0]
+      .then (result2) ->
+        expect(_.size result2.body.results).toBe 1
+        p = result2.body.results[0]
         expect(_.size p.masterVariant.prices).toBe 4
         prices = p.masterVariant.prices
         expect(prices[0].value).toEqual jasmine.objectContaining(currencyCode: 'EUR', centAmount: 899)
@@ -189,9 +189,9 @@ describe 'Import integration test', ->
         im = createImporter()
         im.matchBy = 'slug'
         im.importManager(filePath)
-      .then (result) ->
-        expect(_.size result).toBe 1
-        expect(result[0]).toBe '[row 2] Product update not necessary.'
+      .then (result2) ->
+        expect(_.size result2).toBe 1
+        expect(result2[0]).toBe '[row 2] Product update not necessary.'
         done()
       .catch (err) -> done _.prettify(err)
 
@@ -220,9 +220,9 @@ describe 'Import integration test', ->
         im.allowRemovalOfVariants = false
         im.updatesOnly = true
         im.import(csv)
-      .then (result) =>
-        expect(_.size result).toBe 1
-        expect(result[0]).toBe '[row 2] Product updated.'
+      .then (result2) =>
+        expect(_.size result2).toBe 1
+        expect(result2[0]).toBe '[row 2] Product updated.'
 
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
@@ -233,9 +233,9 @@ describe 'Import integration test', ->
           method: 'GET'
         }
         @client.execute request
-      .then (result) =>
-        expect(_.size result.body.results).toBe 1
-        p = result.body.results[0]
+      .then (result3) =>
+        expect(_.size result3.body.results).toBe 1
+        p = result3.body.results[0]
         expect(p.name).toEqual {en: @newProductName}
         expect(p.masterVariant.sku).toBe "#{@newProductSku}1"
         expect(p.masterVariant.prices[0].value).toEqual jasmine.objectContaining(centAmount: 1999, currencyCode: 'EUR')

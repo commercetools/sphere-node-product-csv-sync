@@ -122,6 +122,7 @@ describe 'Import and publish test', ->
 
     it 'should update products and publish them afterward', (done) ->
       console.log ("[0m[01;33mStart test[0m")
+      console.log (project_key.split("").join(" "))
       csv =
         """
         productType,variantId,sku,name,publish
@@ -199,9 +200,9 @@ describe 'Import and publish test', ->
           """
         im = createImporter()
         im.import(csv)
-      .then (result) =>
-        expect(_.size result).toBe 2
-        expect(result).toEqual [
+      .then (result2) =>
+        expect(_.size result2).toBe 2
+        expect(result2).toEqual [
           '[row 2] Product updated.',
           '[row 4] Product updated.'
         ]
