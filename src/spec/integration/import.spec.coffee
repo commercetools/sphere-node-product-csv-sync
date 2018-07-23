@@ -1622,7 +1622,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
-    it 'should split actions if there are more than 500 in actions array', (done) ->
+    xit 'should split actions if there are more than 500 in actions array', (done) ->
       numberOfVariants = 501
       csvCreator = (productType, newProductName, newProductSlug, rows) ->
         changes = ""
