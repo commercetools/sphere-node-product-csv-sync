@@ -507,7 +507,7 @@ class Import
     if (@states.key2id[@defaultState])
       product.state = { typeId : "state", id : @states.key2id[@defaultState] }
     else
-      console.error ("Cannot assign default state #{@defaultState}: does not exist")
+      console.error ("Cannot assign product's state from default state #{@defaultState}: does not exist")
 
   create: (product, rowIndex, publish = false) ->
     if (not product.state? and @defaultState?)
