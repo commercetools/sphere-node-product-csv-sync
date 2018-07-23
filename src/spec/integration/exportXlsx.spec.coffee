@@ -42,7 +42,7 @@ readXlsx = (filePath) ->
 describe 'Export xlsx integration tests', ->
 
   beforeEach (done) ->
-    jasmine.getEnv().defaultTimeoutInterval = 30000 # 30 sec
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000 # 30 sec
     @export = new Export {
       authConfig: authConfig
       httpConfig: httpConfig

@@ -57,7 +57,7 @@ describe 'Import integration test', ->
     .then -> done()
 
   beforeEach (done) ->
-    jasmine.getEnv().defaultTimeoutInterval = 360000 # 3mins
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 360000 # 3mins
     @importer = createImporter()
     @client = @importer.client
 

@@ -55,7 +55,7 @@ newCategory = (name = 'Category name', externalId = 'externalCategoryId') ->
   externalId: externalId
 
 prepareCategoryAndProduct = (done) ->
-  jasmine.getEnv().defaultTimeoutInterval = 120000 # 2mins
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000 # 2mins
   @export = new Export {
     authConfig: authConfig
     httpConfig: httpConfig

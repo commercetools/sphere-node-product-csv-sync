@@ -42,7 +42,7 @@ describe 'Export integration tests', ->
     userAgentConfig: {}
   }
   beforeEach (done) ->
-    jasmine.getEnv().defaultTimeoutInterval = 50000 # 50 sec
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 50000 # 50 sec
     @export = new Export(constructorOptions)
     @client = @export.client
     @productType = TestHelpers.mockProductType()

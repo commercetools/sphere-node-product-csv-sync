@@ -61,7 +61,7 @@ writeXlsx = (filePath, data) ->
 describe 'Import integration test', ->
 
   beforeEach (done) ->
-    jasmine.getEnv().defaultTimeoutInterval = 120000 # 2mins
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000 # 2mins
     @importer = createImporter()
     @importer.suppressMissingHeaderWarning = true
     @client = @importer.client

@@ -25,7 +25,7 @@ describe 'Impex integration tests', ->
   userAgentConfig = {}
 
   beforeEach (done) ->
-    jasmine.getEnv().defaultTimeoutInterval = 120000 # 2mins
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000 # 2mins
     initOptions = {
       authConfig: authConfig
       httpConfig: httpConfig
