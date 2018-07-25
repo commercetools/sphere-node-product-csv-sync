@@ -419,7 +419,7 @@ class Import
   update: (product, existingProduct, id2SameForAllAttributes, header, rowIndex, publish) ->
     product.categoryOrderHints = @_mergeCategoryOrderHints existingProduct, product
     if (not product.state? and not existingProduct.state? and @defaultState?)
-      @assignState (product)
+      @assignStateFromDefault (product)
     allSameValueAttributes = id2SameForAllAttributes[product.productType.id]
     config = [
       { type: 'base', group: 'white' }
@@ -503,15 +503,15 @@ class Import
       else
         Promise.resolve "[row #{rowIndex}] Product update not necessary."
 
-  assignState: (product) ->
+  assignStateFromDefault: (product) ->
     if (@states.key2id[@defaultState])
-      product.state = { typeId : "state", id : @states.key2id[@defaultState] }
+      product.state = { typeId : "state", key : @defaultState }
     else
       console.error ("Cannot assign product's state from default state #{@defaultState}: does not exist")
 
   create: (product, rowIndex, publish = false) ->
     if (not product.state? and @defaultState?)
-      @assignState (product)
+      @assignStateFromDefault (product)
     if @dryRun
       Promise.resolve "[row #{rowIndex}] DRY-RUN - create new product."
     else if @updatesOnly
