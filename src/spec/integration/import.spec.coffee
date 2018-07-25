@@ -146,6 +146,36 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done _.prettify(err)
 
+    it 'should import a simple product, without a state field in the csv', (done) ->
+      csv =
+        """
+        productType,name,variantId,slug,key,variantKey
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug},productKey,variantKey
+        """
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+          .where("productType(id=\"#{@productType.id}\")")
+          .staged true
+          .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: @newProductName
+        expect(p.slug).toEqual en: @newProductSlug
+        expect(p.key).toEqual 'productKey'
+        expect(p.state).toBeUndefined
+        expect(p.masterVariant.key).toEqual 'variantKey'
+        done()
+      .catch (err) -> done _.prettify(err)
+
     it 'should set state for a newly-created product when configured to do so', (done) ->
       csv =
         """
