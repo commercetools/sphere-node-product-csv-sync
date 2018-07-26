@@ -44,7 +44,7 @@ describe 'Impex integration tests', ->
     .then (result) =>
       @productType = result
       done()
-    .catch (err) -> done _.prettify(err.body)
+    .catch (err) -> done.fail _.prettify(err.body)
   , 60000 # 60sec
 
   it 'should import and re-export a simple product', (done) ->
@@ -95,7 +95,7 @@ describe 'Impex integration tests', ->
         expect(content).toMatch p1
         expect(content).toMatch p2
         done()
-    .catch (err) -> done _.prettify(err)
+    .catch (err) -> done.fail _.prettify(err)
 
   it 'should import and re-export SEO attributes', (done) ->
     header = "productType,variantId,name.en,description.en,slug.en,metaTitle.en,metaDescription.en,metaKeywords.en,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,searchKeywords.en"
@@ -126,4 +126,4 @@ describe 'Impex integration tests', ->
         expect(content).toMatch header
         expect(content).toMatch p1
         done()
-    .catch (err) -> done _.prettify(err)
+    .catch (err) -> done.fail _.prettify(err)

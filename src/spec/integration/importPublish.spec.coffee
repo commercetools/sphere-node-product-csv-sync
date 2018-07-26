@@ -115,7 +115,7 @@ describe 'Import and publish test', ->
         expect(p.length).toBe 1
         expect(p[0].slug).toEqual en: "#{@newProductSlug}1"
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
 
     it 'should update products and publish them afterward', (done) ->
@@ -165,7 +165,7 @@ describe 'Import and publish test', ->
         expect(p.length).toBe 1
         expect(p[0].name).toEqual en: "#{@newProductName}12"
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should update and publish product when matching using SKU', (done) ->
       csv =
@@ -225,7 +225,7 @@ describe 'Import and publish test', ->
         expect(p[0].masterVariant.prices[0].value).toEqual jasmine.objectContaining(currencyCode: 'EUR', centAmount: 333)
 
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should publish even if there are no update actions', (done) ->
       csv =
@@ -278,5 +278,5 @@ describe 'Import and publish test', ->
         expect(p[0].name).toEqual en: "#{@newProductName}3"
 
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
