@@ -366,6 +366,22 @@ describe 'Import integration test', ->
       .then (result) =>
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] New product created.'
+
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+          .where("productType(id=\"#{@productType.id}\")")
+          .staged true
+          .expand 'state'
+          .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.state).toBeUndefined
+
         csv =
           """
           productType,name,variantId,slug,key,variantKey
@@ -391,18 +407,6 @@ describe 'Import integration test', ->
           uri: service
           .where("productType(id=\"#{@productType.id}\")")
           .staged true
-          .build()
-          method: 'GET'
-        }
-        @client.execute request
-      .then (result) =>
-        p = result.body.results[0]
-        expect(p.state).toBeUndefined
-        service = TestHelpers.createService(project_key, 'productProjections')
-        request = {
-          uri: service
-          .where("productType(id=\"#{@productType.id}\")")
-          .staged true
           .expand 'state'
           .build()
           method: 'GET'
@@ -418,7 +422,8 @@ describe 'Import integration test', ->
         expect(p.masterVariant.key).toEqual 'variantKey'
 
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) ->
+        done.fail _.prettify(err)
 
     it 'should handle all kind of attributes and constraints', (done) ->
       csv =
@@ -513,7 +518,7 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         expect(result[1]).toBe '[row 4] Product update not necessary.'
         expect(result[2]).toBe '[row 5] Product update not necessary.'
-        
+
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
           uri: service
