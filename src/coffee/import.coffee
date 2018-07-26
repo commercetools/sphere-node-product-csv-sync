@@ -505,7 +505,7 @@ class Import
 
   assignStateFromDefault: (product) ->
     if (@states.key2id[@defaultState])
-      product.state = { typeId : "state", key : @defaultState }
+      product.state = { typeId : "state", id : @states.key2id[@defaultState] }
     else
       console.error ("Cannot assign product's state from default state #{@defaultState}: does not exist")
 
