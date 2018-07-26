@@ -34,7 +34,7 @@ module.exports = (grunt) ->
             dest + matchedSrcPath
           )
       test:
-        files: grunt.file.expandMapping(['**/import.spec.coffee'], 'test/',
+        files: grunt.file.expandMapping(['**/*.spec.coffee'], 'test/',
           flatten: false
           cwd: 'src/spec'
           ext: '.spec.js'
