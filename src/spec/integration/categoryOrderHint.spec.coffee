@@ -55,7 +55,7 @@ newCategory = (name = 'Category name', externalId = 'externalCategoryId') ->
   externalId: externalId
 
 prepareCategoryAndProduct = (done) ->
-  jasmine.getEnv().defaultTimeoutInterval = 120000 # 2mins
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000 # 2mins
   @export = new Export {
     authConfig: authConfig
     httpConfig: httpConfig
@@ -103,7 +103,7 @@ prepareCategoryAndProduct = (done) ->
       }
       @client.execute request
   .then -> done()
-  .catch (error) -> done(_.prettify(error))
+  .catch (error) -> done.fail (_.prettify(error))
 
 describe 'categoryOrderHints', ->
 
@@ -153,7 +153,7 @@ describe 'categoryOrderHints', ->
       .then (results) ->
         console.log "Deleted #{results.length} products"
         done()
-      .catch (error) -> done(_.prettify(error))
+      .catch (error) -> done.fail (_.prettify(error))
     , 90000 # 90secs
 
     it 'should add categoryOrderHints', (done) ->
@@ -186,7 +186,7 @@ describe 'categoryOrderHints', ->
       .then (result) =>
         expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.5'}
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should add categoryOrderHints when using an external category id', (done) ->
       service = TestHelpers.createService(project_key, 'products')
@@ -218,7 +218,7 @@ describe 'categoryOrderHints', ->
       .then (result) =>
         expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.5'}
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should add categoryOrderHints when using an category name', (done) ->
       service = TestHelpers.createService(project_key, 'products')
@@ -250,7 +250,7 @@ describe 'categoryOrderHints', ->
       .then (result) =>
         expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.5'}
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should add categoryOrderHints when using an category slug', (done) ->
       service = TestHelpers.createService(project_key, 'products')
@@ -282,7 +282,7 @@ describe 'categoryOrderHints', ->
       .then (result) =>
         expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.5'}
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should remove categoryOrderHints', (done) ->
       service = TestHelpers.createService(project_key, 'products')
@@ -316,7 +316,7 @@ describe 'categoryOrderHints', ->
       .then (result) =>
         expect(result.body.masterData.staged.categoryOrderHints).toEqual {}
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should change categoryOrderHints', (done) ->
       service = TestHelpers.createService(project_key, 'products')
@@ -350,7 +350,7 @@ describe 'categoryOrderHints', ->
       .then (result) =>
         expect(result.body.masterData.staged.categoryOrderHints).toEqual {"#{@category.id}": '0.9'}
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should add another categoryOrderHint', (done) ->
       service = TestHelpers.createService(project_key, 'categories')
@@ -403,7 +403,7 @@ describe 'categoryOrderHints', ->
           "#{@category.id}": '0.5',
           "#{@newCategory.id}": '0.8'
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should add another categoryOrderHint when matching by SKU', (done) ->
       service = TestHelpers.createService(project_key, 'categories')
@@ -456,7 +456,7 @@ describe 'categoryOrderHints', ->
           "#{@category.id}": '0.5',
           "#{@newCategory.id}": '0.8'
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
   describe 'Export', ->
 
@@ -499,7 +499,7 @@ describe 'categoryOrderHints', ->
         .then (content) ->
           expect(content).toBe expectedCSV
           done()
-        .catch (err) -> done _.prettify(err)
+        .catch (err) -> done.fail _.prettify(err)
 
     it 'should export categoryOrderHints with category externalId', (done) ->
       customExport = new Export {
@@ -545,4 +545,4 @@ describe 'categoryOrderHints', ->
         .then (content) ->
           expect(content).toBe expectedCSV
           done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)

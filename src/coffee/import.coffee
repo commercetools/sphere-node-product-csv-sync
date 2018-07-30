@@ -72,6 +72,7 @@ class Import
     @blackListedCustomAttributesForUpdate = []
     @customAttributeNameToMatch = undefined
     @matchBy = CONS.HEADER_ID
+    @defaultState = options.defaultState
     @options = options
     @_BATCH_SIZE = 20
     @_CONCURRENCY = 20
@@ -111,6 +112,7 @@ class Import
 
     @validator.fetchResources(@resourceCache)
     .then (resources) =>
+      @states = @validator.states
       @resourceCache = resources
 
       if _.isString(csv) || csv instanceof Buffer
@@ -416,6 +418,8 @@ class Import
 
   update: (product, existingProduct, id2SameForAllAttributes, header, rowIndex, publish) ->
     product.categoryOrderHints = @_mergeCategoryOrderHints existingProduct, product
+    if (not product.state? and not existingProduct.state? and @defaultState?)
+      @assignStateFromDefault (product)
     allSameValueAttributes = id2SameForAllAttributes[product.productType.id]
     config = [
       { type: 'base', group: 'white' }
@@ -455,7 +459,8 @@ class Import
         when 'setSearchKeywords' then header.has(CONS.HEADER_SEARCH_KEYWORDS) or header.hasLanguageForBaseAttribute(CONS.HEADER_SEARCH_KEYWORDS)
         when 'addToCategory', 'removeFromCategory' then header.has(CONS.HEADER_CATEGORIES)
         when 'setTaxCategory' then header.has(CONS.HEADER_TAX)
-        when 'transitionState' then header.has(CONS.HEADER_STATE)
+        when 'transitionState'
+          if (@defaultState? and @states.key2id[@defaultState]?) then true else header.has(CONS.HEADER_STATE)
         when 'setSku' then header.has(CONS.HEADER_SKU)
         when 'setProductVariantKey' then header.has(CONS.HEADER_VARIANT_KEY)
         when 'setKey' then header.has(CONS.HEADER_KEY)
@@ -498,7 +503,15 @@ class Import
       else
         Promise.resolve "[row #{rowIndex}] Product update not necessary."
 
+  assignStateFromDefault: (product) ->
+    if (@states.key2id[@defaultState])
+      product.state = { typeId : "state", id : @states.key2id[@defaultState] }
+    else
+      console.error ("Cannot assign product's state from default state #{@defaultState}: does not exist")
+
   create: (product, rowIndex, publish = false) ->
+    if (not product.state? and @defaultState?)
+      @assignStateFromDefault (product)
     if @dryRun
       Promise.resolve "[row #{rowIndex}] DRY-RUN - create new product."
     else if @updatesOnly

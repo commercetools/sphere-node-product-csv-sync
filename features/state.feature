@@ -1,6 +1,6 @@
 Feature: Publish and unpublish products
 
-  Scenario: Import publish, unplublish and remove a product
+  Scenario: Import publish, unpublish and remove a product
     When I run `../../bin/product-csv-sync state --projectKey sphere-node-product-csv-sync-94 --changeTo delete` interactively
     And I type "yes"
 

@@ -57,7 +57,7 @@ describe 'Import integration test', ->
     .then -> done()
 
   beforeEach (done) ->
-    jasmine.getEnv().defaultTimeoutInterval = 360000 # 3mins
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 360000 # 3mins
     @importer = createImporter()
     @client = @importer.client
 
@@ -67,7 +67,7 @@ describe 'Import integration test', ->
     .then (result) =>
       @productType = result
       done()
-    .catch (err) -> done _.prettify(err.body)
+    .catch (err) -> done.fail _.prettify(err.body)
   , 120000 # 2min
 
   describe '#import', ->
@@ -114,13 +114,13 @@ describe 'Import integration test', ->
         p = result.body.results[0]
         expect(p.state.obj.key).toEqual 'next-state'
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
-    it 'should import a simple product', (done) ->
+    it 'should import a simple product, without setting state', (done) ->
       csv =
         """
-        productType,name,variantId,slug,key,variantKey
-        #{@productType.id},#{@newProductName},1,#{@newProductSlug},productKey,variantKey
+        productType,name,variantId,slug,key,variantKey,state
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug},productKey,variantKey,
         """
       @importer.import(csv)
       .then (result) =>
@@ -141,9 +141,123 @@ describe 'Import integration test', ->
         expect(p.name).toEqual en: @newProductName
         expect(p.slug).toEqual en: @newProductSlug
         expect(p.key).toEqual 'productKey'
+        expect(p.state).toBeUndefined
         expect(p.masterVariant.key).toEqual 'variantKey'
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
+
+    it 'should import a simple product, without a state field in the csv', (done) ->
+      csv =
+        """
+        productType,name,variantId,slug,key,variantKey
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug},productKey,variantKey
+        """
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+          .where("productType(id=\"#{@productType.id}\")")
+          .staged true
+          .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: @newProductName
+        expect(p.slug).toEqual en: @newProductSlug
+        expect(p.key).toEqual 'productKey'
+        expect(p.state).toBeUndefined
+        expect(p.masterVariant.key).toEqual 'variantKey'
+        done()
+      .catch (err) -> done.fail _.prettify(err)
+
+    it 'should set state for a newly-created product when configured to do so', (done) ->
+      csv =
+        """
+        productType,name,variantId,slug,key,variantKey,state
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug},productKey,variantKey,
+        """
+      @importer = new Import {
+        authConfig: authConfig
+        httpConfig: httpConfig
+        userAgentConfig: userAgentConfig
+        defaultState: 'previous-state'
+      }
+      @importer.matchBy = 'sku'
+      @importer.allowRemovalOfVariants = true
+      @importer.suppressMissingHeaderWarning = true
+      @client = @importer.client
+
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+          .where("productType(id=\"#{@productType.id}\")")
+          .staged true
+          .expand 'state'
+          .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: @newProductName
+        expect(p.slug).toEqual en: @newProductSlug
+        expect(p.key).toEqual 'productKey'
+        expect(p.state.obj.key).toEqual 'previous-state'
+        expect(p.masterVariant.key).toEqual 'variantKey'
+        done()
+      .catch (err) -> done.fail _.prettify(err)
+
+    it 'should not fall over when the default state does not exist', (done) ->
+      csv =
+        """
+        productType,name,variantId,slug,key,variantKey,state
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug},productKey,variantKey,
+        """
+      @importer = new Import {
+        authConfig: authConfig
+        httpConfig: httpConfig
+        userAgentConfig: userAgentConfig
+        defaultState: 'nonexistent-state'
+      }
+      @importer.matchBy = 'sku'
+      @importer.allowRemovalOfVariants = true
+      @importer.suppressMissingHeaderWarning = true
+      @client = @importer.client
+
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+          .where("productType(id=\"#{@productType.id}\")")
+          .staged true
+          .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: @newProductName
+        expect(p.slug).toEqual en: @newProductSlug
+        expect(p.key).toEqual 'productKey'
+        expect(p.state).toBeUndefined
+        expect(p.masterVariant.key).toEqual 'variantKey'
+        done()
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should import a product with prices (even when one of them is discounted)', (done) ->
       csv =
@@ -178,7 +292,7 @@ describe 'Import integration test', ->
         expect(prices[3].channel.typeId).toBe 'channel'
         expect(prices[3].channel.id).toBeDefined()
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should do nothing on 2nd import run', (done) ->
       csv =
@@ -198,7 +312,7 @@ describe 'Import integration test', ->
         expect(_.size result).toBe 1
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should update changes on 2nd import run', (done) ->
       csv =
@@ -236,10 +350,79 @@ describe 'Import integration test', ->
         expect(p.name).toEqual en: "#{@newProductName}_changed"
         expect(p.slug).toEqual en: @newProductSlug
         expect(p.key).toEqual 'productKey'
+        expect(p.state).toBeUndefined
         expect(p.masterVariant.key).toEqual 'variantKey'
 
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
+
+    it 'should set default state on update when configured to do so, and product lacks state', (done) ->
+      csv =
+        """
+        productType,name,variantId,slug
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug}
+        """
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+          .where("productType(id=\"#{@productType.id}\")")
+          .staged true
+          .expand 'state'
+          .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.state).toBeUndefined
+
+        csv =
+          """
+          productType,name,variantId,slug,key,variantKey
+          #{@productType.id},#{@newProductName+'_changed'},1,#{@newProductSlug},productKey,variantKey
+          """
+        im = new Import {
+          authConfig: authConfig
+          httpConfig: httpConfig
+          userAgentConfig: userAgentConfig
+          defaultState: 'previous-state'
+        }
+        im.matchBy = 'slug'
+        im.allowRemovalOfVariants = true
+        im.suppressMissingHeaderWarning = true
+        @client = im.client
+
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+          .where("productType(id=\"#{@productType.id}\")")
+          .staged true
+          .expand 'state'
+          .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: "#{@newProductName}_changed"
+        expect(p.slug).toEqual en: @newProductSlug
+        expect(p.key).toEqual 'productKey'
+        expect(p.state.obj.key).toEqual 'previous-state'
+        expect(p.masterVariant.key).toEqual 'variantKey'
+
+        done()
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should handle all kind of attributes and constraints', (done) ->
       csv =
@@ -303,7 +486,7 @@ describe 'Import integration test', ->
         expect(p.variants[1].attributes[4]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10}
         expect(p.variants[1].attributes[5]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should handle multiple products', (done) ->
       p1 = TestHelpers.uniqueId 'name1-'
@@ -334,7 +517,7 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         expect(result[1]).toBe '[row 4] Product update not necessary.'
         expect(result[2]).toBe '[row 5] Product update not necessary.'
-        
+
         service = TestHelpers.createService(project_key, 'productProjections')
         request = {
           uri: service
@@ -354,7 +537,7 @@ describe 'Import integration test', ->
         expect(result.body.results[1].slug).toEqual {en: s2}
         expect(result.body.results[2].slug).toEqual {en: s3}
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should handle set of enums', (done) ->
       csv =
@@ -402,7 +585,7 @@ describe 'Import integration test', ->
         expect(p.masterVariant.attributes[1]).toEqual {name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['bar']}
         expect(p.masterVariant.attributes[2]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 100}
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should handle set of SameForAll enums with new variants', (done) ->
       csv =
@@ -464,7 +647,7 @@ describe 'Import integration test', ->
           expect(v.attributes[1]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: "fooEn#{i+2}"}}
           expect(v.attributes[2]).toEqual {name: SET_ATTRIBUTE_LENUM_SAME_FOR_ALL, value: [{key: 'lenum1', label: {en: 'Enum1'}}, {key: 'lenum2', label: {en: 'Enum2'}}]}
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should remove a variant and change an SameForAll attribute at the same time', (done) ->
       csv =
@@ -505,7 +688,7 @@ describe 'Import integration test', ->
         expect(p.masterVariant.attributes[1]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10}
         expect(p.masterVariant.attributes[2]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum1', label: 'Enum1'}}
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should not removeVariant if allowRemovalOfVariants is off', (done) ->
       csv =
@@ -544,7 +727,7 @@ describe 'Import integration test', ->
         p = result.body.results[0]
         expect(_.size p.variants).toBe 1
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should execute SameForAll attribute change before addVariant', (done) ->
       csv =
@@ -590,7 +773,7 @@ describe 'Import integration test', ->
         expect(p.variants[0].attributes[1]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 20}
         expect(p.variants[0].attributes[2]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should do a partial update of product base attributes', (done) ->
       csv =
@@ -641,7 +824,7 @@ describe 'Import integration test', ->
         expect(p.slug).toEqual {en: @newProductSlug}
         expect(p.masterVariant.sku).toBe @newProductSku
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should do a partial update of search keywords', (done) ->
       sku = cuid()
@@ -718,7 +901,7 @@ describe 'Import integration test', ->
             }
           ]
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should do a partial update of localized attributes', (done) ->
       csv =
@@ -768,7 +951,7 @@ describe 'Import integration test', ->
         # TODO: expecting {de: 'german'}
         expect(p.masterVariant.attributes[0]).toEqual jasmine.objectContaining {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'english', it: 'ciao'}}
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should do a partial update of custom attributes', (done) ->
       csv =
@@ -832,7 +1015,7 @@ describe 'Import integration test', ->
         expect(p.variants[0].attributes[4]).toEqual { name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum1', label: 'Enum1'} }
         expect(p.variants[0].attributes[5]).toEqual { name: SET_ATTRIBUTE_LENUM_SAME_FOR_ALL, value: [{key: 'lenum2', label: { en: 'Enum2' }}] }
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'partial update should not overwrite name, prices and images', (done) ->
       csv =
@@ -875,7 +1058,7 @@ describe 'Import integration test', ->
         expect(p.variants[0].prices[0].value).toEqual jasmine.objectContaining(centAmount: 70000, currencyCode: 'USD')
         expect(p.variants[0].images[0].url).toBe '/example.com/bar.png'
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should do a full update of SEO attribute', (done) ->
       csv =
@@ -914,7 +1097,7 @@ describe 'Import integration test', ->
         expect(p.metaDescription).toEqual {en: 'b'}
         expect(p.metaKeywords).toEqual {en: 'changed'}
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should do a full update of multi language SEO attribute', (done) ->
       csv =
@@ -953,7 +1136,7 @@ describe 'Import integration test', ->
         expect(p.metaDescription).toEqual {en: 'newMetaDescEn', de: 'newMetaDescDe'}
         expect(p.metaKeywords).toEqual {de: 'newMetaKeyDe'}
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should update SEO attribute if not all 3 headers are present', (done) ->
       csv =
@@ -992,7 +1175,7 @@ describe 'Import integration test', ->
         expect(p.metaDescription).toEqual {en: 'y'}
         expect(p.metaKeywords).toEqual {en: 'c'}
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should do a partial update of prices based on SKUs', (done) ->
       csv =
@@ -1036,7 +1219,7 @@ describe 'Import integration test', ->
         expect(p.variants[0].sku).toBe "#{@newProductSku}2"
         expect(p.variants[0].prices[0].value).toEqual jasmine.objectContaining(centAmount: 80000, currencyCode: 'USD')
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should import a simple product with different encoding', (done) ->
       encoding = "win1250"
@@ -1067,7 +1250,7 @@ describe 'Import integration test', ->
         expect(p.name).toEqual en: @newProductName
         expect(p.slug).toEqual en: @newProductSlug
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should import a simple product file with different encoding', (done) ->
       encoding = "win1250"
@@ -1098,7 +1281,7 @@ describe 'Import integration test', ->
         expect(p.name).toEqual en: @newProductName
         expect(p.slug).toEqual en: @newProductSlug
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should import a simple product file with different encoding using import manager', (done) ->
       filePath = "/tmp/test-import.csv"
@@ -1132,7 +1315,7 @@ describe 'Import integration test', ->
         expect(p.name).toEqual en: @newProductName
         expect(p.slug).toEqual en: @newProductSlug
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should update a product level info based only on SKU', (done) ->
       newProductNameUpdated = "#{@newProductName}-updated"
@@ -1182,7 +1365,7 @@ describe 'Import integration test', ->
         done()
       .catch (err) ->
         console.dir(err, {depth: 100})
-        done _.prettify(err)
+        done.fail _.prettify(err)
 
     it 'should update a product level info and multiple variants based only on SKU', (done) ->
       updatedProductName = "#{@newProductName}-updated"
@@ -1242,7 +1425,7 @@ describe 'Import integration test', ->
         expect(getPrice(getVariantBySku(p.variants, skuPrefix+4))).toBe 400
 
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should update categories only when they are provided in import CSV', (done) ->
       skuPrefix = "sku-"
@@ -1311,7 +1494,7 @@ describe 'Import integration test', ->
         expect(!!getCategoryByExternalId(p.categories, 4)).toBe true
 
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should clear categories when an empty value given', (done) ->
       skuPrefix = "sku-"
@@ -1383,7 +1566,7 @@ describe 'Import integration test', ->
         expect(_.size(p.categories)).toBe 2
 
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should handle a concurrent modification error when updating by SKU', (done) ->
       skuPrefix = "sku-"
@@ -1443,7 +1626,7 @@ describe 'Import integration test', ->
             expect(variant.prices[0].value.centAmount).toEqual 200
 
           done()
-        .catch (err) -> done _.prettify(err)
+        .catch (err) -> done.fail _.prettify(err)
 
     it 'should handle a concurrent modification error when updating by variantId', (done) ->
       skuPrefix = "sku-"
@@ -1471,7 +1654,7 @@ describe 'Import integration test', ->
       .then ->
         # no concurrentModification found
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     xit 'should split actions if there are more than 500 in actions array', (done) ->
       numberOfVariants = 501
@@ -1526,7 +1709,7 @@ describe 'Import integration test', ->
         expect(p.variants.length).toBe numberOfVariants-1
 
         done()
-      .catch (err) -> done _.prettify(err)
+      .catch (err) -> done.fail _.prettify(err)
 
     it 'should update product with multiple update requests', (done) ->
       client = @importer.client
@@ -1585,4 +1768,4 @@ describe 'Import integration test', ->
             en: 'updated description'
           })
           done()
-        .catch (err) -> done _.prettify(err)
+        .catch (err) -> done.fail _.prettify(err)

@@ -93,6 +93,7 @@ This means that the CSV may contain only those columns that contain changed valu
     --publish                                  When given, all changes will be published immediately.
     --updatesOnly                              Won't create any new products, only updates existing.
     --dryRun                                   Will list all action that would be triggered, but will not POST them to SPHERE.IO.
+    --defaultState                             When given, specifies the key of the state to assign imported products to, if they don't have one.
     -m, --matchBy [value]                      Product attribute name which will be used to match products. Possible values: id, slug, sku, <custom_attribute_name>. Default: id. Localized attribute types are not supported for <custom_attribute_name> option.
 ```
 

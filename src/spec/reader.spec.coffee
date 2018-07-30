@@ -75,4 +75,4 @@ describe 'IO Reader test', ->
       expect(result.length).toBe(2)
       expect(result[1]).toEqual(expected)
       done()
-    .catch (err) -> done _.prettify(err)
+    .catch (err) -> done.fail _.prettify(err)

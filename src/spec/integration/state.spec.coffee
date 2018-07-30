@@ -63,7 +63,7 @@ describe 'State integration tests', ->
       expect(result[0]).toBe '[row 0] Product unpublished.'
       expect(result[1]).toBe '[row 0] Product unpublished.'
       done()
-    .catch (err) -> done _.prettify(err)
+    .catch (err) -> done.fail _.prettify(err)
   , 50000 # 50sec
 
   it 'should only published products with hasStagedChanges', (done) ->
@@ -107,10 +107,10 @@ describe 'State integration tests', ->
       expect(_.contains(result, '[row 0] Product published.')).toBe true
       expect(_.contains(result, '[row 0] Product is already published - no staged changes.')).toBe true
       done()
-    .catch (err) -> done _.prettify(err)
+    .catch (err) -> done.fail _.prettify(err)
   , 50000 # 50sec
 
-  it 'should delete unplublished products', (done) ->
+  it 'should delete unpublished products', (done) ->
     csv =
       """
       productType,name.en,slug.en,variantId,sku,#{TEXT_ATTRIBUTE_NONE}
@@ -128,5 +128,5 @@ describe 'State integration tests', ->
       expect(result[0]).toBe '[row 0] Product deleted.'
       expect(result[1]).toBe '[row 0] Product deleted.'
       done()
-    .catch (err) -> done _.prettify(err)
+    .catch (err) -> done.fail _.prettify(err)
   , 50000 # 50sec

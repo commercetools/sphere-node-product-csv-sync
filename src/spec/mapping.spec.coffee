@@ -72,7 +72,7 @@ describe 'Mapping', ->
         expect(values['de']).toBe 'Hallo'
         expect(values['it']).toBe 'ciao'
         done()
-      .catch done
+      .catch done.fail
 
     it 'should fallback to non localized column', (done) ->
       csv =
@@ -92,7 +92,7 @@ describe 'Mapping', ->
         values = @map.mapLocalizedAttrib(parsed.data[1], 'a1', {})
         expect(values).toBeUndefined()
         done()
-      .catch done
+      .catch done.fail
 
     it 'should return undefined if header can not be found', (done) ->
       csv =
@@ -107,7 +107,7 @@ describe 'Mapping', ->
         values = @map.mapLocalizedAttrib(parsed.data[0], 'a2', {})
         expect(values).toBeUndefined()
         done()
-      .catch done
+      .catch done.fail
 
   describe '#mapBaseProduct', ->
     it 'should map base product', (done) ->
@@ -141,7 +141,7 @@ describe 'Mapping', ->
 
         expect(product).toEqual expectedProduct
         done()
-      .catch done
+      .catch done.fail
 
     it 'should map base product with categories', (done) ->
       csv =
@@ -188,7 +188,7 @@ describe 'Mapping', ->
 
         expect(product).toEqual expectedProduct
         done()
-      .catch done
+      .catch done.fail
     it 'should map search keywords', (done) ->
       csv =
       """
@@ -220,7 +220,7 @@ describe 'Mapping', ->
 
         expect(product).toEqual expectedProduct
         done()
-      .catch done
+      .catch done.fail
 
     it 'should map empty search keywords', (done) ->
       csv =
@@ -252,7 +252,7 @@ describe 'Mapping', ->
 
         expect(product).toEqual expectedProduct
         done()
-      .catch done
+      .catch done.fail
 
   describe '#mapVariant', ->
     it 'should give feedback on bad variant id', ->
@@ -704,7 +704,7 @@ describe 'Mapping', ->
 
         expect(data.product).toEqual expectedProduct
         done()
-      .catch done
+      .catch done.fail
 
   describe '#mapCategoryOrderHints', ->
 
@@ -760,7 +760,7 @@ describe 'Mapping', ->
 
         expect(data.product).toEqual @expectedProduct
         done()
-      .catch done
+      .catch done.fail
 
     it 'should should map the categoryOrderHints using a category name', (done) ->
       csv =
@@ -776,7 +776,7 @@ describe 'Mapping', ->
 
         expect(data.product).toEqual @expectedProduct
         done()
-      .catch done
+      .catch done.fail
 
     it 'should should map the categoryOrderHints using a category slug', (done) ->
       csv =
@@ -792,7 +792,7 @@ describe 'Mapping', ->
 
         expect(data.product).toEqual @expectedProduct
         done()
-      .catch done
+      .catch done.fail
 
     it 'should should map the categoryOrderHints using a category externalId', (done) ->
       csv =
@@ -808,4 +808,4 @@ describe 'Mapping', ->
 
         expect(data.product).toEqual @expectedProduct
         done()
-      .catch done
+      .catch done.fail
