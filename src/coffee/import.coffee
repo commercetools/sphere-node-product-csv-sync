@@ -418,8 +418,11 @@ class Import
 
   update: (product, existingProduct, id2SameForAllAttributes, header, rowIndex, publish) ->
     product.categoryOrderHints = @_mergeCategoryOrderHints existingProduct, product
-    if (not product.state? and not existingProduct.state? and @defaultState?)
-      @assignStateFromDefault (product)
+    if (not product.state? and @defaultState?)
+      if (not existingProduct.state?)
+        @assignStateFromDefault (product)
+      else if (existingProduct.state?)
+        product.state = existingProduct.state
     allSameValueAttributes = id2SameForAllAttributes[product.productType.id]
     config = [
       { type: 'base', group: 'white' }

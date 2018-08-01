@@ -424,6 +424,74 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done.fail _.prettify(err)
 
+    it 'should retain state on update when product lacks state in CSV but has it in CTP', (done) ->
+      csv =
+        """
+        productType,name,variantId,slug
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug}
+        """
+      im = new Import {
+        authConfig: authConfig
+        httpConfig: httpConfig
+        userAgentConfig: userAgentConfig
+        defaultState: 'previous-state'
+      }
+      im.matchBy = 'slug'
+      im.allowRemovalOfVariants = true
+      im.suppressMissingHeaderWarning = true
+      @client = im.client
+
+      im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+          .where("productType(id=\"#{@productType.id}\")")
+          .staged true
+          .expand 'state'
+          .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.state.obj.key).toEqual 'previous-state'
+
+        csv =
+          """
+          productType,name,variantId,slug,key,variantKey
+          #{@productType.id},#{@newProductName+'_changed'},1,#{@newProductSlug},productKey,variantKey
+          """
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+          .where("productType(id=\"#{@productType.id}\")")
+          .staged true
+          .expand 'state'
+          .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) =>
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.name).toEqual en: "#{@newProductName}_changed"
+        expect(p.slug).toEqual en: @newProductSlug
+        expect(p.key).toEqual 'productKey'
+        expect(p.state.obj.key).toEqual 'previous-state'
+        expect(p.masterVariant.key).toEqual 'variantKey'
+
+        done()
+      .catch (err) -> done.fail _.prettify(err)
+
     it 'should handle all kind of attributes and constraints', (done) ->
       csv =
         """
