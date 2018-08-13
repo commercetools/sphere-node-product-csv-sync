@@ -4,6 +4,7 @@ prompt = require 'prompt'
 Csv = require 'csv'
 Promise = require 'bluebird'
 fs = Promise.promisifyAll require('fs')
+util = require('util')
 {ProjectCredentialsConfig} = require 'sphere-node-utils'
 Importer = require './import'
 Exporter = require './export'
@@ -86,6 +87,11 @@ module.exports = class
             clientId: client_id
             clientSecret: client_secret
   @run: (argv) ->
+    
+    _consoleWarnAllResults = (result) ->
+      # print out full response array by passing util.inspect
+      # with maxArrayLength (default is 100)
+      console.warn util.inspect(result, { maxArrayLength: null })
 
     _subCommandHelp = (cmd) ->
       program.emit(cmd, null, ['--help'])
@@ -180,7 +186,7 @@ module.exports = class
           # params: importManager (filePath, isArchived)
           importer.importManager opts.in || opts.csv, opts.zip
             .then (result) ->
-              console.warn result
+              _consoleWarnAllResults result
               process.exit 0
             .catch (err) ->
               console.error err
@@ -238,7 +244,7 @@ module.exports = class
               importer.continueOnProblems = opts.continueOnProblems
               importer.changeState(publish, remove, filterFunction)
             .then (result) ->
-              console.warn result
+              _consoleWarnAllResults result
               process.exit 0
             .catch (err) ->
               if err.stack then console.error(err.stack)
@@ -338,7 +344,7 @@ module.exports = class
               exporter.exportFull(opts.out, not opts.current)
             )
             .then (result) ->
-              console.warn result
+              _consoleWarnAllResults result
               process.exit 0
             .catch (err) ->
               if err.stack then console.error(err.stack)
@@ -387,7 +393,7 @@ module.exports = class
           exporter = new Exporter options
           exporter.createTemplate(opts.languages, opts.out, opts.all)
           .then (result) ->
-            console.warn result
+            _consoleWarnAllResults result
             process.exit 0
           .catch (err) ->
             console.error err
