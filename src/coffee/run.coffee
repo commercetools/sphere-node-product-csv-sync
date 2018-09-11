@@ -287,6 +287,7 @@ module.exports = class
       .option '--queryEncoded', 'Whether the given query string is already encoded or not', false
       .option '--current', 'Will export current product version instead of staged one', false
       .option '--fillAllRows', 'When given product attributes like name will be added to each variant row.'
+      .option '--onlyMasterVariants', 'Export only masterVariants from products.', false
       .option '--categoryBy <name>', 'Define which identifier should be used for the categories column - either slug or externalId. If nothing given the named path is used.'
       .option '--categoryOrderHintBy <name>', 'Define which identifier should be used for the categoryOrderHints column - either id or externalId. If nothing given the category id is used.', 'id'
       .option '--filterVariantsByAttributes <query>', 'Query string to filter variants of products'
@@ -309,6 +310,7 @@ module.exports = class
             outputDelimiter: opts.outputDelimiter
             templateDelimiter: opts.templateDelimiter
             fillAllRows: opts.fillAllRows
+            onlyMasterVariants: opts.onlyMasterVariants
             categoryBy: opts.categoryBy
             categoryOrderHintBy: opts.categoryOrderHintBy || 'id'
             debug: Boolean(opts.parent.debug)

@@ -41,6 +41,7 @@ class Export
     @options.templateDelimiter = @options.templateDelimiter || ","
     @options.encoding = @options.encoding || "utf8"
     @options.exportFormat = @options.exportFormat || "csv"
+    @options.onlyMasterVariants = @options.onlyMasterVariants || false
 
     @queryOptions =
       queryString: @options.export?.queryString?.trim()
