@@ -425,7 +425,6 @@ You can define the subset of products to export via the `queryString` parameter,
 
 > Please refer to the [API documentation of SPHERE.IO](http://dev.sphere.io/http-api.html#predicates) for further information regarding the predicates.
 
-
 ##### Example
 
 Query first 10 products of a specific product type
