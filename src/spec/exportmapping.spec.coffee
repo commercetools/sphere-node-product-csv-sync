@@ -627,3 +627,60 @@ describe 'ExportMapping', ->
       expect(_.contains template, "multilang.de").toBe true
       expect(_.contains template, "multilang.en").toBe true
       expect(_.contains template, "multilang.it").toBe true
+
+  describe '#mapOnlyMasterVariants', ->
+    beforeEach ->
+      @sampleProduct =
+        id: '123'
+        productType:
+          id: 'myType'
+        name:
+          de: 'Hallo'
+        slug:
+          de: 'hallo'
+        description:
+          de: 'Bla bla'
+        masterVariant:
+          id: 1
+          sku: 'var1'
+          key: 'var1Key'
+        variants: [
+          {
+            id: 2
+            sku: 'var2'
+            key: 'var2Key'
+          }
+        ]
+
+    it 'should map all variants', ->
+      _exportMapping = new ExportMapping(
+        typesService:
+          id2index:
+            myType: 0
+      )
+      _exportMapping.header = new Header([CONS.HEADER_VARIANT_ID, CONS.HEADER_SKU])
+      _exportMapping.header.toIndex()
+
+      type =
+        name: 'myType'
+        id: 'typeId123'
+      mappedProduct = _exportMapping.mapProduct @sampleProduct, [type]
+      # both variants should be mapped
+      expect(mappedProduct).toEqual [ [ 1, 'var1' ], [ 2, 'var2' ] ]
+
+    it 'should map only masterVariant', ->
+      _exportMapping = new ExportMapping(
+        onlyMasterVariants: true
+        typesService:
+          id2index:
+            myType: 0
+      )
+      _exportMapping.header = new Header([CONS.HEADER_VARIANT_ID, CONS.HEADER_SKU])
+      _exportMapping.header.toIndex()
+
+      type =
+        name: 'myType'
+        id: 'typeId123'
+      mappedProduct = _exportMapping.mapProduct @sampleProduct, [type]
+      # only masterVariant should be mapped
+      expect(mappedProduct).toEqual [ [ 1, 'var1' ] ]

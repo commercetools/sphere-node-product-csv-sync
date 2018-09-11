@@ -18,6 +18,7 @@ class ExportMapping
     @taxService = options.taxService
     @header = options.header
     @fillAllRows = options.fillAllRows
+    @onlyMasterVariants = options.onlyMasterVariants || false
     @categoryBy = options.categoryBy
     @categoryOrderHintBy = options.categoryOrderHintBy
 
@@ -28,7 +29,7 @@ class ExportMapping
     if product.masterVariant
       rows.push productRow
 
-    if product.variants
+    if not @onlyMasterVariants and product.variants
       for variant in product.variants
         variantRow = if @fillAllRows
           _.deepClone productRow
