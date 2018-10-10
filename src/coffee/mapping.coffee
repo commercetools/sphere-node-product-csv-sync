@@ -244,24 +244,30 @@ class Mapping
     variant
 
   mapAttribute: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
-    value = @mapValue rawVariant, attribute, languageHeader2Index, rowIndex
+    # if attribute conflicts with some base product property prefix it with "attribute." string
+    prefixedAttributeName = if attribute.name in CONS.ALL_HEADERS
+      "attribute.#{attribute.name}"
+    else
+      attribute.name
+
+    value = @mapValue rawVariant, prefixedAttributeName, attribute, languageHeader2Index, rowIndex
     return undefined if _.isUndefined(value) or (_.isObject(value) and _.isEmpty(value)) or (_.isString(value) and _.isEmpty(value))
     attribute =
       name: attribute.name
       value: value
     attribute
 
-  mapValue: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
+  mapValue: (rawVariant, attributeName, attribute, languageHeader2Index, rowIndex) ->
     switch attribute.type.name
-      when CONS.ATTRIBUTE_TYPE_SET then @mapSetAttribute rawVariant, attribute.name, attribute.type.elementType, languageHeader2Index, rowIndex
-      when CONS.ATTRIBUTE_TYPE_LTEXT then @mapLocalizedAttrib rawVariant, attribute.name, languageHeader2Index
-      when CONS.ATTRIBUTE_TYPE_NUMBER then @mapNumber rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
-      when CONS.ATTRIBUTE_TYPE_BOOLEAN then @mapBoolean rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
-      when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant[@header.toIndex attribute.name], attribute.name, rowIndex
-      when CONS.ATTRIBUTE_TYPE_REFERENCE then @mapReference rawVariant[@header.toIndex attribute.name], attribute, rowIndex
-      when CONS.ATTRIBUTE_TYPE_ENUM then @mapEnumAttribute rawVariant[@header.toIndex attribute.name], attribute.type.values
-      when CONS.ATTRIBUTE_TYPE_LENUM then @mapEnumAttribute rawVariant[@header.toIndex attribute.name], attribute.type.values
-      else rawVariant[@header.toIndex attribute.name] # works for text
+      when CONS.ATTRIBUTE_TYPE_SET then @mapSetAttribute rawVariant, attributeName, attribute.type.elementType, languageHeader2Index, rowIndex
+      when CONS.ATTRIBUTE_TYPE_LTEXT then @mapLocalizedAttrib rawVariant, attributeName, languageHeader2Index
+      when CONS.ATTRIBUTE_TYPE_NUMBER then @mapNumber rawVariant[@header.toIndex attributeName], attribute.name, rowIndex
+      when CONS.ATTRIBUTE_TYPE_BOOLEAN then @mapBoolean rawVariant[@header.toIndex attributeName], attribute.name, rowIndex
+      when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant[@header.toIndex attributeName], attribute.name, rowIndex
+      when CONS.ATTRIBUTE_TYPE_REFERENCE then @mapReference rawVariant[@header.toIndex attributeName], attribute, rowIndex
+      when CONS.ATTRIBUTE_TYPE_ENUM then @mapEnumAttribute rawVariant[@header.toIndex attributeName], attribute.type.values
+      when CONS.ATTRIBUTE_TYPE_LENUM then @mapEnumAttribute rawVariant[@header.toIndex attributeName], attribute.type.values
+      else rawVariant[@header.toIndex attributeName] # works for text
 
   mapEnumAttribute: (enumKey, enumValues) ->
     if enumKey

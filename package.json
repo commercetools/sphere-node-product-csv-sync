@@ -31,6 +31,7 @@
   },
   "scripts": {
     "lint": "grunt coffeelint",
+    "build": "grunt build",
     "watch": "grunt watch:dev",
     "test": "grunt coverage"
   },
