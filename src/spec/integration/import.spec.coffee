@@ -62,6 +62,18 @@ describe 'Import integration test', ->
     @client = @importer.client
 
     @productType = TestHelpers.mockProductType()
+    @productType.attributes.push({
+      name: 'productType'
+      label:
+        en: 'productType'
+      isRequired: false
+      type:
+        name: 'text'
+      attributeConstraint: 'None'
+      isSearchable: false
+      inputHint: 'SingleLine'
+      displayGroup: 'Other'
+    })
 
     TestHelpers.setupProductType(@client, @productType, null, project_key)
     .then (result) =>
@@ -654,6 +666,52 @@ describe 'Import integration test', ->
         expect(p.masterVariant.attributes[2]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 100}
         done()
       .catch (err) -> done.fail _.prettify(err)
+
+    it 'should handle conflicting attribute names', (done) ->
+      csv =
+        """
+        productType,name,variantId,sku,slug,attribute.productType
+        #{@productType.id},#{@newProductName},1,sku1,#{@newProductSlug},newValue
+        """
+
+      @importer.import(csv)
+      .then (result) ->
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        im = createImporter()
+        im.matchBy = 'slug'
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product update not necessary.'
+        csv =
+          """
+          productType,name,variantId,sku,slug,attribute.productType
+          #{@productType.id},#{@newProductName},1,sku1,#{@newProductSlug},updatedValue
+          """
+        im = createImporter()
+        im.matchBy = 'slug'
+        im.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] Product updated.'
+
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(p.masterVariant.attributes[0]).toEqual {name: 'productType', value: 'updatedValue'}
+        done()
+      .catch (err) -> done.fail _.prettify(err)
+
 
     it 'should handle set of SameForAll enums with new variants', (done) ->
       csv =

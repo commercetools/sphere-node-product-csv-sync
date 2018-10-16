@@ -60,11 +60,7 @@ exports.mockProductType = ->
   attributes: _.flatten(_.map ['None', 'Unique', 'CombinationUnique', 'SameForAll'], (constraint) ->
     getAllAttributesByConstraint(constraint))
 
-###
- * You may omit the product in this case it resolves the created product type.
- * Otherwise the created product is resolved.
-###
-exports.setupProductType = (client, productType, product, projectKey) ->
+exports.cleanupProducts = (client, projectKey) ->
   console.log 'About to cleanup products...'
   productProjectionUri = createService(projectKey, 'productProjections')
     .sort('id')
@@ -110,7 +106,17 @@ exports.setupProductType = (client, productType, product, projectKey) ->
         }
         client.execute(deleteRequest)
   .then (result) ->
-    console.log "Deleted #{_.size result} products, about to ensure productType"
+    console.log "Deleted #{_.size result} products"
+    result
+
+###
+ * You may omit the product in this case it resolves the created product type.
+ * Otherwise the created product is resolved.
+###
+exports.setupProductType = (client, productType, product, projectKey) ->
+  exports.cleanupProducts(client, projectKey)
+  .then ->
+    console.log "About to ensure productType"
     # ensure the productType exists, otherwise create it
     service = createService(projectKey, 'productTypes')
     request = {
@@ -120,18 +126,27 @@ exports.setupProductType = (client, productType, product, projectKey) ->
     client.execute(request)
   .then (result) ->
     if _.size(result.body.results) > 0
-      console.log "ProductType '#{productType.name}' already exists"
-      Promise.resolve(_.first(result.body.results))
-    else
-      console.log "Ensuring productType '#{productType.name}'"
-      service = createService(projectKey, 'productTypes')
-      request = {
-        uri: service.build()
-        method: 'POST'
-        body: productType
+      existingProductType = result.body.results[0]
+      console.log "ProductType '#{productType.name}' already exists - deleting"
+      deleteService = createService(projectKey, 'productTypes')
+      deleteRequest = {
+        uri: deleteService
+          .byId(existingProductType.id)
+          .withVersion(existingProductType.version)
+          .build()
+        method: 'DELETE'
       }
-      client.execute(request)
-      .then (result) -> Promise.resolve(result.body)
+      client.execute(deleteRequest)
+  .then ->
+    console.log "Ensuring productType '#{productType.name}'"
+    service = createService(projectKey, 'productTypes')
+    request = {
+      uri: service.build()
+      method: 'POST'
+      body: productType
+    }
+    client.execute(request)
+    .then (result) -> Promise.resolve(result.body)
   .then (pt) ->
     if product?
       product.productType.id = pt.id

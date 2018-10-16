@@ -286,6 +286,31 @@ describe 'Mapping', ->
 
       expect(variant).toEqual expectedVariant
 
+    it 'should map conflicting attribute names', ->
+      productType =
+        name: 'prodType'
+        attributes: [
+          { name: 'attrib', type: { name: 'text' } }
+          { name: 'productType', type: { name: 'text' } }
+        ]
+
+      @map.header = new Header [ 'attrib', 'productType', 'sku', 'variantId', 'attribute.productType' ]
+      @map.header.toIndex()
+      variant = @map.mapVariant [ 'value1', 'prodType', 'mySKU', '9', 'prodTypeAttribValue' ], 9, productType, 77
+
+      expectedVariant =
+        id: 9
+        sku: 'mySKU'
+        prices: []
+        attributes: [{
+          name: 'attrib', value: 'value1'
+        }, {
+          name: 'productType', value: 'prodTypeAttribValue'
+        }]
+        images: []
+
+      expect(variant).toEqual expectedVariant
+
     it 'should take over SameForAll contrainted attribute from master row', ->
       @map.header = new Header [ 'aSame', 'variantId' ]
       @map.header.toIndex()

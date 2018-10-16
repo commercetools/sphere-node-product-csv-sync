@@ -220,7 +220,7 @@ describe 'categoryOrderHints', ->
         done()
       .catch (err) -> done.fail _.prettify(err)
 
-    it 'should add categoryOrderHints when using an category name', (done) ->
+    it 'should add categoryOrderHints when using a category name', (done) ->
       service = TestHelpers.createService(project_key, 'products')
       request = {
         uri: service.build()
