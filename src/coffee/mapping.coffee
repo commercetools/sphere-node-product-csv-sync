@@ -264,7 +264,7 @@ class Mapping
       when CONS.ATTRIBUTE_TYPE_NUMBER then @mapNumber rawVariant[@header.toIndex attributeName], attribute.name, rowIndex
       when CONS.ATTRIBUTE_TYPE_BOOLEAN then @mapBoolean rawVariant[@header.toIndex attributeName], attribute.name, rowIndex
       when CONS.ATTRIBUTE_TYPE_MONEY then @mapMoney rawVariant[@header.toIndex attributeName], attribute.name, rowIndex
-      when CONS.ATTRIBUTE_TYPE_REFERENCE then @mapReference rawVariant[@header.toIndex attributeName], attribute, rowIndex
+      when CONS.ATTRIBUTE_TYPE_REFERENCE then @mapReference rawVariant[@header.toIndex attributeName], attribute.type
       when CONS.ATTRIBUTE_TYPE_ENUM then @mapEnumAttribute rawVariant[@header.toIndex attributeName], attribute.type.values
       when CONS.ATTRIBUTE_TYPE_LENUM then @mapEnumAttribute rawVariant[@header.toIndex attributeName], attribute.type.values
       else rawVariant[@header.toIndex attributeName] # works for text
@@ -295,10 +295,14 @@ class Mapping
               @mapMoney rawValue, attributeName, rowIndex
             when CONS.ATTRIBUTE_TYPE_NUMBER
               @mapNumber rawValue, attributeName, rowIndex
+            when CONS.ATTRIBUTE_TYPE_BOOLEAN
+              @mapBoolean rawValue, attributeName, rowIndex
             when CONS.ATTRIBUTE_TYPE_ENUM
               @mapEnumAttribute rawValue, elementType.values
             when CONS.ATTRIBUTE_TYPE_LENUM
               @mapEnumAttribute rawValue, elementType.values
+            when CONS.ATTRIBUTE_TYPE_REFERENCE
+              @mapReference rawValue, elementType
             else
               rawValue
 
@@ -358,11 +362,11 @@ class Mapping
       currencyCode: matchedMoney[1]
       centAmount: parseInt matchedMoney[2]
 
-  mapReference: (rawReference, attribute, rowIndex) ->
+  mapReference: (rawReference, attributeType) ->
     return undefined unless rawReference
     ref =
       id: rawReference
-      typeId: attribute.type.referenceTypeId
+      typeId: attributeType.referenceTypeId
 
   mapInteger: (rawNumber, attribName, rowIndex) ->
     parseInt @mapNumber(rawNumber, attribName, rowIndex, CONS.REGEX_INTEGER)
