@@ -54,7 +54,7 @@
     "lodash.merge": "^4.6.0",
     "optimist": "0.6.1",
     "prompt": "1.0.0",
-    "sphere-node-utils": "^0.9.1",
+    "sphere-node-utils": "^1.0.0",
     "tmp": "0.0.33",
     "underscore": "1.8.3",
     "underscore-mixins": "*",
