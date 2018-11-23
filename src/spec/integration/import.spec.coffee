@@ -75,6 +75,19 @@ describe 'Import integration test', ->
       displayGroup: 'Other'
     })
 
+    @productType.attributes.push({
+      name: 'description'
+      label:
+        en: 'desc'
+      isRequired: false
+      type:
+        name: 'ltext'
+      attributeConstraint: 'None'
+      isSearchable: false
+      inputHint: 'SingleLine'
+      displayGroup: 'Other'
+    })
+
     TestHelpers.setupProductType(@client, @productType, null, project_key)
     .then (result) =>
       @productType = result
@@ -524,10 +537,10 @@ describe 'Import integration test', ->
         expect(result[0]).toBe '[row 2] Product update not necessary.'
         csv =
           """
-          productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{TEXT_ATTRIBUTE_NONE},#{SET_ATTRIBUTE_TEXT_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL},#{REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE}
-          #{@productType.id},#{@newProductName},1,#{@newProductSlug},CU1,10,bar,uno;due,enum2
-          ,,2,slug,CU2,10,bar,tre;quattro,enum2,#{@productType.id}
-          ,,3,slug,CU3,10,bar,cinque;sei,enum2,#{@productType.id}
+          productType,name,variantId,slug,#{LTEXT_ATTRIBUTE_COMBINATION_UNIQUE}.en,#{NUMBER_ATTRIBUTE_COMBINATION_UNIQUE},#{TEXT_ATTRIBUTE_NONE},#{SET_ATTRIBUTE_TEXT_UNIQUE},#{ENUM_ATTRIBUTE_SAME_FOR_ALL},#{REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE},attribute.description.en,attribute.description.de
+          #{@productType.id},#{@newProductName},1,#{@newProductSlug},CU1,10,bar,uno;due,enum2,,descAttrEn,descAttrDe
+          ,,2,slug,CU2,10,bar,tre;quattro,enum2,#{@productType.id},descAttr1En,descAttr1De
+          ,,3,slug,CU3,10,bar,cinque;sei,enum2,#{@productType.id},descAttr2En,descAttr2De
           """
         im = createImporter()
         im.matchBy = 'slug'
@@ -552,19 +565,22 @@ describe 'Import integration test', ->
         expect(p.masterVariant.attributes[2]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'CU1'}}
         expect(p.masterVariant.attributes[3]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10}
         expect(p.masterVariant.attributes[4]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
-        expect(p.masterVariant.attributes[5]).toBeUndefined()
+        expect(p.masterVariant.attributes[5]).toEqual {name: 'description', value: { de: 'descAttrDe', en: 'descAttrEn' }}
+        expect(p.masterVariant.attributes[6]).toBeUndefined()
         expect(p.variants[0].attributes[0]).toEqual {name: TEXT_ATTRIBUTE_NONE, value: 'bar'}
         expect(p.variants[0].attributes[1]).toEqual {name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['tre', 'quattro']}
         expect(p.variants[0].attributes[2]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'CU2'}}
         expect(p.variants[0].attributes[3]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10}
         expect(p.variants[0].attributes[4]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
         expect(p.variants[0].attributes[5]).toEqual {name: REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE, value: {id: @productType.id, typeId: 'product-type'}}
+        expect(p.variants[0].attributes[6]).toEqual {name: 'description', value: { de: 'descAttr1De', en: 'descAttr1En' }}
         expect(p.variants[1].attributes[0]).toEqual {name: TEXT_ATTRIBUTE_NONE, value: 'bar'}
         expect(p.variants[1].attributes[1]).toEqual {name: REFERENCE_ATTRIBUTE_PRODUCT_TYPE_NONE, value: {id: @productType.id, typeId: 'product-type'}}
         expect(p.variants[1].attributes[2]).toEqual {name: SET_ATTRIBUTE_TEXT_UNIQUE, value: ['cinque', 'sei']}
         expect(p.variants[1].attributes[3]).toEqual {name: LTEXT_ATTRIBUTE_COMBINATION_UNIQUE, value: {en: 'CU3'}}
         expect(p.variants[1].attributes[4]).toEqual {name: NUMBER_ATTRIBUTE_COMBINATION_UNIQUE, value: 10}
         expect(p.variants[1].attributes[5]).toEqual {name: ENUM_ATTRIBUTE_SAME_FOR_ALL, value: {key: 'enum2', label: 'Enum2'}}
+        expect(p.variants[1].attributes[6]).toEqual {name: 'description', value: { de: 'descAttr2De', en: 'descAttr2En' }}
         done()
       .catch (err) -> done.fail _.prettify(err)
 
