@@ -434,6 +434,25 @@ describe 'Mapping', ->
         value: [ 1, 0, -1 ]
       expect(attribute).toEqual expectedAttribute
 
+    it 'should map set of boolean attributes', ->
+      productType =
+        id: 'myType'
+        attributes: [
+          name: 'booleanAttr'
+          type:
+            name: 'set'
+            elementType:
+              name: 'boolean'
+        ]
+      @map.header = new Header [ 'booleanAttr' ]
+      languageHeader2Index = @map.header._productTypeLanguageIndexes productType
+      attribute = @map.mapAttribute [ 'true;false;1;0' ], productType.attributes[0], languageHeader2Index
+
+      expectedAttribute =
+        name: 'booleanAttr'
+        value: [ true, false, true, false ]
+      expect(attribute).toEqual expectedAttribute
+
     it 'should validate attribute value (undefined)', ->
       productTypeAttribute =
         name: 'foo'
@@ -685,7 +704,35 @@ describe 'Mapping', ->
       attribute =
         type:
           referenceTypeId: 'product'
-      expect(@map.mapReference('123-456', attribute)).toEqual { id: '123-456', typeId: 'product' }
+      expect(@map.mapReference('123-456', attribute.type)).toEqual { id: '123-456', typeId: 'product' }
+
+    it 'should map set of references', ->
+      productType =
+        id: 'myType'
+        attributes: [
+          name: 'refAttrName'
+          type:
+            name: 'set'
+            elementType:
+              name: 'reference'
+              referenceTypeId: 'product'
+        ]
+      @map.header = new Header [ 'refAttrName' ]
+      languageHeader2Index = @map.header._productTypeLanguageIndexes productType
+      attribute = @map.mapAttribute [ '123;456' ], productType.attributes[0], languageHeader2Index
+      expect(attribute).toEqual({
+        name: 'refAttrName'
+        value: [
+          {
+            id: '123',
+            typeId: 'product'
+          },
+          {
+            id: '456',
+            typeId: 'product'
+          }
+        ]
+      })
 
   describe '#mapProduct', ->
     it 'should map a product', (done) ->
