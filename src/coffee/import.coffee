@@ -416,6 +416,12 @@ class Import
         .then (res) -> res.body
     , existingProduct)
 
+  normalizeAttributeName: (name) ->
+    if name in CONS.ALL_HEADERS
+      "attribute.#{name}"
+    else
+      name
+
   update: (product, existingProduct, id2SameForAllAttributes, header, rowIndex, publish) ->
     product.categoryOrderHints = @_mergeCategoryOrderHints existingProduct, product
     if (not product.state? and @defaultState?)
@@ -450,7 +456,7 @@ class Import
       # console.warn "ACTION", action
       switch action.action
         when 'setAttribute', 'setAttributeInAllVariants'
-          (header.has(action.name) or header.hasLanguageForCustomAttribute(action.name)) and not
+          (header.has(@normalizeAttributeName(action.name)) or header.hasLanguageForCustomAttribute(@normalizeAttributeName(action.name))) and not
           @_isBlackListedForUpdate(action.name)
         when 'changeName' then header.has(CONS.HEADER_NAME) or header.hasLanguageForBaseAttribute(CONS.HEADER_NAME)
         when 'changeSlug' then header.has(CONS.HEADER_SLUG) or header.hasLanguageForBaseAttribute(CONS.HEADER_SLUG)

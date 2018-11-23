@@ -69,9 +69,10 @@ class Header
     for langAttribName in localizedAttributes
       for head, index in @rawHeader
         parts = head.split GLOBALS.DELIM_HEADER_LANGUAGE
-        if _.size(parts) is 2
-          if parts[0] is langAttribName
-            lang = parts[1]
+        if _.size(parts) >= 2
+          nameRegexp = new RegExp("^#{langAttribName}\.")
+          if head.match(nameRegexp)
+            lang = _.last(parts)
             # TODO: check language
             langH2i[langAttribName] or= {}
             langH2i[langAttribName][lang] = index
@@ -89,7 +90,11 @@ class Header
         (attribute.type.name is CONS.ATTRIBUTE_TYPE_SET and attribute.type.elementType?.name is CONS.ATTRIBUTE_TYPE_LTEXT) or
         (attribute.type.name is CONS.ATTRIBUTE_TYPE_LENUM) or
         (attribute.type.name is CONS.ATTRIBUTE_TYPE_SET and attribute.type.elementType?.name is CONS.ATTRIBUTE_TYPE_LENUM)
-          attribute.name
+          if attribute.name in CONS.ALL_HEADERS
+            "attribute.#{attribute.name}"
+          else
+            attribute.name
+
       langH2i = @_languageToIndex ptLanguageAttributes
       @productTypeId2HeaderIndex[productType.id] = langH2i
     langH2i
