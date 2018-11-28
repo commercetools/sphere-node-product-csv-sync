@@ -60,6 +60,12 @@ module.exports = (grunt) ->
         src: ["*.js"]
         dest: "lib"
         ext: ".js"
+    
+    jasmine:
+      default:
+        options:
+          oneFailurePerSpec: true
+          random: false
 
     # watching for changes
     watch:
@@ -82,9 +88,9 @@ module.exports = (grunt) ->
         stderr: true
         failOnError: true
       jasmine:
-        command: "jasmine --random=false test/**/*.spec.js"
+        command: "jasmine test/**/*.spec.js"
       coverage:
-        command: "node_modules/.bin/istanbul cover jasmine -- --random=false --stop-on-failure=true test/**/*.spec.js && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
+        command: "node_modules/.bin/istanbul cover jasmine test/**/*.spec.js && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
       publish:
         command: 'npm publish'
 
