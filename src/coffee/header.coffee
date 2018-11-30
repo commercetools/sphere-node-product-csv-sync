@@ -31,7 +31,7 @@ class Header
   #   y: 1
   #   z: 2
   toIndex: (name) ->
-    @h2i = _.object _.map @rawHeader, (head, index) -> [head, index] unless @h2i
+    if not @h2i then @h2i = _.object _.map @rawHeader, (head, index) -> [head, index]
     return @h2i[name] if name
     @h2i
 
