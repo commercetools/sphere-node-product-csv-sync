@@ -290,23 +290,60 @@ describe 'Mapping', ->
       productType =
         name: 'prodType'
         attributes: [
-          { name: 'attrib', type: { name: 'text' } }
-          { name: 'productType', type: { name: 'text' } }
+          {
+            name: "description"
+            type: {
+              name: "ltext"
+            }
+          }
+          {
+            name: "productType"
+            type: {
+              name: "ltext"
+            }
+          }
+          {
+            name: "createdAt"
+            type: {
+              name: "number"
+            }
+          }
+          {
+            name: "slug"
+            type: {
+              name: "text"
+            }
+          }
+          {
+            name: "name"
+            type: {
+              name: "ltext"
+            }
+          }
         ]
 
-      @map.header = new Header [ 'attrib', 'productType', 'sku', 'variantId', 'attribute.productType' ]
+
+      @map.header = new Header [
+        'productType', 'sku', 'name.en','name.de','slug.en','slug.de','attribute.description.en',
+        'attribute.description.de','attribute.productType.en','attribute.productType.de',
+        'attribute.createdAt','attribute.slug','attribute.name.en','attribute.name.de'
+      ]
       @map.header.toIndex()
-      variant = @map.mapVariant [ 'value1', 'prodType', 'mySKU', '9', 'prodTypeAttribValue' ], 9, productType, 77
+      variant = @map.mapVariant [
+        'testConflict','mySKU','testNameEn','testNameDe','slugEn','slugDe','abcdEn','abcdDe','ptEn','ptDe','1234','slugTextAttr','nameAttrEn','nameAttrDe'
+      ], 9, productType, 77
 
       expectedVariant =
         id: 9
         sku: 'mySKU'
         prices: []
-        attributes: [{
-          name: 'attrib', value: 'value1'
-        }, {
-          name: 'productType', value: 'prodTypeAttribValue'
-        }]
+        attributes: [
+          { name: 'description', value: { en: 'abcdEn', de: 'abcdDe' } },
+          { name: 'productType', value: { en: 'ptEn', de: 'ptDe' } },
+          { name: 'createdAt', value: 1234 },
+          { name: 'slug', value: 'slugTextAttr' },
+          { name: 'name', value: { en: 'nameAttrEn', de: 'nameAttrDe' } }
+        ]
         images: []
 
       expect(variant).toEqual expectedVariant
