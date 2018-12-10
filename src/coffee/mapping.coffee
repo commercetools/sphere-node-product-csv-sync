@@ -245,7 +245,7 @@ class Mapping
 
   mapAttribute: (rawVariant, attribute, languageHeader2Index, rowIndex) ->
     # if attribute conflicts with some base product property prefix it with "attribute." string
-    prefixedAttributeName = if attribute.name in CONS.ALL_HEADERS
+    prefixedAttributeName = if attribute.name in CONS.PRODUCT_LEVEL_PROPERTIES.concat(CONS.ALL_HEADERS)
       "attribute.#{attribute.name}"
     else
       attribute.name
