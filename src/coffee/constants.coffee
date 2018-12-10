@@ -81,6 +81,8 @@ exports.SPECIAL_HEADERS = [
   # TODO: image labels and dimensions
 ]
 
+# this list was created from a documentation of productProjection properties:
+# https://docs.commercetools.com/http-api-projects-productProjections.html#productprojection
 exports.PRODUCT_LEVEL_PROPERTIES = [
   constants.HEADER_ID,
   constants.HEADER_KEY,
