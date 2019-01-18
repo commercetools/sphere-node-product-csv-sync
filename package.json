@@ -1,7 +1,7 @@
 {
   "name": "sphere-node-product-csv-sync",
   "description": "Import and export products to and from a commercetools project.",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "homepage": "https://github.com/sphereio/sphere-node-product-csv-sync",
   "private": false,
   "author": {
