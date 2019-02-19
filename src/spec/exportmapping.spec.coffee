@@ -84,6 +84,21 @@ describe 'ExportMapping', ->
       ]
       expect(@exportMapping._mapPrices prices).toBe 'EUR -13$2001-09-11T14:00:00.000Z~2001-09-12T14:00:00.000Z'
 
+  describe '#mapTiers', ->
+    it 'should map single pricetier', ->
+      tiers = [
+        { value: { centAmount: 900, currencyCode: 'EUR' }, miminumQuantity: 1000 }
+      ]
+      expect(@exportMapping._mapTiers tiers).toBe 'EUR 900/1000'
+
+    it 'should map multiple pricetier', ->
+      tiers = [
+        { value: { centAmount: 900, currencyCode: 'EUR' }, miminumQuantity: 1000 }
+        { value: { centAmount: 850, currencyCode: 'EUR' }, miminumQuantity: 2000 }
+        { value: { centAmount: 800, currencyCode: 'EUR' }, miminumQuantity: 3000 }
+      ]
+      expect(@exportMapping._mapTiers tiers).toBe 'EUR 900/1000;EUR 850/2000;EUR 800/3000'
+
   describe '#mapImage', ->
     it 'should map single image', ->
       images = [
