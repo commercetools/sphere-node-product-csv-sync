@@ -348,6 +348,22 @@ class Mapping
 
     prices
 
+  mapTiers: (raw, rowIndex) ->
+    tiers = []
+    return tiers unless @isValidValue(raw)
+    rawTiers = raw.split GLOBALS.DELIM_MULTI_VALUE
+    for matchedTier in rawTiers
+      matchPriceTier = matchedTier.split "/", 2
+      priceTier =
+        value: @mapMoney matchPriceTier[0]
+        minimumQuantity: parseInt matchPriceTier[1], 10
+      unless priceTier
+        @errors.push "[row #{rowIndex}:#{CONS.HEADER_TIERS}] Can not parse tier '#{raw}'!"
+        return
+      tiers.push priceTier
+
+    tiers
+
   # EUR 300
   # USD 999
   mapMoney: (rawMoney, attribName, rowIndex) ->
