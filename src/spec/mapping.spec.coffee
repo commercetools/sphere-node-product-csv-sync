@@ -684,7 +684,7 @@ describe 'Mapping', ->
 
   describe '#mapTiers', ->
     it 'should map tiers with single priceTier', ->
-      tiers = @map.mapTiers 'EUR 500/1000'
+      tiers = @map.mapTiers 'EUR 500 / 1000'
       expect(tiers.length).toBe 1
       expectedTier =
         value:
@@ -694,7 +694,7 @@ describe 'Mapping', ->
       expect(tiers[0]).toEqual expectedTier
 
     it 'should map tiers with multiple priceTier', ->
-      tiers = @map.mapTiers 'EUR 450/2000;EUR 400/3000 '
+      tiers = @map.mapTiers 'EUR 450 / 2000;EUR 400 / 3000 '
       expect(tiers.length).toBe 2
       expectedTier =
         value:

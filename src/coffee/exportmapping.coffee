@@ -189,7 +189,7 @@ class ExportMapping
   _mapTiers: (tiers) ->
     _.reduce(tiers, (acc, priceTier, index) ->
       acc += GLOBALS.DELIM_MULTI_VALUE unless index is 0
-      acc + "#{priceTier.value.currencyCode} #{priceTier.value.centAmount}/#{priceTier.miminumQuantity}"
+      acc + "#{priceTier.value.currencyCode} #{priceTier.value.centAmount} / #{priceTier.miminumQuantity}"
     , '')
 
   _mapMoney: (money) ->

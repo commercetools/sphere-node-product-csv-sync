@@ -89,7 +89,7 @@ describe 'ExportMapping', ->
       tiers = [
         { value: { centAmount: 900, currencyCode: 'EUR' }, miminumQuantity: 1000 }
       ]
-      expect(@exportMapping._mapTiers tiers).toBe 'EUR 900/1000'
+      expect(@exportMapping._mapTiers tiers).toBe 'EUR 900 / 1000'
 
     it 'should map multiple pricetier', ->
       tiers = [
@@ -97,7 +97,7 @@ describe 'ExportMapping', ->
         { value: { centAmount: 850, currencyCode: 'EUR' }, miminumQuantity: 2000 }
         { value: { centAmount: 800, currencyCode: 'EUR' }, miminumQuantity: 3000 }
       ]
-      expect(@exportMapping._mapTiers tiers).toBe 'EUR 900/1000;EUR 850/2000;EUR 800/3000'
+      expect(@exportMapping._mapTiers tiers).toBe 'EUR 900 / 1000;EUR 850 / 2000;EUR 800 / 3000'
 
   describe '#mapImage', ->
     it 'should map single image', ->

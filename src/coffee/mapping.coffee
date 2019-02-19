@@ -353,7 +353,7 @@ class Mapping
     return tiers unless @isValidValue(raw)
     rawTiers = raw.split GLOBALS.DELIM_MULTI_VALUE
     for matchedTier in rawTiers
-      matchPriceTier = matchedTier.split "/", 2
+      matchPriceTier = matchedTier.split " / ", 2
       priceTier =
         value: @mapMoney matchPriceTier[0]
         minimumQuantity: parseInt matchPriceTier[1], 10
