@@ -552,6 +552,41 @@ describe 'Mapping', ->
         country: 'CH'
       expect(prices[0]).toEqual expectedPrice
 
+    it 'should map price and tiers with single PriceTier', ->
+      prices = @map.mapPrices 'EUR 900#EUR 850@1500'
+      expect(prices.length).toBe 1
+      expectedPrice =
+        value:
+          centAmount: 900
+          currencyCode: 'EUR'
+        tiers:[{
+          value:
+            centAmount: 850
+            currencyCode: 'EUR'
+          minimumQuantity: 1500
+        }]
+      expect(prices[0]).toEqual expectedPrice
+
+    it 'should map price and tiers with multiple priceTier', ->
+      prices = @map.mapPrices 'EUR 900#EUR 850@1500;EUR 800@2500'
+      expect(prices.length).toBe 1
+      expectedPrice =
+        value:
+          centAmount: 900
+          currencyCode: 'EUR'
+        tiers:[{
+          value:
+            centAmount: 850
+            currencyCode: 'EUR'
+          minimumQuantity: 1500
+        },{
+          value:
+            centAmount: 800
+            currencyCode: 'EUR'
+          minimumQuantity: 2500
+        }]
+      expect(prices[0]).toEqual expectedPrice
+
     it 'should give feedback when there are problems in parsing the country info ', ->
       prices = @map.mapPrices 'CH-DE-EUR 700', 99
       expect(prices.length).toBe 0
@@ -681,33 +716,6 @@ describe 'Mapping', ->
           centAmount: -999
           currencyCode: 'YEN'
       expect(prices[2]).toEqual expectedPrice
-
-  describe '#mapTiers', ->
-    it 'should map tiers with single priceTier', ->
-      tiers = @map.mapTiers 'EUR 500 / 1000'
-      expect(tiers.length).toBe 1
-      expectedTier =
-        value:
-          centAmount: 500
-          currencyCode: 'EUR'
-        minimumQuantity: 1000
-      expect(tiers[0]).toEqual expectedTier
-
-    it 'should map tiers with multiple priceTier', ->
-      tiers = @map.mapTiers 'EUR 450 / 2000;EUR 400 / 3000 '
-      expect(tiers.length).toBe 2
-      expectedTier =
-        value:
-          centAmount: 450
-          currencyCode: 'EUR'
-        minimumQuantity: 2000
-      expect(tiers[0]).toEqual expectedTier
-      expectedTier =
-        value:
-          centAmount: 400
-          currencyCode: 'EUR'
-        minimumQuantity: 3000
-      expect(tiers[1]).toEqual expectedTier
 
   describe '#mapNumber', ->
     it 'should map integer', ->
