@@ -181,15 +181,19 @@ class ExportMapping
       if price.validUntil
         validUntilPart = "~#{price.validUntil}"
 
+      tiersPart = ''
+      if price.tiers
+        tiersPart = "%#{@_mapTiers price.tiers}"
+
       if price.discounted?
         discountedPricePart = "|#{price.discounted.value.centAmount}"
-      acc + "#{countryPart}#{price.value.currencyCode} #{price.value.centAmount}#{discountedPricePart}#{customerGroupPart}#{channelKeyPart}#{validFromPart}#{validUntilPart}"
+      acc + "#{countryPart}#{price.value.currencyCode} #{price.value.centAmount}#{discountedPricePart}#{customerGroupPart}#{channelKeyPart}#{validFromPart}#{validUntilPart}#{tiersPart}"
     , '')
 
   _mapTiers: (tiers) ->
     _.reduce(tiers, (acc, priceTier, index) ->
       acc += GLOBALS.DELIM_MULTI_VALUE unless index is 0
-      acc + "#{priceTier.value.currencyCode} #{priceTier.value.centAmount} / #{priceTier.miminumQuantity}"
+      acc + "#{priceTier.value.currencyCode} #{priceTier.value.centAmount}@#{priceTier.minimumQuantity}"
     , '')
 
   _mapMoney: (money) ->
