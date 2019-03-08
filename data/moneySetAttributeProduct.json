@@ -18,29 +18,42 @@
     "id": 1,
     "key": "variantKey",
     "sku": "11111",
-    "prices": [{
-      "value": {
-        "currencyCode": "EUR",
-        "centAmount": 12900
-      },
-      "validFrom": "2001-09-11T14:00:00.000Z",
-      "validUntil": "2015-09-11T14:00:00.000Z",
-      "country": "DE"
-    }],
-    "images": [],
-    "attributes": [{
-      "name": "money_attribute",
-      "value": [
-        {
-          "centAmount": 123456,
-          "currencyCode": "EUR"
+    "prices": [
+      {
+        "value": {
+          "currencyCode": "EUR",
+          "centAmount": 12900
         },
-        {
-          "centAmount": 98765,
-          "currencyCode": "GBP"
-        }
-      ]
-    }],
+        "validFrom": "2001-09-11T14:00:00.000Z",
+        "validUntil": "2015-09-11T14:00:00.000Z",
+        "tiers": [
+          {
+            "value": {
+              "currencyCode": "EUR",
+              "centAmount": 12000
+            },
+            "minimumQuantity": 2000
+          }
+        ],
+        "country": "DE"
+      }
+    ],
+    "images": [],
+    "attributes": [
+      {
+        "name": "money_attribute",
+        "value": [
+          {
+            "centAmount": 123456,
+            "currencyCode": "EUR"
+          },
+          {
+            "centAmount": 98765,
+            "currencyCode": "GBP"
+          }
+        ]
+      }
+    ],
     "assets": [],
     "availability": {
       "isOnStock": false,
