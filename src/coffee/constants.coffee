@@ -44,7 +44,7 @@ constants =
 
   ATTRIBUTE_CONSTRAINT_SAME_FOR_ALL: 'SameForAll'
 
-  REGEX_PRICE: new RegExp /^(([A-Za-z]{2})-|)([A-Z]{3}) (-?\d+)(-?\|(\d+)|)( ([^~\$#]*)|)(#([^~\$]*)|)(\$([^~]*)|)(~(.*)|)$/
+  REGEX_PRICE: new RegExp /^(([A-Za-z]{2})-|)([A-Z]{3}) (-?\d+)(-?\|(\d+)|)( ([^~\$#%]*)|)(#([^~\$%]*)|)(\$([^~%]*)|)(~([^%]*)|)(%([A-Z]{3} -?\d+@\d+(.*))|)$/
   REGEX_MONEY: new RegExp /^([A-Z]{3}) (-?\d+)$/
   REGEX_INTEGER: new RegExp /^-?\d+$/
   REGEX_FLOAT: new RegExp /^-?\d+(\.\d+)?$/
