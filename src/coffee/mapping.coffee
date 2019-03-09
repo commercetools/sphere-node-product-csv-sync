@@ -323,11 +323,13 @@ class Mapping
       channelKey = matchedPrice[10]
       validFrom = matchedPrice[12]
       validUntil = matchedPrice[14]
+      tiers = matchedPrice[16]
       price =
         value: @mapMoney "#{currencyCode} #{centAmount}", CONS.HEADER_PRICES, rowIndex
       price.validFrom = validFrom if validFrom
       price.validUntil = validUntil if validUntil
       price.country = country if country
+      price.tiers = @mapTiers tiers if tiers
 
       if customerGroupName
         unless _.has(@customerGroups.name2id, customerGroupName)
@@ -348,21 +350,17 @@ class Mapping
 
     prices
 
-  mapTiers: (raw, rowIndex) ->
-    tiers = []
-    return tiers unless @isValidValue(raw)
-    rawTiers = raw.split GLOBALS.DELIM_MULTI_VALUE
-    for matchedTier in rawTiers
-      matchPriceTier = matchedTier.split " / ", 2
-      priceTier =
-        value: @mapMoney matchPriceTier[0]
-        minimumQuantity: parseInt matchPriceTier[1], 10
-      unless priceTier
-        @errors.push "[row #{rowIndex}:#{CONS.HEADER_TIERS}] Can not parse tier '#{raw}'!"
-        return
-      tiers.push priceTier
-
-    tiers
+  mapTiers: (tiers) ->
+    unless tiers
+      return []
+    tiers.split('%').map((priceTier) ->
+      matchedPriceTier = priceTier.split(/ |@/g)
+      formattedTier =
+        value:
+          currencyCode: matchedPriceTier[0]
+          centAmount: parseInt matchedPriceTier[1]
+        minimumQuantity: parseInt matchedPriceTier[2]
+    )
 
   # EUR 300
   # USD 999
