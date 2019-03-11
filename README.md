@@ -225,7 +225,7 @@ Using the full path of the category name allows you to link to leaf categories w
 
 In the `prices` column you can define a list of prices for each variant separated by `;`:
 ```
-CH-EUR 999 B2B;EUR 899|745;USD 19900 #retailerA;DE-EUR 1000 B2C#wareHouse1;GB-GBP 999$2001-09-11T14:00:00.000Z~2015-10-12T14:00:00.000Z; EUR 500%EUR 450@1000
+CH-EUR 999 B2B;EUR 899|745;USD 19900 #retailerA;DE-EUR 1000 B2C#wareHouse1;GB-GBP 999$2001-09-11T14:00:00.000Z~2015-10-12T14:00:00.000Z;EUR 500%EUR 450@1000
 ```
 The pattern for one price is:
 `<country>-<currenyCode> <centAmount>|<discountedCentAmount> <customerGroupName>#<channelKey>$<validFrom>~<validUntil>%<tiers>`
