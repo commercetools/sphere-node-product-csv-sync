@@ -663,7 +663,7 @@ describe 'Mapping', ->
       expect(prices[0]).toEqual expectedPrice
 
     it 'should map price and tiers with single PriceTier', ->
-      prices = @map.mapPrices 'EUR 700%EUR 650@2500'
+      prices = @map.mapPrices 'EUR 700%EUR 650 @2500'
       expect(prices.length).toBe 1
       expectedPrice =
         value:
@@ -678,7 +678,7 @@ describe 'Mapping', ->
       expect(prices[0]).toEqual expectedPrice
 
     it 'should map price and tiers with multiple priceTier', ->
-      prices = @map.mapPrices 'EUR 900%EUR 850@1500%EUR 800@2500%EUR 750@5000'
+      prices = @map.mapPrices 'EUR 900%EUR 850 @1500%EUR 800 @2500%EUR 750 @5000'
       expect(prices.length).toBe 1
       expectedPrice =
         value:
@@ -724,7 +724,7 @@ describe 'Mapping', ->
 
   describe '#mapTiers', ->
     it 'should map tiers with single priceTier', ->
-      tiers = @map.mapTiers 'EUR 500@1000'
+      tiers = @map.mapTiers 'EUR 500 @1000'
       expect(tiers.length).toBe 1
       expectedTier =
         value:
@@ -734,7 +734,7 @@ describe 'Mapping', ->
       expect(tiers[0]).toEqual expectedTier
 
     it 'should map tiers with multiple priceTier', ->
-      tiers = @map.mapTiers 'EUR 450@2000%EUR 400@3000%EUR 350@4000'
+      tiers = @map.mapTiers 'EUR 450 @2000%EUR 400 @3000%EUR 350 @4000'
       expect(tiers.length).toBe 3
       expectedTier =
         value:
