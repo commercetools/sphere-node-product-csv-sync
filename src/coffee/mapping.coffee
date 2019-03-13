@@ -353,13 +353,13 @@ class Mapping
   mapTiers: (tiers) ->
     unless tiers
       return []
-    tiers.split('%').map((priceTier) ->
+    tiers.split(GLOBALS.DELIM_TIERS_MULTI_VALUE).map((priceTier) ->
       matchedPriceTier = priceTier.split(/ |@/g)
       formattedTier =
         value:
           currencyCode: matchedPriceTier[0]
           centAmount: parseInt matchedPriceTier[1]
-        minimumQuantity: parseInt matchedPriceTier[2]
+        minimumQuantity: parseInt matchedPriceTier[3]
     )
 
   # EUR 300
