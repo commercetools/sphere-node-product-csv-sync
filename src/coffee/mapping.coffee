@@ -358,8 +358,8 @@ class Mapping
       formattedTier =
         value:
           currencyCode: matchedPriceTier[0]
-          centAmount: parseInt matchedPriceTier[1]
-        minimumQuantity: parseInt matchedPriceTier[3]
+          centAmount: parseInt matchedPriceTier[1], 10
+        minimumQuantity: parseInt matchedPriceTier[3], 10
     )
 
   # EUR 300
