@@ -323,11 +323,13 @@ class Mapping
       channelKey = matchedPrice[10]
       validFrom = matchedPrice[12]
       validUntil = matchedPrice[14]
+      tiers = matchedPrice[16]
       price =
         value: @mapMoney "#{currencyCode} #{centAmount}", CONS.HEADER_PRICES, rowIndex
       price.validFrom = validFrom if validFrom
       price.validUntil = validUntil if validUntil
       price.country = country if country
+      price.tiers = @mapTiers tiers if tiers
 
       if customerGroupName
         unless _.has(@customerGroups.name2id, customerGroupName)
@@ -347,6 +349,18 @@ class Mapping
       prices.push price
 
     prices
+
+  mapTiers: (tiers) ->
+    unless tiers
+      return []
+    tiers.split(GLOBALS.DELIM_TIERS_MULTI_VALUE).map((priceTier) ->
+      matchedPriceTier = priceTier.split(/ |@/g)
+      formattedTier =
+        value:
+          currencyCode: matchedPriceTier[0]
+          centAmount: parseInt matchedPriceTier[1], 10
+        minimumQuantity: parseInt matchedPriceTier[3], 10
+    )
 
   # EUR 300
   # USD 999

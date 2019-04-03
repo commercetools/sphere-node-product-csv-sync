@@ -381,6 +381,38 @@ describe 'Import integration test', ->
         done()
       .catch (err) -> done.fail _.prettify(err)
 
+    it 'should import a product with prices and tiers', (done) ->
+      csv =
+        """
+        productType,name,variantId,slug,prices
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug},EUR 700%EUR 690 @1000%EUR 680 @3000
+        """
+
+      @importer.import(csv)
+      .then (result) =>
+        expect(_.size result).toBe 1
+        expect(result[0]).toBe '[row 2] New product created.'
+        service = TestHelpers.createService(project_key, 'productProjections')
+        request = {
+          uri: service
+            .where("productType(id=\"#{@productType.id}\")")
+            .staged true
+            .build()
+          method: 'GET'
+        }
+        @client.execute request
+      .then (result) ->
+        expect(_.size result.body.results).toBe 1
+        p = result.body.results[0]
+        expect(_.size p.masterVariant.prices).toBe 1
+        prices = p.masterVariant.prices
+        expect(prices[0].value).toEqual jasmine.objectContaining(currencyCode: 'EUR', centAmount: 700)
+        expect(prices[0].tiers.length).toEqual(2)
+        expect(prices[0].tiers[0]).toEqual jasmine.objectContaining({minimumQuantity:1000, value: {type: 'centPrecision', fractionDigits: 2, currencyCode: 'EUR', centAmount: 690}})
+        expect(prices[0].tiers[1]).toEqual jasmine.objectContaining({minimumQuantity:3000, value: {type: 'centPrecision', fractionDigits: 2, currencyCode: 'EUR', centAmount: 680}})
+        done()
+      .catch (err) -> done.fail _.prettify(err)
+
     it 'should set default state on update when configured to do so, and product lacks state', (done) ->
       csv =
         """

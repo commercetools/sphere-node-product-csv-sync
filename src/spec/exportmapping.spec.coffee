@@ -84,6 +84,33 @@ describe 'ExportMapping', ->
       ]
       expect(@exportMapping._mapPrices prices).toBe 'EUR -13$2001-09-11T14:00:00.000Z~2001-09-12T14:00:00.000Z'
 
+    it 'should map tiers with single priceTier on prices', ->
+      prices = [
+        { value: { centAmount: 500, currencyCode: 'EUR' }, tiers: [{ value: { centAmount: 450, currencyCode: 'EUR' }, minimumQuantity: 1000 }] }
+      ]
+      expect(@exportMapping._mapPrices prices).toBe 'EUR 500%EUR 450 @1000'
+
+    it 'should map tiers with multiple priceTiers on prices', ->
+      prices = [
+        { value: { centAmount: 500, currencyCode: 'EUR' }, tiers: [{ value: { centAmount: 450, currencyCode: 'EUR' }, minimumQuantity: 1000 },{ value: { centAmount: 400, currencyCode: 'EUR' }, minimumQuantity: 3000 },{ value: { centAmount: 350, currencyCode: 'EUR' }, minimumQuantity: 5000 }] }
+      ]
+      expect(@exportMapping._mapPrices prices).toBe 'EUR 500%EUR 450 @1000%EUR 400 @3000%EUR 350 @5000'
+
+  describe '#mapTiers', ->
+    it 'should map tiers with single priceTier ', ->
+      tiers = [
+        {value: { centAmount: 900, currencyCode: 'EUR' }, minimumQuantity: 1000}
+      ]
+      expect(@exportMapping._mapTiers tiers).toBe 'EUR 900 @1000'
+
+    it 'should map tiers with multiple priceTiers ', ->
+      tiers = [
+        { value: { centAmount: 100, currencyCode: 'EUR' }, minimumQuantity: 1000 }
+        { value: { centAmount: 90, currencyCode: 'EUR' }, minimumQuantity: 2000 }
+        { value: { centAmount: 80, currencyCode: 'EUR' }, minimumQuantity: 3000 }
+      ]
+      expect(@exportMapping._mapTiers tiers).toBe 'EUR 100 @1000%EUR 90 @2000%EUR 80 @3000'
+
   describe '#mapImage', ->
     it 'should map single image', ->
       images = [
