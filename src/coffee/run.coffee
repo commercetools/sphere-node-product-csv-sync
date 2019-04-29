@@ -212,7 +212,7 @@ module.exports = class
         .then (authConfig) =>
           options =
             timeout: program.timeout
-            exportFormat: 'txt'
+            exportFormat: 'log'
             show_progress: true
             authConfig: authConfig
             userAgentConfig:
