@@ -89,9 +89,7 @@ module.exports = class
   @run: (argv) ->
     
     _consoleWarnAllResults = (result) ->
-      # print out full response array by passing util.inspect
-      # with maxArrayLength (default is 100)
-      console.warn util.inspect(result, { maxArrayLength: null })
+      result.forEach (res) -> console.warn res
 
     _subCommandHelp = (cmd) ->
       program.emit(cmd, null, ['--help'])
