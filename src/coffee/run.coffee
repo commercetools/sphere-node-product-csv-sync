@@ -89,7 +89,8 @@ module.exports = class
   @run: (argv) ->
     
     _consoleWarnAllResults = (result) ->
-      result.forEach (res) -> console.warn res
+      for res in result
+        console.warn res
 
     _subCommandHelp = (cmd) ->
       program.emit(cmd, null, ['--help'])
