@@ -244,7 +244,10 @@ module.exports = class
               importer.continueOnProblems = opts.continueOnProblems
               importer.changeState(publish, remove, filterFunction)
             .then (result) ->
-              _consoleWarnAllResults result
+              if result.length > 500
+                fs.writeFileSync opts.output, JSON.stringify(result, null, 2)
+              else
+                _consoleWarnAllResults result
               process.exit 0
             .catch (err) ->
               if err.stack then console.error(err.stack)
