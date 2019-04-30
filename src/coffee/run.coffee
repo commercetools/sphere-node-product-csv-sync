@@ -203,6 +203,7 @@ module.exports = class
       .description 'Allows to publish, unpublish or delete (all) products of your SPHERE.IO project.'
       .option '--changeTo <publish,unpublish,delete>', 'publish unpublished products / unpublish published products / delete unpublished products'
       .option '--csv <file>', 'processes products defined in a CSV file by either "sku" or "id". Otherwise all products are processed.'
+      .option '-o, --output <file>', 'Optionally write output log to a file if more than 100 products will be processed.'
       .option '--continueOnProblems', 'When a there is a problem on changing a product\'s state (400er response), ignore it and continue with the next products'
       .option '--forceDelete', 'whether to force deletion without asking for confirmation', false
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo <state>'
@@ -244,7 +245,10 @@ module.exports = class
               importer.continueOnProblems = opts.continueOnProblems
               importer.changeState(publish, remove, filterFunction)
             .then (result) ->
-              _consoleWarnAllResults result
+              if result.length > 100 and opts.output
+                fs.writeFileSync opts.output, JSON.stringify(result, null, 2)
+              else
+                _consoleWarnAllResults result
               process.exit 0
             .catch (err) ->
               if err.stack then console.error(err.stack)
