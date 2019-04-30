@@ -203,7 +203,7 @@ module.exports = class
       .description 'Allows to publish, unpublish or delete (all) products of your SPHERE.IO project.'
       .option '--changeTo <publish,unpublish,delete>', 'publish unpublished products / unpublish published products / delete unpublished products'
       .option '--csv <file>', 'processes products defined in a CSV file by either "sku" or "id". Otherwise all products are processed.'
-      .option '-o, --output <file>', 'Path to the file if the product being process is more than the default which is 100.'
+      .option '-o, --output <file>', 'Optionally write output log to a file if more than 100 products will be processed.'
       .option '--continueOnProblems', 'When a there is a problem on changing a product\'s state (400er response), ignore it and continue with the next products'
       .option '--forceDelete', 'whether to force deletion without asking for confirmation', false
       .usage '--projectKey <project-key> --clientId <client-id> --clientSecret <client-secret> --changeTo <state>'
