@@ -101,11 +101,12 @@ This means that the CSV may contain only those columns that contain changed valu
 
 #### Base attributes
 
-To create or update products you need 2 columns.
-You always need the `productType`. Further you need either `variantId` or `sku` to identify the specific variant.
+To create or update products you need to provide the following headers and columns. 
+You will always need the `productType` on the master variant. Further you need to provide the `variantId` and `sku` to define the specific variants.
+The master variant should always have the variantId 1. 
 
 You can define the `productType` via id or name (as long as it is unique).
-Another base attributes which can be specified are `key` and `variantKey`.
+Other base attributes which can be specified are `key` and `variantKey`.
 
 #### Variants
 
