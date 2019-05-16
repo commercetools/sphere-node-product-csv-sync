@@ -46,7 +46,7 @@
     "archiver": "^2.1.1",
     "bluebird": "^3.5.1",
     "commander": "2.3.0",
-    "csv": "0.3.7",
+    "csv": "5.1.1",
     "exceljs": "^1.1.1",
     "extract-zip": "^1.6.5",
     "iconv-lite": "0.4.19",
