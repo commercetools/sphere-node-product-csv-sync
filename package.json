@@ -77,7 +77,7 @@
     "istanbul": "0.4.5",
     "jasmine": "3.3.0",
     "jasmine-spec-reporter": "^4.2.1",
-    "sinon": "^6.1.0",
+    "sinon": "^7.0.0",
     "sphere-coffeelint": "git://github.com/sphereio/sphere-coffeelint.git#master"
   },
   "keywords": [
