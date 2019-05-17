@@ -3,6 +3,7 @@ program = require 'commander'
 prompt = require 'prompt'
 Csv = require 'csv'
 Promise = require 'bluebird'
+fetch = require 'node-fetch'
 fs = Promise.promisifyAll require('fs')
 util = require('util')
 {ProjectCredentialsConfig} = require 'sphere-node-utils'
@@ -160,8 +161,10 @@ module.exports = class
             httpConfig:
               host: program.sphereHost
               enableRetry: true
+              fetch: fetch
             defaultState: opts.defaultState
           options.authConfig.host = program.sphereAuthHost
+          options.authConfig.fetch = fetch
           options.continueOnProblems = opts.continueOnProblems or false
 
           # if program.verbose
@@ -223,12 +226,14 @@ module.exports = class
             httpConfig:
               host: program.sphereHost
               enableRetry: true
+              fetch: fetch
             # logConfig:
             #   streams: [
             #     {level: 'warn', stream: process.stdout}
             #   ]
 
           options.authConfig.host = program.sphereAuthHost
+          options.authConfig.fetch = fetch
 
           remove = opts.changeTo is 'delete'
           publish = switch opts.changeTo
@@ -332,7 +337,9 @@ module.exports = class
             httpConfig:
               host: program.sphereHost
               enableRetry: true
+              fetch: fetch
           options.authConfig.host = program.sphereAuthHost
+          options.authConfig.fetch = fetch
 
           exporter = new Exporter options
           (if opts.fullExport then Promise.resolve false
@@ -390,11 +397,13 @@ module.exports = class
             httpConfig:
               host: program.sphereHost
               enableRetry: true
+              fetch: fetch
             # logConfig:
             #   streams: [
             #     {level: 'warn', stream: process.stdout}
             #   ]
           options.authConfig.host = program.sphereAuthHost
+          options.authConfig.fetch = fetch
           
           exporter = new Exporter options
           exporter.createTemplate(opts.languages, opts.out, opts.all)

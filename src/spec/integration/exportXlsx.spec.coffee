@@ -3,6 +3,7 @@ path = require 'path'
 iconv = require 'iconv-lite'
 _.mixin require('underscore-mixins')
 Promise = require 'bluebird'
+fetch = require 'node-fetch'
 fs = Promise.promisifyAll require('fs')
 Config = require '../../config'
 TestHelpers = require './testhelpers'
@@ -23,8 +24,9 @@ authConfig = {
     clientId: client_id
     clientSecret: client_secret
   }
+  fetch: fetch
 }
-httpConfig = { host: 'https://api.sphere.io' }
+httpConfig = { host: 'https://api.sphere.io', fetch: fetch }
 userAgentConfig = {}
 
 readXlsx = (filePath) ->

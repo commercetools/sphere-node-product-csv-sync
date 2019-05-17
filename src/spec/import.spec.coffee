@@ -1,4 +1,5 @@
 _ = require 'underscore'
+fetch = require 'node-fetch'
 CONS = require '../lib/constants'
 { Import } = require '../lib/main'
 Config = require '../config'
@@ -10,7 +11,8 @@ describe 'Import', ->
     credentials:
       clientId: client_id
       clientSecret: client_secret
-  httpConfig = {}
+    fetch: fetch
+  httpConfig = {fetch: fetch}
   userAgentConfig = {}
   beforeEach ->
     @importer = new Import {

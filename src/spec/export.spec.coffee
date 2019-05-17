@@ -1,3 +1,4 @@
+fetch = require 'node-fetch'
 { Export } = require '../lib/main'
 Config = require '../config'
 _ = require 'underscore'
@@ -25,7 +26,8 @@ describe 'Export', ->
       credentials:
         clientId: client_id
         clientSecret: client_secret
-    httpConfig = {}
+      fetch: fetch
+    httpConfig = {fetch: fetch}
     userAgentConfig = {}
     @exporter = new Export({ authConfig, httpConfig, userAgentConfig })
 

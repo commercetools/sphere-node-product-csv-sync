@@ -1,4 +1,5 @@
 Promise = require 'bluebird'
+fetch = require 'node-fetch'
 _ = require 'underscore'
 _.mixin require('underscore-mixins')
 {Import} = require '../../lib/main'
@@ -19,8 +20,9 @@ authConfig = {
     clientId: client_id
     clientSecret: client_secret
   }
+  fetch: fetch
 }
-httpConfig = { host: 'https://api.sphere.io' }
+httpConfig = { host: 'https://api.sphere.io', fetch: fetch }
 userAgentConfig = {}
 
 createImporter = ->

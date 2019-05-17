@@ -1,5 +1,6 @@
 _ = require 'underscore'
 _.mixin require('underscore-mixins')
+fetch = require 'node-fetch'
 {Import, Export} = require '../../lib/main'
 Config = require '../../config'
 TestHelpers = require './testhelpers'
@@ -14,8 +15,9 @@ authConfig = {
     clientId: client_id
     clientSecret: client_secret
   }
+  fetch: fetch
 }
-httpConfig = { host: 'https://api.sphere.io' }
+httpConfig = { host: 'https://api.sphere.io', fetch: fetch }
 userAgentConfig = {}
 
 defaultProduct = (productTypeId, categoryId) ->

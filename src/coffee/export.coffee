@@ -13,6 +13,7 @@ archiver = require 'archiver'
 path = require 'path'
 tmp = require 'tmp'
 Promise = require 'bluebird'
+fetch = require 'node-fetch'
 iconv = require 'iconv-lite'
 fs = Promise.promisifyAll require('fs')
 prompt = Promise.promisifyAll require('prompt')
@@ -74,6 +75,7 @@ class Export
         host: options.authConfig.host
         projectKey: projectKey
         credentials: options.authConfig.credentials
+        fetch: fetch
       createUserAgentMiddleware options.userAgentConfig
       createHttpMiddleware options.httpConfig
     ])
