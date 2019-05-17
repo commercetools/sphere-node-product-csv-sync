@@ -39,7 +39,7 @@
     "@commercetools/api-request-builder": "^5.0.0",
     "@commercetools/sdk-client": "^2.0.0",
     "@commercetools/sdk-middleware-auth": "^5.0.0",
-    "@commercetools/sdk-middleware-http": "^2.3.3",
+    "@commercetools/sdk-middleware-http": "^5.0.0",
     "@commercetools/sdk-middleware-queue": "^2.0.0",
     "@commercetools/sdk-middleware-user-agent": "^2.0.0",
     "@commercetools/sync-actions": "^3.0.0",
