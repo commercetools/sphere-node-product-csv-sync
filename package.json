@@ -27,7 +27,7 @@
   },
   "main": "main.js",
   "engines": {
-    "node": ">= 6"
+    "node": ">= 8"
   },
   "scripts": {
     "lint": "grunt coffeelint",
