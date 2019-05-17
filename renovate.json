@@ -8,5 +8,6 @@
     ":prConcurrentLimitNone",
     ":automergeBranchMergeCommit",
     ":enableVulnerabilityAlerts"
-  ]
+  ],
+  "ignoreDeps": ["csv"]
 }
