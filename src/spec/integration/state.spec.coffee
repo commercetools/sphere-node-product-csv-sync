@@ -1,5 +1,7 @@
 _ = require 'underscore'
+fetch = require 'node-fetch'
 _.mixin require('underscore-mixins')
+fetch = require 'node-fetch'
 {Import} = require '../../lib/main'
 Config = require '../../config'
 TestHelpers = require './testhelpers'
@@ -17,8 +19,9 @@ describe 'State integration tests', ->
       clientId: client_id
       clientSecret: client_secret
     }
+    fetch: fetch
   }
-  httpConfig = { host: 'https://api.sphere.io' }
+  httpConfig = { host: 'https://api.sphere.io', fetch: fetch }
   userAgentConfig = {}
   beforeEach (done) ->
     @importer = new Import {

@@ -11,6 +11,7 @@
 _ = require 'underscore'
 _.mixin require('underscore-mixins')
 Promise = require 'bluebird'
+fetch = require 'node-fetch'
 CONS = require './constants'
 GLOBALS = require './globals'
 Validator = require './validator'
@@ -54,6 +55,7 @@ class Import
         host: options.authConfig.host
         projectKey: @projectKey
         credentials: options.authConfig.credentials
+        fetch: fetch
       createQueueMiddleware
         concurrency: 10
       createUserAgentMiddleware options.userAgentConfig
