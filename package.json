@@ -36,7 +36,7 @@
     "test": "grunt coverage"
   },
   "dependencies": {
-    "@commercetools/api-request-builder": "^3.7.1",
+    "@commercetools/api-request-builder": "^5.0.0",
     "@commercetools/sdk-client": "^2.0.0",
     "@commercetools/sdk-middleware-auth": "^3.5.2",
     "@commercetools/sdk-middleware-http": "^2.3.3",
