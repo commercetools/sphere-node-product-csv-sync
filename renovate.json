@@ -7,7 +7,9 @@
     ":prHourlyLimitNone",
     ":prConcurrentLimitNone",
     ":automergeBranchMergeCommit",
-    ":enableVulnerabilityAlerts"
+    ":enableVulnerabilityAlerts",
+    ":disableMajorUpdates",
+    "schedule:monthly"
   ],
-  "ignoreDeps": ["csv"]
+  "ignoreDeps": ["csv", "commander"]
 }
