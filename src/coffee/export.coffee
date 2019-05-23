@@ -321,9 +321,9 @@ class Export
           Promise.reject err
 
   createTemplate: (languages, outputFile, allProductTypes = false) ->
-    @typesService.getAll(@client)
+    @typesService.getAll(@client, @projectKey)
     .then (result) =>
-      productTypes = result.body.results
+      productTypes = result
       if _.size(productTypes) is 0
         Promise.reject 'Can not find any product type.'
       else
