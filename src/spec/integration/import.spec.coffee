@@ -105,6 +105,23 @@ describe 'Import integration test', ->
       @newProductSku = TestHelpers.uniqueId 'sku-'
       @newProductSku += '"foo"'
 
+    it 'should fail because of a missing matchBy column', (done) ->
+      csv =
+        """
+        productType,name,variantId,slug,key,variantKey
+        #{@productType.id},#{@newProductName},1,#{@newProductSlug},productKey,variantKey
+        """
+      @importer.matchBy = 'id'
+      @importer.import(csv)
+        .then () ->
+          done.fail('Should throw an error')
+        .catch (err) ->
+          expect(err.toString()).toContain(
+            "Error: CSV header does not contain matchBy \"id\" column.
+            Use --matchBy to set different field for finding existing products."
+          )
+          done()
+
     it 'should transition a product state', (done) ->
       csv =
         """

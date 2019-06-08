@@ -125,6 +125,15 @@ class Import
       parsed = @validator.serialize(parsed)
       console.warn "CSV file with #{parsed.count} row(s) loaded."
       @map.header = parsed.header
+
+      if !parsed.header.rawHeader.includes(@matchBy)
+        return Promise.reject(
+          new Error(
+            "CSV header does not contain matchBy \"#{@matchBy}\" column.
+             Use --matchBy to set different field for finding existing products."
+          )
+        )
+
       @validator.validateOffline(parsed.data)
       if _.size(@validator.errors) isnt 0
         return Promise.reject @validator.errors
