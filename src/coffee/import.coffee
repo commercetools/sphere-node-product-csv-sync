@@ -126,7 +126,7 @@ class Import
       console.warn "CSV file with #{parsed.count} row(s) loaded."
       @map.header = parsed.header
 
-      if !parsed.header.rawHeader.includes(@matchBy)
+      if !@_isMatchByFieldInHeader(parsed.header.rawHeader, @matchBy)
         return Promise.reject(
           new Error(
             "CSV header does not contain matchBy \"#{@matchBy}\" column.
@@ -156,6 +156,11 @@ class Import
             (p) => @processProducts(p)
           Promise.map(_.batchList(products, @_BATCH_SIZE), p, { concurrency: @_CONCURRENCY })
           .then((results) => _.flatten(results))
+
+  # test whether there is matchBy (slug, id, sku) in header field array eg: sku,slug.en,id,..
+  _isMatchByFieldInHeader: (header, matchBy) ->
+    header.some (field) ->
+      field.split('.')[0].includes(matchBy)
 
   _unarchiveProducts: (archivePath) ->
     tempDir = tmp.dirSync({ unsafeCleanup: true })
