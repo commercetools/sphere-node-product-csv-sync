@@ -3,8 +3,8 @@ Feature: Import products
   Scenario: Can't find product type
     Given a file named "i.csv" with:
     """
-    productType,variantId
-    foo,1
+    id,productType,variantId
+    abcd,foo,1
     """
     When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csv i.csv --matchBy sku`
     Then the exit status should be 1
@@ -17,7 +17,7 @@ Feature: Import products
   Scenario: Show message when delimiter selection clashes
     Given a file named "i.csv" with:
     """
-    productType,variantId
+    productType,variantId,id
     """
     When I run `../../bin/product-csv-sync import --projectKey sphere-node-product-csv-sync-94 --csvDelimiter ';' --csv i.csv --matchBy sku`
     Then the exit status should be 1
