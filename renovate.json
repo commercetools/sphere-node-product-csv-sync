@@ -11,5 +11,8 @@
     ":disableMajorUpdates",
     "schedule:monthly"
   ],
+  "lockFileMaintenance": {
+    "enabled": true
+  },
   "ignoreDeps": ["csv", "commander"]
 }
