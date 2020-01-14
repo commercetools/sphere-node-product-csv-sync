@@ -202,7 +202,9 @@ class ExportMapping
   _mapImages: (images) ->
     _.reduce(images, (acc, image, index) ->
       acc += GLOBALS.DELIM_MULTI_VALUE unless index is 0
-      acc + image.url
+      acc + image.url + GLOBALS.DELIM_URL_ATTRIBUTES_SEPERATOR +
+      (image.label || "") + GLOBALS.DELIM_URL_ATTRIBUTES_SEPERATOR + (image?.dimensions?.w || 0)+
+      GLOBALS.DELIM_DIMENSIONS_SEPERATOR + (image?.dimensions?.h || 0)
     , '')
 
   _mapAttribute: (attribute, attributeTypeDef) ->

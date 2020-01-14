@@ -324,13 +324,13 @@ describe 'Mapping', ->
 
 
       @map.header = new Header [
-        'productType', 'sku', 'name.en','name.de','slug.en','slug.de','attribute.description.en',
+        'productType', 'sku', 'images', 'name.en','name.de','slug.en','slug.de','attribute.description.en',
         'attribute.description.de','attribute.productType.en','attribute.productType.de',
         'attribute.createdAt','attribute.slug','attribute.name.en','attribute.name.de'
       ]
       @map.header.toIndex()
       variant = @map.mapVariant [
-        'testConflict','mySKU','testNameEn','testNameDe','slugEn','slugDe','abcdEn','abcdDe','ptEn','ptDe','1234','slugTextAttr','nameAttrEn','nameAttrDe'
+        'testConflict','mySKU','http://url/of/the/image;http://url/of/the/multiple/image|custom|20x20' ,'testNameEn','testNameDe','slugEn','slugDe','abcdEn','abcdDe','ptEn','ptDe','1234','slugTextAttr','nameAttrEn','nameAttrDe'
       ], 9, productType, 77
 
       expectedVariant =
@@ -344,7 +344,10 @@ describe 'Mapping', ->
           { name: 'slug', value: 'slugTextAttr' },
           { name: 'name', value: { en: 'nameAttrEn', de: 'nameAttrDe' } }
         ]
-        images: []
+        images: [
+          { url: "http://url/of/the/image", label: "", dimensions: { w:0, h: 0 } },
+          { url: "http://url/of/the/multiple/image", label: "custom", dimensions: { w: 20, h: 20 } }
+        ]
 
       expect(variant).toEqual expectedVariant
 

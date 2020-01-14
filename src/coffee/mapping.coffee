@@ -462,13 +462,17 @@ class Mapping
     rawImages = rawVariant[@header.toIndex CONS.HEADER_IMAGES].split GLOBALS.DELIM_MULTI_VALUE
 
     for rawImage in rawImages
+      # Url Example :- https://jeanscentre-static.joggroup.net/sys|BundleThumb|200x200
+      imageAttributes = rawImage.split GLOBALS.DELIM_URL_ATTRIBUTES_SEPERATOR
+      dimensions = (imageAttributes[2] || "").split GLOBALS.DELIM_DIMENSIONS_SEPERATOR
+      width = dimensions[0]
+      height = dimensions[1]
       image =
-        url: rawImage
-        # TODO: get dimensions from CSV - format idea: 200x400;90x90
+        url: imageAttributes[0]
         dimensions:
-          w: 0
-          h: 0
-        #  label: 'TODO'
+          w: if isNaN(width) then 0 else Number width
+          h: if isNaN(height) then 0 else Number height
+        label: imageAttributes[1] || ""
       images.push image
 
     images
