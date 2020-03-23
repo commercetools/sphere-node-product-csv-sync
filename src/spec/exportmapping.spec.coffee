@@ -114,16 +114,16 @@ describe 'ExportMapping', ->
   describe '#mapImage', ->
     it 'should map single image', ->
       images = [
-        { url: '//example.com/image.jpg' }
+        { url: '//example.com/image.jpg', label: 'custom' }
       ]
-      expect(@exportMapping._mapImages images).toBe '//example.com/image.jpg'
+      expect(@exportMapping._mapImages images).toBe '//example.com/image.jpg|custom|0x0'
 
     it 'should map multiple images', ->
       images = [
         { url: '//example.com/image.jpg' }
-        { url: 'https://www.example.com/pic.png' }
+        { url: 'https://www.example.com/pic.png', label: "custom", dimensions: { w: 100, h: 100 }}
       ]
-      expect(@exportMapping._mapImages images).toBe '//example.com/image.jpg;https://www.example.com/pic.png'
+      expect(@exportMapping._mapImages images).toBe '//example.com/image.jpg||0x0;https://www.example.com/pic.png|custom|100x100'
 
 
   describe '#mapAttribute', ->
