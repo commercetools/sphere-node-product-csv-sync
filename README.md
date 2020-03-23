@@ -208,10 +208,11 @@ Just provide the name of the tax category in the `tax` column.
 
 In the `categories` column you can define a list of categories the product should be categorized in separated by `;`.
 
-The tool supports 3 different ways to reference a category. The match works on the following order:
+The tool supports 4 different ways to reference a category. The match works on the following order:
 - externalId
 - named path
 - name
+- key
 
 The following example contains 3 categories defined by their named path. The path starts at the root level and all segments are separated with `>`.
 ```

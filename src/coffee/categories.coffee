@@ -14,6 +14,7 @@ class Categories
     @externalId2id = {}
     @fqName2id = {}
     @id2fqName = {}
+    @key2Id = {}
     @duplicateNames = []
 
   getAll: (client, projectKey) ->
@@ -25,6 +26,8 @@ class Categories
       id = category.id
       externalId = category.externalId
       @id2index[id] = index
+      if (category.key)
+        @key2Id[category.key] = id
       @id2slug[id] = category.slug[GLOBALS.DEFAULT_LANGUAGE]
       if _.has @name2id, name
         @duplicateNames.push name

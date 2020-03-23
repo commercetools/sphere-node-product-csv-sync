@@ -114,6 +114,8 @@ class Mapping
             @errors.push msg
         else
           cat.id = @categories.name2id[rawCategory]
+      else if _.has(@categories.key2Id, rawCategory)
+        cat.id = @categories.key2Id[rawCategory]
 
       if cat.id
         categories.push cat
