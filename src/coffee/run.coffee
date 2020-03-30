@@ -130,6 +130,7 @@ module.exports = class
       .option '--allowRemovalOfVariants', 'If given variants will be removed if there is no corresponding row in the CSV. Otherwise they are not touched.'
       .option '--mergeCategoryOrderHints', 'Merge category order hints instead of replacing them'
       .option '--publish', 'When given, all changes will be published immediately'
+      .option '--noStaged', 'When given, only changes in the current input file will be published, and Ignored this flag if found --publish'
       .option '--updatesOnly', "Won't create any new products, only updates existing"
       .option '--dryRun', 'Will list all action that would be triggered, but will not POST them to SPHERE.IO'
       .option '--defaultState [stateKey]', "When given, specifies the key of the state to assign imported products to, if they don't have one"
@@ -181,6 +182,7 @@ module.exports = class
           importer.suppressMissingHeaderWarning = opts.suppressMissingHeaderWarning
           importer.allowRemovalOfVariants = opts.allowRemovalOfVariants
           importer.publishProducts = opts.publish
+          importer.noStaged = if opts.publish then false else opts.noStaged
           importer.updatesOnly = true if opts.updatesOnly
           importer.defaultState = opts.defaultState
           importer.dryRun = true if opts.dryRun
