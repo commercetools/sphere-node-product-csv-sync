@@ -252,8 +252,8 @@ Examples:
 
 3. Price with tiers(using the tiers in the example 2 above) and the base price of EUR 250.
     Represented as `EUR 250%EUR 200 @100%EUR 190 @200%EUR 180 @300`
-
->For the geeks: Have [a look at the regular expression](https://github.com/sphereio/sphere-node-product-csv-sync/blob/e8329dc6a74a560c57a8ab1842decceb42583c0d/src/coffee/constants.coffee#L33) that parses the prices.
+```
+> For the geeks: Have [a look at the regular expression](https://github.com/sphereio/sphere-node-product-csv-sync/blob/e8329dc6a74a560c57a8ab1842decceb42583c0d/src/coffee/constants.coffee#L33) that parses the prices.
 
 mandatory:
 - currenyCode
@@ -278,8 +278,20 @@ Natural numbers are supported. Negative numbers are prepended with a minus (e.g.
 
 In the `images` column you can define a list of urls for each variant separated by `;`:
 ```
-https://example.com/image.jpg;http://www.example.com/picture.bmp
+https://example.com/image.jpg|labelName|wxh;http://www.example.com/picture.bmp|labelName|wxh
 ```
+
+In the `urls` you can add label and dimensions seperated by pipe(|):
+
+```
+https://example.com/image.jpg|MyImage|400x200
+
+----------Image URL-----------|---Label---|--WxH--
+```
+> Skipping label and dimensions will remove the value.
+> If you want to skip Label Empty but some value on dimension then this way you can do it:-
+  Ex: https://example.com/image.jpg||400x200
+
 
 > In general we recommend to import images without the protocol like `//example.com/image.png`
 
