@@ -73,3 +73,6 @@ grunt release // patch release
 grunt release:minor // minor release
 grunt release:major // major release
 ```
+
+Once the above steps are completed please release the same version on github.
+You can see the releases here https://github.com/sphereio/sphere-node-product-csv-sync/releases.
