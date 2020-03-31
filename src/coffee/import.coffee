@@ -68,6 +68,7 @@ class Import
     @dryRun = false
     @updatesOnly = false
     @publishProducts = false
+    @noStaged = false
     @continueOnProblems = options.continueOnProblems
     @mergeCategoryOrderHints = options.mergeCategoryOrderHints
     @allowRemovalOfVariants = false
@@ -195,7 +196,7 @@ class Import
     filterInput = QueryUtils.mapMatchFunction(@matchBy)(products)
     productsServiceUri = createRequestBuilder({@projectKey})
       .productProjections
-      .staged(true)
+      .staged(not @noStaged)
       .where(filterInput)
       .build()
     @client.execute
@@ -220,7 +221,7 @@ class Import
 
     productsServiceUri = createRequestBuilder({@projectKey})
       .productProjections
-      .staged(true)
+      .staged(not @noStaged)
       .where(filterInput)
       .build()
     @client.execute
@@ -480,6 +481,12 @@ class Import
         else throw Error "The action '#{action.action}' is not supported. Please contact the commercetools support team!"
     )
 
+    if @noStaged
+      filteredActions = _.map(filteredActions, (action) =>
+        action.staged = false
+        return action
+      )
+    
     allUpdateRequests = {
       version: existingProduct.version
       actions: filteredActions

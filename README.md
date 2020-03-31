@@ -91,6 +91,7 @@ This means that the CSV may contain only those columns that contain changed valu
     --allowRemovalOfVariants                   If given variants will be removed if there is no corresponding row in the CSV. Otherwise they are not touched.
     --mergeCategoryOrderHints                  Merge category order hints instead of replacing them with value readed from an import file.
     --publish                                  When given, all changes will be published immediately.
+    --noStaged                                 When given, only changes in the current input file will be published, and Ignored this flag if found --publish
     --updatesOnly                              Won't create any new products, only updates existing.
     --dryRun                                   Will list all action that would be triggered, but will not POST them to SPHERE.IO.
     --defaultState                             When given, specifies the key of the state to assign imported products to, if they don't have one.
