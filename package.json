@@ -30,6 +30,7 @@
     "node": ">= 8"
   },
   "scripts": {
+    "preinstall": "npx npm-force-resolutions",
     "lint": "grunt coffeelint",
     "build": "grunt build",
     "watch": "grunt watch:dev",
@@ -55,7 +56,7 @@
     "node-fetch": "^2.6.0",
     "optimist": "0.6.1",
     "prompt": "1.0.0",
-    "sphere-node-utils": "^1.0.1",
+    "sphere-node-utils": "^2.0.1",
     "tmp": "0.1.0",
     "underscore": "1.9.1",
     "underscore-mixins": "*",
@@ -72,14 +73,19 @@
     "grunt-contrib-clean": "^2.0.0",
     "grunt-contrib-coffee": "^2.0.0",
     "grunt-contrib-concat": "^1.0.1",
-    "grunt-contrib-jasmine": "^2.0.3",
+    "grunt-contrib-jasmine": "^2.2.0",
     "grunt-contrib-watch": "^1.0.0",
     "grunt-shell": "^3.0.0",
+    "handlebars": "^4.7.6",
     "istanbul": "0.4.5",
     "jasmine": "3.4.0",
     "jasmine-spec-reporter": "^4.2.1",
+    "npm-force-resolutions": "0.0.3",
     "sinon": "^7.0.0",
     "sphere-coffeelint": "git://github.com/sphereio/sphere-coffeelint.git#master"
+  },
+  "resolutions": {
+    "handlebars": "^4.7.6"
   },
   "keywords": [
     "sphere",
