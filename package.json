@@ -30,7 +30,6 @@
     "node": ">= 8"
   },
   "scripts": {
-    "preinstall": "npx npm-force-resolutions",
     "lint": "grunt coffeelint",
     "build": "grunt build",
     "watch": "grunt watch:dev",
@@ -80,12 +79,8 @@
     "istanbul": "0.4.5",
     "jasmine": "3.4.0",
     "jasmine-spec-reporter": "^4.2.1",
-    "npm-force-resolutions": "0.0.3",
     "sinon": "^7.0.0",
     "sphere-coffeelint": "git://github.com/sphereio/sphere-coffeelint.git#master"
-  },
-  "resolutions": {
-    "handlebars": "^4.7.6"
   },
   "keywords": [
     "sphere",
