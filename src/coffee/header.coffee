@@ -71,7 +71,7 @@ class Header
         parts = head.split GLOBALS.DELIM_HEADER_LANGUAGE
         if _.size(parts) >= 2
           nameRegexp = new RegExp("^#{langAttribName}\.")
-          if head.match(nameRegexp)
+          if head.match(nameRegexp) && _.first(parts) == langAttribName # because materialType override material attribute because of sub string match
             lang = _.last(parts)
             # TODO: check language
             langH2i[langAttribName] or= {}
