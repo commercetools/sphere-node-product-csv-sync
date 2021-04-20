@@ -260,14 +260,13 @@ class Validator
   isProduct: (row, variantColumn) ->
     hasProductTypeColumn = not _.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)])
     if variantColumn is CONS.HEADER_VARIANT_ID
-      if row[this.header.toIndex(CONS.HEADER_SKU)]
-        if (row[this.header.toIndex(CONS.HEADER_SKU)]) {
+      `if (row[this.header.toIndex(CONS.HEADER_SKU)]) {
           #check if sku exists, if so fetch product information and detect the master variant
           let sku = row[this.header.toIndex(CONS.HEADER_SKU)];
           return fetchProductBySku(sku).then(function(result) {
             return result;
            });
-      } else if (variantColumn === CONS.HEADER_ID) {
+       } else if (variantColumn === CONS.HEADER_ID) {
            #check by id
           let id = row[this.header.toIndex(CONS.HEADER_ID)];
           return fetchProductById(id).then(function(result) {
@@ -284,7 +283,7 @@ class Validator
             hasProductTypeColumn &&
             row[this.header.toIndex(CONS.HEADER_VARIANT_ID)] === "1"
           );   #hasProductTypeColumn and row[@header.toIndex(CONS.HEADER_VARIANT_ID)] is '1'
-      }
+      }`
     else
       hasProductTypeColumn
 
