@@ -126,17 +126,19 @@ exports.setupProductType = (client, productType, product, projectKey) ->
     client.execute(request)
   .then (result) ->
     if _.size(result.body.results) > 0
-      existingProductType = result.body.results[0]
-      console.log "ProductType '#{productType.name}' already exists - deleting"
-      deleteService = createService(projectKey, 'productTypes')
-      deleteRequest = {
+      Promise.all(_.map(result.body.results, (result) ->
+        existingProductType = result
+        console.log "ProductType '#{existingProductType.name}' already exists - deleting"
+        deleteService = createService(projectKey, 'productTypes')
+        deleteRequest = {
         uri: deleteService
-          .byId(existingProductType.id)
-          .withVersion(existingProductType.version)
-          .build()
+        .byId(existingProductType.id)
+        .withVersion(existingProductType.version)
+        .build()
         method: 'DELETE'
-      }
-      client.execute(deleteRequest)
+        }
+        client.execute(deleteRequest)
+      ))
   .then ->
     console.log "Ensuring productType '#{productType.name}'"
     service = createService(projectKey, 'productTypes')
