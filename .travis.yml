@@ -4,7 +4,6 @@ branches:
     - latest
 node_js:
   - '8'
-  - '10'
 before_script:
   - npm install -g grunt-cli
   - ./create_config.sh
@@ -12,7 +11,6 @@ before_script:
   - gem install aruba -v 0.7.4
 script:
   - npm test
-  - cucumber -t ~@wip
   - cat data/simple-import.csv | ./bin/product-csv-sync import --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --suppressMissingHeaderWarning --matchBy sku
   - cat data/template_sample.csv | ./bin/product-csv-sync export --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET}
   - ./bin/product-csv-sync import --projectKey ${SPHERE_PROJECT_KEY} --clientId ${SPHERE_CLIENT_ID} --clientSecret ${SPHERE_CLIENT_SECRET} --csv data/simple-import.csv --suppressMissingHeaderWarning --matchBy sku
