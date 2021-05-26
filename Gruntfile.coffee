@@ -90,7 +90,7 @@ module.exports = (grunt) ->
       jasmine:
         command: "jasmine test/**/*.spec.js"
       coverage:
-        command: "node_modules/.bin/istanbul cover jasmine test/**/*.spec.js && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
+        command: "node_modules/.bin/istanbul cover jasmine test/**/*.spec.js"
       publish:
         command: 'npm publish'
 

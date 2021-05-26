@@ -120,23 +120,26 @@ exports.setupProductType = (client, productType, product, projectKey) ->
     # ensure the productType exists, otherwise create it
     service = createService(projectKey, 'productTypes')
     request = {
-      uri: service.where("name = \"#{productType.name}\"").perPage(1).build()
+      uri: service.where("name = \"#{productType.name}\"").perPage(10).build()
       method: 'GET'
     }
     client.execute(request)
   .then (result) ->
     if _.size(result.body.results) > 0
-      existingProductType = result.body.results[0]
-      console.log "ProductType '#{productType.name}' already exists - deleting"
-      deleteService = createService(projectKey, 'productTypes')
-      deleteRequest = {
+      console.log "Total number of same product type '#{result.body.results}"
+      Promise.all(_.map(result.body.results, (result) ->
+        existingProductType = result
+        console.log "ProductType '#{existingProductType.name}' already exists - deleting"
+        deleteService = createService(projectKey, 'productTypes')
+        deleteRequest = {
         uri: deleteService
-          .byId(existingProductType.id)
-          .withVersion(existingProductType.version)
-          .build()
+        .byId(existingProductType.id)
+        .withVersion(existingProductType.version)
+        .build()
         method: 'DELETE'
-      }
-      client.execute(deleteRequest)
+        }
+        client.execute(deleteRequest)
+      ))
   .then ->
     console.log "Ensuring productType '#{productType.name}'"
     service = createService(projectKey, 'productTypes')
