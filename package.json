@@ -57,7 +57,7 @@
     "prompt": "1.0.0",
     "sphere-node-utils": "^2.0.1",
     "tmp": "0.1.0",
-    "underscore": "1.9.1",
+    "underscore": "1.12.1",
     "underscore-mixins": "*",
     "underscore.string": "^3.3.4",
     "walk-sync": "^1.0.0"
