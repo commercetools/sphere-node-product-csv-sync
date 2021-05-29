@@ -98,6 +98,56 @@ class Validator
       @channels.buildMaps channels
       Promise.resolve resources
 
+  fetchProductBySku: (sku) ->
+    options = 
+      projectKey: @projectKey
+      customServices: {}
+    service = createRequestBuilder(options)
+    productUri = service.products
+      .where(
+        `masterData(current(masterVariant(sku ="${sku}" or sku ="${sku}")))`
+      )
+      .build();
+    productRequest = 
+      uri: productUri
+      method: 'GET'
+    @client.execute(productRequest).then((result) ->
+      hasProductTypeColumn and row[@header.toIndex(CONS.HEADER_VARIANT_ID)] == result.body.results[0].masterData.masterVariant.sku
+    ).catch (error) ->
+      error
+
+  fetchProductByKey: (key) ->
+    options = 
+      projectKey: @projectKey
+      customServices: {}
+    service = createRequestBuilder(options)
+    productUri = service.products.byKey(key).build()
+    productRequest = 
+      uri: productUri
+      method: 'GET'
+    @client.execute(productRequest).then((result) ->
+      hasProductTypeColumn and row[@header.toIndex(CONS.HEADER_VARIANT_ID)] == result.body.results[0].masterData.masterVariant.sku
+    ).catch (error) ->
+      error
+
+  fetchProductById: (id) ->
+    options = 
+      projectKey: @projectKey
+      customServices: {}
+    service = createRequestBuilder(options)
+    productUri = service.products.byId(id).build()
+    productRequest = 
+      uri: productUri
+      method: 'GET'
+    @client.execute(productRequest).then((result) ->
+      hasProductTypeColumn and row[@header.toIndex(CONS.HEADER_VARIANT_ID)] == result.body.results[0].masterData.masterVariant.sku
+    ).catch (error) ->
+      error
+
+# ---
+
+# ---
+
   validateOnline: ->
     # TODO: too much parallel?
     # TODO: is it ok storing everything in memory?
@@ -210,7 +260,30 @@ class Validator
   isProduct: (row, variantColumn) ->
     hasProductTypeColumn = not _.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)])
     if variantColumn is CONS.HEADER_VARIANT_ID
-      hasProductTypeColumn and row[@header.toIndex(CONS.HEADER_VARIANT_ID)] is '1'
+      `if (row[this.header.toIndex(CONS.HEADER_SKU)]) {
+          #check if sku exists, if so fetch product information and detect the master variant
+          let sku = row[this.header.toIndex(CONS.HEADER_SKU)];
+          return fetchProductBySku(sku).then(function(result) {
+            return result;
+           });
+       } else if (variantColumn === CONS.HEADER_ID) {
+           #check by id
+          let id = row[this.header.toIndex(CONS.HEADER_ID)];
+          return fetchProductById(id).then(function(result) {
+            return result;
+          });
+      } else if (variantColumn === CONS.HEADER_KEY) {
+          #check by key
+          let key = row[this.header.toIndex(CONS.HEADER_KEY)];
+          return fetchProductByKey(key).then(function(result) {
+             return result;
+          });
+      } else {
+          return (
+            hasProductTypeColumn &&
+            row[this.header.toIndex(CONS.HEADER_VARIANT_ID)] === "1"
+          );   #hasProductTypeColumn and row[@header.toIndex(CONS.HEADER_VARIANT_ID)] is '1'
+      }`
     else
       hasProductTypeColumn
 
