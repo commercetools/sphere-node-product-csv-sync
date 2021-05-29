@@ -202,17 +202,14 @@ class Validator
 
   isVariant: (row, variantColumn) ->
     if variantColumn is CONS.HEADER_VARIANT_ID
-      variantId = row[@header.toIndex(CONS.HEADER_VARIANT_ID)]
-      parseInt(variantId) > 1
+      hasProductTypeColumn = not _.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)])
+      return !hasProductTypeColumn
     else
       not @isProduct row
 
   isProduct: (row, variantColumn) ->
     hasProductTypeColumn = not _.isBlank(row[@header.toIndex(CONS.HEADER_PRODUCT_TYPE)])
-    if variantColumn is CONS.HEADER_VARIANT_ID
-      hasProductTypeColumn and row[@header.toIndex(CONS.HEADER_VARIANT_ID)] is '1'
-    else
-      hasProductTypeColumn
+    return hasProductTypeColumn
 
   _hasVariantCriteria: (row, variantColumn) ->
     critertia = row[@header.toIndex(variantColumn)]
