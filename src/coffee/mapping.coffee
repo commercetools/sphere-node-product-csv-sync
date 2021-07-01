@@ -24,9 +24,9 @@ class Mapping
     rowIndex = raw.startRow
 
     product = @mapBaseProduct raw.master, productType, rowIndex
-    product.masterVariant = @mapVariant raw.master, Number(raw.master[@header.toIndex CONS.HEADER_VARIANT_ID]), productType, rowIndex, product
+    product.masterVariant = @mapVariant raw.master, Number(raw.master[@header.toIndex CONS.HEADER_VARIANT_ID]) || 1, productType, rowIndex, product
     _.each raw.variants, (entry, index) =>
-      product.variants.push @mapVariant entry.variant, Number(entry.variant[@header.toIndex CONS.HEADER_VARIANT_ID]), productType, entry.rowIndex, product
+      product.variants.push @mapVariant entry.variant, Number(entry.variant[@header.toIndex CONS.HEADER_VARIANT_ID]) || index + 2, productType, entry.rowIndex, product
 
     data =
       product: product
