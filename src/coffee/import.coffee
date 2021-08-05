@@ -476,7 +476,7 @@ class Import
         when 'setSku' then header.has(CONS.HEADER_SKU)
         when 'setProductVariantKey' then header.has(CONS.HEADER_VARIANT_KEY)
         when 'setKey' then header.has(CONS.HEADER_KEY)
-        when 'addVariant', 'addPrice', 'removePrice', 'changePrice', 'addExternalImage', 'removeImage', 'setImageLabel', 'moveImageToPosition' then true
+        when 'addVariant', 'addPrice', 'removePrice', 'changePrice', 'addExternalImage', 'removeImage', 'setImageLabel', 'moveImageToPosition', 'changeMasterVariant' then true
         when 'removeVariant' then @allowRemovalOfVariants
         else throw Error "The action '#{action.action}' is not supported. Please contact the commercetools support team!"
     )
