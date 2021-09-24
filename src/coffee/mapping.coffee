@@ -233,13 +233,13 @@ class Mapping
     languageHeader2Index = @header._productTypeLanguageIndexes productType
     if productType.attributes
       for attribute in productType.attributes
-        attrib = if attribute.attributeConstraint is CONS.ATTRIBUTE_CONSTRAINT_SAME_FOR_ALL and variantId > 1
-          _.find product.masterVariant.attributes, (a) ->
-            a.name is attribute.name
-        else
-          @mapAttribute rawVariant, attribute, languageHeader2Index, rowIndex
+        attrib = undefined
+        if attribute.attributeConstraint is CONS.ATTRIBUTE_CONSTRAINT_SAME_FOR_ALL
+          attrib =  _.find product.masterVariant.attributes, (a) -> a.name is attribute.name
+          
+        if not attrib
+          attrib =  @mapAttribute rawVariant, attribute, languageHeader2Index, rowIndex
         variant.attributes.push attrib if attrib
-
     variant.prices = @mapPrices rawVariant[@header.toIndex CONS.HEADER_PRICES], rowIndex
     variant.images = @mapImages rawVariant, variantId, rowIndex
 
