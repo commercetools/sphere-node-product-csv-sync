@@ -103,7 +103,8 @@ This means that the CSV may contain only those columns that contain changed valu
 #### Base attributes
 
 To create or update products you need to provide the following headers and columns. 
-You will always need the `productType` on the master variant. Further you need to provide the `variantId` to define the specific variants. The master variant should always have the variantId 1. 
+You will always need the `productType` on the master variant and should be blank for rest of the variants. Further you need to provide the `variantId` to define the specific variants and Master Variant should be always at the top.
+No Longer will work -> (~~The master variant should always have the variantId 1.~~)
 
 You can define the `productType` via id or name (as long as it is unique).
 Other base attributes which can be specified are `sku`, `key` and `variantKey`.
