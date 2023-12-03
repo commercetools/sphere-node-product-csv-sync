@@ -39,7 +39,12 @@ class Categories
       fqName = ''
       if category.ancestors
         _.each category.ancestors, (anchestor) =>
-          cat = categories[@id2index[anchestor.id]]
+          index = @id2index[anchestor.id]
+          if isNaN(index)
+            return
+          cat = categories[index]
+          if not cat
+            return
           name = cat.name[GLOBALS.DEFAULT_LANGUAGE]
           fqName = "#{fqName}#{name}#{GLOBALS.DELIM_CATEGORY_CHILD}"
       fqName = "#{fqName}#{category.name[GLOBALS.DEFAULT_LANGUAGE]}"
