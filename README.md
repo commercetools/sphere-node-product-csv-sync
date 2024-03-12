@@ -1,5 +1,5 @@
+# DEPRECATED
 ![commercetools logo](https://cdn.rawgit.com/commercetools/press-kit/master/PNG/72DPI/CT%20logo%20horizontal%20RGB%2072dpi.png)
-
 # Node.js Product CSV sync
 
 [![NPM](https://nodei.co/npm/sphere-node-product-csv-sync.png?downloads=true)](https://www.npmjs.org/package/sphere-node-product-csv-sync)
